@@ -30,8 +30,15 @@ const WgpuProvider: FC<DefaultProps> = ({ children }) => {
 
     if (adapter === undefined) {
       navigator.gpu
-        .requestAdapter()
-        .then((adapter) => setAdapter(adapter))
+        .requestAdapter({ powerPreference: "high-performance" })
+        .then((adapter) => {
+          adapter
+            .requestAdapterInfo()
+            .then((info) => console.log(info))
+            .catch((err) => console.warn("Error at requestAdapterInfo:", err));
+
+          setAdapter(adapter);
+        })
         .catch((err) => {
           error = err;
           setError(error);
@@ -49,9 +56,10 @@ const WgpuProvider: FC<DefaultProps> = ({ children }) => {
           throw err;
         });
     }
-    console.log(device);
   }, [device, adapter, error]);
-  return <Provider value={{ device, format, adapter, error }}>{children}</Provider>;
+  return (
+    <Provider value={{ device, format, adapter, error }}>{children}</Provider>
+  );
 };
 
 export { WgpuProvider, WgpuContext };
