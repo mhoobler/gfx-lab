@@ -11,7 +11,8 @@
     "moduleResolution": "node",
     "baseUrl": "./src",
     "typeRoots": [
-      "node_modules/@types"
+      "node_modules/@types",
+      "node_modules/@webgpu/types"
     ],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
