@@ -1,13 +1,6 @@
 import React, { createContext, FC, useEffect, useState } from "react";
 
-type WgpuState = {
-  device?: GPUDevice;
-  format?: GPUTextureFormat;
-  adapter?: GPUAdapter;
-  error?: Error;
-};
-
-const initState: WgpuState = {};
+const initState: WgpuContextState = {};
 
 const WgpuContext = createContext(initState);
 const { Provider } = WgpuContext;
