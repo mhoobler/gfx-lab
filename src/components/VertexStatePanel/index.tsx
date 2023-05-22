@@ -1,9 +1,6 @@
 import React, {FC} from "react";
 
-type Props = {
-  body: GPUVertexState;
-  handleBodyEdit: (body: GPUShaderModuleDescriptor, cb: () => void) => void;
-};
+type Props = PanelProps<GPUVertexState>;
 
 const VertexStatePanel: FC<Props> = () => {
   return (

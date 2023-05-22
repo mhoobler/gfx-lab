@@ -1,13 +1,12 @@
 import React, { ChangeEvent, FC, useState } from "react";
 
+import { Connector } from "../../components";
+
 import "./style.less";
 
-type Props = {
-  body: GPUShaderModuleDescriptor;
-  handleBodyEdit: (body: GPUShaderModuleDescriptor, cb: () => void) => void;
-};
+type Props = PanelProps<GPUShaderModuleDescriptor>;
 
-const ShaderModulePanel: FC<Props> = ({ body }) => {
+const ShaderModulePanel: FC<Props> = ({ body, children }) => {
   const [code, setCode] = useState<string>(body.code);
 
   const handleChange = (evt: ChangeEvent<HTMLTextAreaElement>) => {
@@ -21,6 +20,7 @@ const ShaderModulePanel: FC<Props> = ({ body }) => {
       <form className="shader-module-descriptor">
         <br />
         <textarea value={code} onChange={handleChange} spellCheck="false" />
+        {children}
       </form>
     </>
   );

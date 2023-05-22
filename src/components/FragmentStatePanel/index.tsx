@@ -1,13 +1,13 @@
 import React, {FC} from "react";
 
-type Props = {
-  body: GPUFragmentState;
-  handleBodyEdit: (body: GPUShaderModuleDescriptor, cb: () => void) => void;
-};
+type Props = PanelProps<GPUFragmentState>;
 
-const FragmentStatePanel: FC<Props> = () => {
+const FragmentStatePanel: FC<Props> = ({ body, children }) => {
+  console.log(body);
   return (
-    <div>FragmentStatePanel</div>
+    <div>
+      {children}
+    </div>
   );
 }
 

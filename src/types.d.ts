@@ -1,4 +1,6 @@
 type DefaultProps = { children: React.ReactNode };
+type n = number;
+
 type WgpuContextState = {
   device?: GPUDevice;
   format?: GPUTextureFormat;
@@ -6,7 +8,13 @@ type WgpuContextState = {
   error?: Error;
 };
 
-interface GPUCanvas {
+interface GPUCanvasPanel {
+  label: string;
   canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  ctx: GPUCanvasContext;
 }
+
+type PanelProps<T> = {
+  body: T;
+  children: React.ReactNode;
+};

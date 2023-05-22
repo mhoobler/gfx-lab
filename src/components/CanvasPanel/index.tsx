@@ -1,6 +1,8 @@
-import React from "react";
+import React, {FC} from "react";
 
-const CanvasPanel = () => {
+type Props = PanelProps<GPUCanvasPanel>;
+
+const CanvasPanel: FC<Props> = () => {
   return (
     <div>
       Canvas

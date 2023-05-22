@@ -1,9 +1,7 @@
 import React, { FC } from "react";
 
-type Props = {
-  body: GPURenderPipelineDescriptor;
-  handleBodyEdit: (body: GPURenderPipelineDescriptor, cb: () => void) => void;
-};
+type Props = PanelProps<GPURenderPipelineDescriptor>;
+
 const RenderPipelinePanel: FC<Props> = () => {
   return (
     <>
