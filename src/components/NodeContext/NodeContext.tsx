@@ -1,12 +1,19 @@
 import React, { useCallback, useMemo, useReducer } from "react";
 import { createContext, FC } from "react";
 //import nodeReducer from "./reducer";
-import NodeManager, { getAllNodes } from "./NodeManager";
+import NodeManager, { initManagerWithJunk } from "./NodeManager";
 import { NodeContextState } from "../../data";
+import {
+  createConnection,
+  getAllConnections,
+  getAllNodes,
+  removeConnection,
+} from "../../node_utils";
 
 const NodeContext = createContext({
   state: {
     nodes: [],
+    connections: [],
   },
   dispatch: (() => {}) as React.Dispatch<any>, // eslint-disable-line
 });
@@ -18,7 +25,11 @@ type Props = {
   format: GPUTextureFormat;
 };
 const NodeProvider: FC<Props> = ({ device, children, format }) => {
-  const nm = useMemo(() => new NodeManager(device, format), [device, format]);
+  const nm = useMemo(() => {
+    let manager = new NodeManager();
+    initManagerWithJunk(manager, device, format);
+    return manager;
+  }, [device, format]);
 
   const nodeReducer = useCallback(
     (state: NodeContextState, action: any) => {
@@ -35,12 +46,27 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
           return state;
         }
-        // TODO:
-        case "LINK_NODE": {
-          console.log("LN");
 
-          return state;
+        case "LINK_SENDER_NODE": {
+          let { sender, recieverId } = payload;
+          createConnection(nm, sender, recieverId);
+
+          return {
+            nodes: state.nodes,
+            connections: getAllConnections(nm),
+          };
         }
+
+        case "DELETE_CONNECTION": {
+          let { receiverType, receiverId } = payload;
+          removeConnection(nm, receiverId, receiverType);
+
+          return {
+            nodes: state.nodes,
+            connections: getAllConnections(nm),
+          }
+        }
+
         default: {
           console.error(`nodeReducer default case`, action);
           return state;
@@ -52,6 +78,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
   const [state, dispatch] = useReducer(nodeReducer, {
     nodes: getAllNodes(nm),
+    connections: getAllConnections(nm),
   });
 
   return <Provider value={{ state, dispatch }}>{children}</Provider>;

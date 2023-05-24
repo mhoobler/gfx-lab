@@ -1,4 +1,4 @@
-export class Color implements IColor {
+export class Color {
   xyzw: [n, n, n, n];
 
   constructor(r: n, g: n, b: n, a: n = 1) {
@@ -42,15 +42,29 @@ export class Color implements IColor {
 }
 
 export interface INodeSender<T> {
+  uuid: string;
   type: GPUType;
   value: any;
-  to: NodeData<T>[];
+  to: Set<NodeData<T>>;
 }
 
-export interface INodeReceiver<T extends GPUObjectBase> {
+export interface INodeReceiver<T> {
+  uuid: string;
   type: GPUType;
   from: NodeData<T> | null;
 }
+
+export type NodeConnection = {
+  sender: {
+    uuid: string,
+    xyz: [n, n, n],
+  };
+  receiver: {
+    type: string,
+    uuid: string,
+    xyz: [n, n, n]
+  };
+};
 
 const NodeTypes = [
   "ShaderModule",
@@ -75,66 +89,77 @@ const NodeColors = {
   CanvasPanel: new Color(255, 255, 255),
 } as const;
 
-const NodeSendTypes: { [T in NodeType]: () => INodeSender<any> } = {
-  ShaderModule: () => ({
+const NodeSendTypes: { [T in NodeType]: (uuid: string) => INodeSender<any> } = {
+  ShaderModule: (uuid: string) => ({
+    uuid,
     type: "GPUShaderModule",
     value: null as GPUShaderModule,
-    to: [],
+    to: new Set(),
   }),
-  VertexState: () => ({
+  VertexState: (uuid: string) => ({
+    uuid,
     type: "GPUVertexState",
     value: null as GPUShaderModule,
-    to: [],
+    to: new Set(),
   }),
-  FragmentState: () => ({
+  FragmentState: (uuid: string) => ({
+    uuid,
     type: "GPUFragmentState",
     value: null as GPUShaderModule,
-    to: [],
+    to: new Set(),
   }),
-  RenderPipeline: () => ({
+  RenderPipeline: (uuid: string) => ({
+    uuid,
     type: "GPURenderPipeline",
     value: null as GPUShaderModule,
-    to: [],
+    to: new Set(),
   }),
-  CanvasPanel: () => ({
+  CanvasPanel: (uuid: string) => ({
+    uuid,
     type: "GPUCanvasContext",
     value: null as GPUShaderModule,
-    to: [],
+    to: new Set(),
   }),
 } as const;
 
-const NodeReceiveTypes: { [T in NodeType]: () => INodeReceiver<any>[] | null } =
-  {
-    ShaderModule: () => null,
-    VertexState: () => [
-      {
-        type: "GPUShaderModule",
-        from: null,
-      },
-    ],
-    FragmentState: () => [
-      {
-        type: "GPUShaderModule",
-        from: null,
-      },
-    ],
-    RenderPipeline: () => [
-      {
-        type: "GPUVertexState",
-        from: null,
-      },
-      {
-        type: "GPUFragmentState",
-        from: null,
-      },
-    ],
-    CanvasPanel: () => [
-      {
-        type: "GPURenderPipeline",
-        from: null,
-      },
-    ],
-  };
+const NodeReceiveTypes: {
+  [T in NodeType]: (uuid: string) => INodeReceiver<any>[] | null;
+} = {
+  ShaderModule: () => null,
+  VertexState: (uuid: string) => [
+    {
+      uuid,
+      type: "GPUShaderModule",
+      from: null,
+    },
+  ],
+  FragmentState: (uuid: string) => [
+    {
+      uuid,
+      type: "GPUShaderModule",
+      from: null,
+    },
+  ],
+  RenderPipeline: (uuid: string) => [
+    {
+      uuid,
+      type: "GPUVertexState",
+      from: null,
+    },
+    {
+      uuid,
+      type: "GPUFragmentState",
+      from: null,
+    },
+  ],
+  CanvasPanel: (uuid: string) => [
+    {
+      uuid,
+      type: "GPURenderPipeline",
+      from: null,
+    },
+  ],
+};
 
 export type NodeType = typeof NodeTypes[number];
 export type GPUType = typeof GPUTypes[number];
@@ -150,10 +175,14 @@ export interface NodeData<T> {
   type: NodeType;
   body: T;
   sender: NodeSender;
-  recievers: NodeReceivers;
+  receivers: NodeReceivers;
 }
 
 export interface NodeFactoryFunctions {
+  // Needs better type handling
+  // tsserver currently does not warn
+  // when trying to call
+  // NodeFactory.VertexState(.., body: GPURenderPipelineDescriptor)
   [key: string]: (uuid: string, xyz: [n, n, n], body: any) => NodeData<any>;
 }
 
@@ -176,19 +205,24 @@ export class NODE_SIZE {
 }
 
 const factoryHelper = (
+  uuid: string,
   type: NodeType
 ): {
   headerColor: NodeColor;
   sender: NodeSender;
-  recievers: NodeReceivers;
+  receivers: NodeReceivers;
 } => ({
   headerColor: NodeColors[type],
-  sender: NodeSendTypes[type](),
-  recievers: NodeReceiveTypes[type](),
+  sender: NodeSendTypes[type](uuid),
+  receivers: NodeReceiveTypes[type](uuid),
 });
 
 export const NodeFactory: NodeFactoryFunctions = {
-  ShaderModule: (uuid: string, xyz: [n, n, n], body: GPUShaderModuleDescriptor) => {
+  ShaderModule: (
+    uuid: string,
+    xyz: [n, n, n],
+    body: GPUShaderModuleDescriptor
+  ) => {
     let type: NodeType = "ShaderModule";
     let size: [n, n] = [400, 800];
 
@@ -198,7 +232,7 @@ export const NodeFactory: NodeFactoryFunctions = {
       size,
       type,
       body,
-      ...factoryHelper(type),
+      ...factoryHelper(uuid, type),
     };
   },
   VertexState: (uuid: string, xyz: [n, n, n], body: GPUVertexState) => {
@@ -211,7 +245,7 @@ export const NodeFactory: NodeFactoryFunctions = {
       size,
       type,
       body,
-      ...factoryHelper(type),
+      ...factoryHelper(uuid, type),
     };
   },
   FragmentState: (uuid: string, xyz: [n, n, n], body: GPUFragmentState) => {
@@ -224,7 +258,7 @@ export const NodeFactory: NodeFactoryFunctions = {
       size,
       type,
       body,
-      ...factoryHelper(type),
+      ...factoryHelper(uuid, type),
     };
   },
   RenderPipeline: (uuid: string, xyz: [n, n, n], body: GPURenderPipeline) => {
@@ -237,7 +271,7 @@ export const NodeFactory: NodeFactoryFunctions = {
       size,
       type,
       body,
-      ...factoryHelper(type),
+      ...factoryHelper(uuid, type),
     };
   },
   CanvasPanel: (uuid: string, xyz: [n, n, n], body: GPUCanvasPanel) => {
@@ -250,7 +284,7 @@ export const NodeFactory: NodeFactoryFunctions = {
       size,
       type,
       body,
-      ...factoryHelper(type),
+      ...factoryHelper(uuid, type),
     };
   },
   //FILL: (xyz: [n, n, n], body: GPUFILL) => {
@@ -263,11 +297,12 @@ export const NodeFactory: NodeFactoryFunctions = {
   //    size,
   //    type,
   //    body,
-  //    ...factoryHelper(type)
+  //    ...factoryHelper(uuid, type)
   //  };
   //},
 };
 
 export type NodeContextState = {
   nodes: NodeData<unknown>[];
+  connections: NodeConnection[];
 };
