@@ -16,10 +16,23 @@ interface GPUCanvasPanel {
 
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
   createView: (() => GPUTextureView) | null
-  drawVertecies: number;
+}
+
+interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
+  renderPassDesc: GPURenderPassDescriptorEXT
+}
+
+interface GPUDrawCall extends GPUObjectBase {
+  commandEncoderDesc: GPUCommandEncoderDescriptorEXT
+  renderPipeline?: GPURenderPipeline;
+  vertexCount: number;
+  instanceCount?: number;
+  firstVertex?: number;
+  firstInstance?: number;
 }
 
 type PanelProps<T> = {
   body: T;
+  uuid: string;
   children: React.ReactNode;
 };

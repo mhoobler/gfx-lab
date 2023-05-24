@@ -1,3 +1,4 @@
+import {getAllNodes} from "node_utils";
 import {
   NodeFactory,
   NodeData,
@@ -5,6 +6,7 @@ import {
   NodeConnection,
   GPUType,
   INodeReceiver,
+  createNodeData,
 } from "../../data";
 
 const HELLO_TRIANGLE = `@vertex fn vs(
@@ -59,6 +61,8 @@ function uuid() {
 }
 
 class NodeManager {
+  device: GPUDevice;
+  format: GPUTextureFormat;
   shaderModules: NodeData<GPUShaderModuleDescriptor>[];
   _gpuShaderModules: GPUShaderModule[];
   renderPipelines: NodeData<GPURenderPipelineDescriptor>[];
@@ -66,8 +70,11 @@ class NodeManager {
   vertexStates: NodeData<GPUVertexState>[];
   fragmentStates: NodeData<GPUFragmentState>[];
   canvasPanels: NodeData<GPUCanvasPanel>[];
+  renderPasses: NodeData<GPURenderPassDescriptorEXT>[];
+  commandEncoders: NodeData<GPUCommandEncoderDescriptorEXT>[];
+  drawCalls: NodeData<GPUDrawCall>[];
 
-  constructor() {
+  constructor(device: GPUDevice, format: GPUTextureFormat) {
     this.shaderModules = [];
     this._gpuShaderModules = [];
     this.renderPipelines = [];
@@ -75,6 +82,11 @@ class NodeManager {
     this.vertexStates = [];
     this.fragmentStates = [];
     this.canvasPanels = [];
+    this.device = device;
+    this.format = format;
+    this.renderPasses = [];
+    this.commandEncoders = [];
+    this.drawCalls = []
   }
 }
 
@@ -84,66 +96,42 @@ export function initManagerWithJunk(
   format: GPUTextureFormat
 ) {
   let z = 0;
-  const canvas = document.getElementById("test-canvas") as HTMLCanvasElement;
-  const ctx = canvas.getContext("webgpu");
 
-  ctx.configure({
-    device,
-    format,
-  });
   manager.canvasPanels = [
-    NodeFactory.CanvasPanel(uuid(), [0, 0, z++], {
-      label: "Cavnas Panel",
-      ctx,
-      canvas,
-    }),
+    NodeFactory.CanvasPanel(uuid(), [600, 200, z++]),
   ];
 
   manager.shaderModules = [
-    NodeFactory.ShaderModule(uuid(), [200, 200, z++], {
-      label: "ShaderModule",
-      code: HELLO_TRIANGLE,
-    }),
+    NodeFactory.ShaderModule(uuid(), [0, 0, z++]),
   ];
-  const mod = device.createShaderModule(manager.shaderModules[0].body);
-  manager._gpuShaderModules = [mod];
+  manager.shaderModules[0].body.code = HELLO_TRIANGLE;
 
   manager.vertexStates = [
-    NodeFactory.VertexState(uuid(), [0, 200, z++], {
-      label: "VertexState",
-      module: mod,
-      //module: null,
-      entryPoint: "vs",
-    }),
+    NodeFactory.VertexState(uuid(), [400, 0, z++]),
   ];
 
   manager.fragmentStates = [
-    NodeFactory.FragmentState(uuid(), [0, 400, z++], {
-      label: "FragmentState",
-      module: mod,
-      //module: null,
-      entryPoint: "fs",
-      targets: [{ format }],
-    }),
+    NodeFactory.FragmentState(uuid(), [400, 200, z++]),
   ];
+  manager.fragmentStates[0].body.targets = [{format}];
 
   manager.renderPipelines = [
-    NodeFactory.RenderPipeline(uuid(), [400, 0, z++], {
-      label: "Pipeline",
-      layout: "auto",
-      vertex: manager.vertexStates[0].body,
-      fragment: manager.fragmentStates[0].body,
-      //vertex: null,
-      //fragment: null,
-      primitive: {
-        topology: "triangle-strip",
-      },
-    }),
+    NodeFactory.RenderPipeline(uuid(), [600, 0, z++]),
   ];
-  const pipeline = device.createRenderPipeline(manager.renderPipelines[0].body);
-  manager._gpuRenderPipelines = [pipeline];
 
-  render(manager, device);
+  manager.renderPasses = [
+    NodeFactory.RenderPass(uuid(), [800, 200, z++]),
+  ];
+
+  manager.commandEncoders = [
+    NodeFactory.CommandEncoder(uuid(), [800, 400, z++]),
+  ]
+
+  manager.drawCalls = [
+    NodeFactory.DrawCall(uuid(), [800, 0, z++]),
+  ];
+
+  //render(manager, device);
 }
 
 export function render(manager: NodeManager, device: GPUDevice) {
@@ -157,20 +145,49 @@ export function render(manager: NodeManager, device: GPUDevice) {
         storeOp: "store",
       },
     ],
-    createView: () => manager.canvasPanels[0].body.ctx.getCurrentTexture().createView(),
-    drawVertecies: 3,
+    createView: () =>
+      manager.canvasPanels[0].body.ctx.getCurrentTexture().createView(),
   };
 
-  renderPassDescriptor.colorAttachments[0].view = renderPassDescriptor.createView();
+  renderPassDescriptor.colorAttachments[0].view =
+    renderPassDescriptor.createView();
   //renderPassDescriptor.colorAttachments[0].view = manager.canvasPanels[0].body.ctx.getCurrentTexture().createView()
   const encoder = device.createCommandEncoder({ label: "our encoder" });
   const pass = encoder.beginRenderPass(renderPassDescriptor);
   pass.setPipeline(manager._gpuRenderPipelines[0]);
-  pass.draw(renderPassDescriptor.drawVertecies); // call our vertex shader 3 times
+  pass.draw(3); // call our vertex shader 3 times
   pass.end();
 
   const commandBuffer = encoder.finish();
   device.queue.submit([commandBuffer]);
+}
+
+export function render2(manager: NodeManager) {
+  //let allNodes = getAllNodes(manager);
+
+  for(let canvasPanel of manager.canvasPanels) {
+    canvasPanel.body.ctx.configure({
+      device: manager.device,
+        format: manager.format,
+    });
+  }
+  console.log("render2");
+  for(let command of manager.commandEncoders) {
+    command.body.renderPassDesc.colorAttachments[0].view =
+      command.body.renderPassDesc.createView();
+
+    let encoder = manager.device.createCommandEncoder(command.body);
+    let pass = encoder.beginRenderPass(command.body.renderPassDesc);
+
+    for(let drawCall of manager.drawCalls) {
+      pass.setPipeline(drawCall.body.renderPipeline);
+      pass.draw(drawCall.body.vertexCount);
+      pass.end();
+    }
+
+    const commandBuffer = encoder.finish();
+    manager.device.queue.submit([commandBuffer]);
+  }
 }
 
 export default NodeManager;

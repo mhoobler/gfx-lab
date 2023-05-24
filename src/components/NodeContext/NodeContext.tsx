@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useReducer } from "react";
 import { createContext, FC } from "react";
 //import nodeReducer from "./reducer";
-import NodeManager, { initManagerWithJunk } from "./NodeManager";
-import { NodeContextState } from "../../data";
+import NodeManager, { initManagerWithJunk, render2 } from "./NodeManager";
+import { NodeContextState, NodeData } from "../../data";
 import {
   createConnection,
   getAllConnections,
@@ -26,7 +26,7 @@ type Props = {
 };
 const NodeProvider: FC<Props> = ({ device, children, format }) => {
   const nm = useMemo(() => {
-    let manager = new NodeManager();
+    let manager = new NodeManager(device, format);
     initManagerWithJunk(manager, device, format);
     return manager;
   }, [device, format]);
@@ -48,8 +48,20 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "LINK_SENDER_NODE": {
-          let { sender, recieverId } = payload;
-          createConnection(nm, sender, recieverId);
+          let { sender, receiverId } = payload;
+          createConnection(nm, sender, receiverId);
+
+          return {
+            nodes: state.nodes,
+            connections: getAllConnections(nm),
+          };
+        }
+
+        case "LINK_MULTIPLE_NODES": {
+          for (let link of payload) {
+            let { sender, receiverId } = link;
+            createConnection(nm, sender, receiverId);
+          }
 
           return {
             nodes: state.nodes,
@@ -64,7 +76,13 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
           return {
             nodes: state.nodes,
             connections: getAllConnections(nm),
-          }
+          };
+        }
+
+        case "RENDER": {
+          render2(nm);
+          
+          return state;
         }
 
         default: {

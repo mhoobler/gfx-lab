@@ -2,20 +2,17 @@ import { createConnection, removeConnection } from "../../node_utils";
 import { NodeFactory } from "../../data";
 import NodeManager from "./NodeManager";
 
-it("creates and deletes a NodeConnection", () => {
-  let manager = new NodeManager();
+const device = {
+  createShaderModule: () => {},
+} as unknown as GPUDevice;
 
-  let shaderModule = NodeFactory.ShaderModule("1", [200, 200, 0], {
-    label: "ShaderModule",
-    code: "",
-  });
+it("creates and deletes a NodeConnection", () => {
+  let manager = new NodeManager(device, null);
+
+  let shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
   manager.shaderModules.push(shaderModule);
 
-  let vertexState = NodeFactory.VertexState("2", [0, 200, 1], {
-    label: "VertexState",
-    module: null,
-    entryPoint: "vs",
-  });
+  let vertexState = NodeFactory.VertexState("2", [400, 0, 1])
   manager.vertexStates.push(vertexState);
 
   let sender = shaderModule.sender;
@@ -26,25 +23,18 @@ it("creates and deletes a NodeConnection", () => {
   expect(sender.to.size).toBe(1);
   expect(receiver.from).not.toBeFalsy();
 
-  removeConnection(manager, "2", "GPUShaderModule");
+  removeConnection(manager, "2", "ShaderModule");
   expect(sender.to.size).toBe(0);
   expect(receiver.from).toBeFalsy();
 });
 
 it("throws an error while trying to form invalid NodeConnection", () => {
-  let manager = new NodeManager();
+  let manager = new NodeManager(null, null);
 
-  let shaderModule = NodeFactory.ShaderModule("1", [200, 200, 0], {
-    label: "ShaderModule",
-    code: "",
-  });
+  let shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
   manager.shaderModules.push(shaderModule);
 
-  let vertexState = NodeFactory.VertexState("2", [0, 200, 1], {
-    label: "VertexState",
-    module: null,
-    entryPoint: "vs",
-  });
+  let vertexState = NodeFactory.VertexState("2", [400, 0, 1])
   manager.vertexStates.push(vertexState);
 
   let sender = shaderModule.sender;
@@ -57,19 +47,12 @@ it("throws an error while trying to form invalid NodeConnection", () => {
 });
 
 it("throws an error while trying to form invalid NodeConnection", () => {
-  let manager = new NodeManager();
+  let manager = new NodeManager(null, null);
 
-  let shaderModule = NodeFactory.ShaderModule("1", [200, 200, 0], {
-    label: "ShaderModule",
-    code: "",
-  });
+  let shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
   manager.shaderModules.push(shaderModule);
 
-  let vertexState = NodeFactory.VertexState("2", [0, 200, 1], {
-    label: "VertexState",
-    module: null,
-    entryPoint: "vs",
-  });
+  let vertexState = NodeFactory.VertexState("2", [400, 0, 1])
   manager.vertexStates.push(vertexState);
 
   let sender = shaderModule.sender;
@@ -81,23 +64,12 @@ it("throws an error while trying to form invalid NodeConnection", () => {
 });
 
 it("throws an error while trying to form invalid NodeConnection", () => {
-  let manager = new NodeManager();
+  let manager = new NodeManager(null, null);
 
-  let shaderModule = NodeFactory.ShaderModule("1", [200, 200, 0], {
-    label: "ShaderModule",
-    code: "",
-  });
+  let shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
   manager.shaderModules.push(shaderModule);
 
-  let pipeline = NodeFactory.RenderPipeline("2", [0, 200, 1], {
-    label: "Pipeline",
-    layout: "auto",
-    vertex: null,
-    fragment: null,
-    primitive: {
-      topology: "triangle-strip",
-    },
-  });
+  let pipeline = NodeFactory.RenderPipeline("2", [600, 0, 1]);
   manager.renderPipelines.push(pipeline);
 
   let sender = shaderModule.sender;
@@ -105,5 +77,5 @@ it("throws an error while trying to form invalid NodeConnection", () => {
 
   expect(() => {
     createConnection(manager, sender, receiverId);
-  }).toThrow(`Could not find reiever with type: ${sender.type}`);
+  }).toThrow(`Could not find receiver with type: ${sender.type}`);
 });

@@ -1,13 +1,21 @@
-svg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 999;
-  width: 100%;
-  height: 100%;
-  user-select: none;
+.node-board {
+  svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
 
-  line:hover {
-    filter: drop-shadow(0 0 5px red);
+    line:hover {
+      filter: drop-shadow(0 0 5px red);
+    }
+  }
+
+  button {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
   }
 }

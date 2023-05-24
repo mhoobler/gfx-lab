@@ -15,9 +15,12 @@ import {
   RenderPipelinePanel,
   NodeContext,
   CanvasPanel,
+  CommandEncoderPanel,
+  RenderPassPanel,
+  DrawCallPanel,
 } from "../../components";
 import Sender from "./Sender";
-import Receiver from "./Receiver"
+import Receiver from "./Receiver";
 import { relativeCoords } from "../../dnd";
 
 type Props = { data: NodeData<any>; svgRef: RefObject<SVGElement> };
@@ -26,7 +29,9 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
-  const receiverRefs = useRef<Map<string, RefObject<SVGCircleElement>>>(new Map());
+  const receiverRefs = useRef<Map<string, RefObject<SVGCircleElement>>>(
+    new Map()
+  );
 
   const handleMouseDown = (evt: React.MouseEvent<HTMLDivElement>) => {
     if (!svgRef.current || !gRef.current || !senderRef.current) {
@@ -44,26 +49,31 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
 
     const handleMouseMove: any = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
-      // eslint-disable-line
-      const moveX = evt2.clientX + dx;
-      const moveY = evt2.clientY + dy;
+        // eslint-disable-line
+        const moveX = evt2.clientX + dx;
+        const moveY = evt2.clientY + dy;
 
-
-      gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
-      for(let sender of senders) {
-        let cx = parseInt(senderRef.current.getAttribute("cx"));
-        let cy = parseInt(senderRef.current.getAttribute("cy"));
-        console.log(cx, cy);
-        sender.setAttribute("x1", (moveX + cx).toString());
-        sender.setAttribute("y1", (moveY + cy).toString());
-      }
-      for(let receiver of receivers) {
-        let attr = (receiver as HTMLElement).dataset["receiverType"];
-        let ref = receiverRefs.current.get(attr);
-        receiver.setAttribute("x2", (moveX + parseInt(ref.current.getAttribute("cx"))).toString());
-        receiver.setAttribute("y2", (moveY + parseInt(ref.current.getAttribute("cy"))).toString());
-      }
-      })
+        gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
+        for (let sender of senders) {
+          let cx = parseInt(senderRef.current.getAttribute("cx"));
+          let cy = parseInt(senderRef.current.getAttribute("cy"));
+          console.log(cx, cy);
+          sender.setAttribute("x1", (moveX + cx).toString());
+          sender.setAttribute("y1", (moveY + cy).toString());
+        }
+        for (let receiver of receivers) {
+          let attr = (receiver as HTMLElement).dataset["receiverType"];
+          let ref = receiverRefs.current.get(attr);
+          receiver.setAttribute(
+            "x2",
+            (moveX + parseInt(ref.current.getAttribute("cx"))).toString()
+          );
+          receiver.setAttribute(
+            "y2",
+            (moveY + parseInt(ref.current.getAttribute("cy"))).toString()
+          );
+        }
+      });
     };
 
     const handleMouseUp: any = (evt2: MouseEvent) => {
@@ -81,14 +91,11 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
   };
 
   // hexValue does not work
-  const backgroundColor = data.headerColor.rgbaValue();
+  const backgroundColor = data.headerColor.rgbaString();
 
   return (
     <g ref={gRef} transform={`translate(${data.xyz[0]}, ${data.xyz[1]})`}>
-      <foreignObject
-        width={data.size[0]}
-        height={data.size[1]}
-      >
+      <foreignObject width={data.size[0]} height={data.size[1]}>
         <div className="node-card">
           <div
             className="node-header"
@@ -99,34 +106,68 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
           </div>
           <div className="node-body">
             {data.type === "ShaderModule" ? (
-              <ShaderModulePanel body={data.body}><></></ShaderModulePanel>
+              <ShaderModulePanel uuid={data.uuid} body={data.body}>
+                <></>
+              </ShaderModulePanel>
             ) : data.type === "VertexState" ? (
-              <VertexStatePanel body={data.body}><></></VertexStatePanel>
+              <VertexStatePanel uuid={data.uuid} body={data.body}>
+                <></>
+              </VertexStatePanel>
             ) : data.type === "FragmentState" ? (
-              <FragmentStatePanel body={data.body}><></></FragmentStatePanel>
+              <FragmentStatePanel uuid={data.uuid} body={data.body}>
+                <></>
+              </FragmentStatePanel>
             ) : data.type === "RenderPipeline" ? (
-              <RenderPipelinePanel body={data.body}><></></RenderPipelinePanel>
+              <RenderPipelinePanel uuid={data.uuid} body={data.body}>
+                <></>
+              </RenderPipelinePanel>
             ) : data.type === "CanvasPanel" ? (
-              <CanvasPanel body={data.body}><></></CanvasPanel>
+              <CanvasPanel uuid={data.uuid} body={data.body}>
+                <></>
+              </CanvasPanel>
+            ) : data.type === "CommandEncoder" ? (
+              <CommandEncoderPanel uuid={data.uuid} body={data.body}>
+                <></>
+              </CommandEncoderPanel>
+            ) : data.type === "RenderPass" ? (
+              <RenderPassPanel uuid={data.uuid} body={data.body}>
+                <></>
+              </RenderPassPanel>
+            ) : data.type === "DrawCall" ? (
+              <DrawCallPanel uuid={data.uuid} body={data.body}>
+                <></>
+              </DrawCallPanel>
             ) : (
-              <p> Help </p>
+              (() => {
+                console.error("Node.tsx fallthrough case");
+                return (<div></div>)
+              })()
             )}
           </div>
         </div>
       </foreignObject>
-      <Sender svgRef={svgRef} sender={data.sender} senderRef={senderRef} width={data.size[0]}/>
+      <Sender
+        svgRef={svgRef}
+        sender={data.sender}
+        senderRef={senderRef}
+        width={data.size[0]}
+      />
       {data.receivers &&
-        data.receivers.map((receiver: INodeReceiver<GPUObjectBase>, index: number) => {
-        let f = createRef<any>();
-        receiverRefs.current.set(receiver.type, f);
-          return (<Receiver
-            svgRef={svgRef}
-            key={receiver.uuid + receiver.type}
-            receiver={receiver}
-            receiverRef={f}
-            index={index}
-          />)
-        })}
+        data.receivers.map(
+          (receiver: INodeReceiver<GPUObjectBase>, index: number) => {
+            let f = createRef<any>();
+            receiverRefs.current.set(receiver.type, f);
+            return (
+              <Receiver
+                svgRef={svgRef}
+                key={receiver.uuid + receiver.type}
+                receiver={receiver}
+                receiverRef={f}
+                index={index}
+              />
+            );
+          }
+        )}
     </g>
   );
 };

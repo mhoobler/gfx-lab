@@ -53,8 +53,8 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
     const handleMouseUp: any = (evt2: MouseEvent) => {
       // eslint-disable-line
       if (elm && correctType) {
-        let recieverId = elm.dataset["uuid"];
-        dispatch({ type: "LINK_SENDER_NODE", payload: { sender, recieverId } });
+        let receiverId = elm.dataset["uuid"];
+        dispatch({ type: "LINK_SENDER_NODE", payload: { sender, receiverId } });
 
         svgRef.current.removeChild(line);
         elm.style.filter = "";

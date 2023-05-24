@@ -7,5 +7,9 @@ export {default as ShaderModulePanel} from "./ShaderModulePanel/ShaderModulePane
 export {default as FragmentStatePanel} from "./FragmentStatePanel/FragmentStatePanel";
 export {default as VertexStatePanel} from "./VertexStatePanel/VertexStatePanel";
 export {default as RenderPipelinePanel} from "./RenderPipelinePanel/RenderPipelinePanel";
+export {default as RenderPassPanel} from "./RenderPassPanel/RenderPassPanel";
 export {default as CanvasPanel} from "./CanvasPanel/CanvasPanel";
+export {default as CommandEncoderPanel} from "./CommandEncoderPanel/CommandEncoderPanel";
+export {default as DrawCallPanel} from "./DrawCallPanel/DrawCallPanel";
+
 export {default as Connection} from "./Connection/Connection";

@@ -1,10 +1,10 @@
 import NodeManager from "../components/NodeContext/NodeManager";
 import {
-  GPUType,
   INodeReceiver,
   INodeSender,
   NodeConnection,
   NodeData,
+  NodeType,
 } from "../data";
 
 export function getAllNodes(manager: NodeManager) {
@@ -14,6 +14,9 @@ export function getAllNodes(manager: NodeManager) {
     ...manager.renderPipelines,
     ...manager.vertexStates,
     ...manager.fragmentStates,
+    ...manager.renderPasses,
+    ...manager.commandEncoders,
+    ...manager.drawCalls,
   ].sort((a, b) => a.xyz[2] - b.xyz[2]);
 
   arr.forEach((n: NodeData<any>, i: number) => {
@@ -59,7 +62,11 @@ export function getAllConnections(manager: NodeManager): NodeConnection[] {
       let { receivers } = receiverNode;
 
       for (let receiver of receivers) {
-        connections.push(getNodeConnection(senderNode, receiverNode, receiver));
+        if (receiver.type === senderNode.type) {
+          connections.push(
+            getNodeConnection(senderNode, receiverNode, receiver)
+          );
+        }
       }
     }
   }
@@ -70,7 +77,7 @@ export function getAllConnections(manager: NodeManager): NodeConnection[] {
 export function removeConnection(
   manager: NodeManager,
   receiverId: string,
-  receiverType: GPUType
+  receiverType: NodeType
 ) {
   let nodes = getAllNodes(manager);
 
@@ -86,7 +93,7 @@ export function removeConnection(
     (rec) => rec.type === receiverType
   );
   if (!receiver) {
-    throw new Error(`Could not find reiever with type: ${receiverType}`);
+    throw new Error(`Could not find receiver with type: ${receiverType}`);
   }
   if (receiver.from === null) {
     return console.warn(
@@ -109,17 +116,19 @@ export function removeConnection(
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
-  s: INodeSender<any>,
+  s: INodeSender<any, any>,
   receiverId: string
 ) {
   let nodes = getAllNodes(manager);
 
-  let senderNode = nodes.find((node) => node.uuid === s.uuid);
+  let senderNode: NodeData<any> = nodes.find((node) => node.uuid === s.uuid);
   if (!senderNode) {
     throw new Error(`Could not find senderNode with uuid: ${s.uuid}`);
   }
 
-  let receiverNode = nodes.find((node) => node.uuid === receiverId);
+  let receiverNode: NodeData<any> = nodes.find(
+    (node) => node.uuid === receiverId
+  );
   if (!receiverNode) {
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
@@ -127,32 +136,47 @@ export function createConnection(
   let r =
     receiverNode && receiverNode.receivers.find((rec) => rec.type === s.type);
   if (!r) {
-    throw new Error(`Could not find reiever with type: ${s.type}`);
+    throw new Error(`Could not find receiver with type: ${s.type}`);
   }
 
   r.from = senderNode;
   s.to.add(receiverNode);
-}
 
-function applyConnection(device:GPUDevice, senderNode: NodeData<any>, receiverNode: NodeData<any>) {
-  switch(senderNode.type) {
+  switch (senderNode.type) {
     case "ShaderModule": {
-      receiverNode.body.module = device.createShaderModule(senderNode.body);
+      receiverNode.body.module = manager.device.createShaderModule(
+        senderNode.body
+      );
+      break;
     }
     case "VertexState": {
-      receiverNode.body.vertex = senderNode.body
+      receiverNode.body.vertex = senderNode.body;
+      break;
     }
     case "FragmentState": {
-      receiverNode.body.fragment = senderNode.body
+      receiverNode.body.fragment = senderNode.body;
+      break;
     }
     case "RenderPipeline": {
-
+      receiverNode.body.renderPipeline = manager.device.createRenderPipeline(
+        senderNode.body
+      );
+      break;
     }
     case "CanvasPanel": {
-      let createView = senderNode.body.ctx.getCurrentTexture().createView;
+      let createView = () =>
+        senderNode.body.ctx.getCurrentTexture().createView();
       receiverNode.body.createView = createView;
+      break;
     }
-
+    case "RenderPass": {
+      receiverNode.body.renderPassDesc = senderNode.body;
+      break;
+    }
+    default: {
+      throw new Error(
+        "Fallthrough case, connection not created: " + senderNode.type
+      );
+    }
   }
-
 }

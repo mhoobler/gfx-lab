@@ -9,9 +9,9 @@ const App: React.FC = () => {
     <div>
       { device && format &&
       <React.StrictMode>
-      <NodeProvider device={device} format={format}>
-        <NodeBoard />
-      </NodeProvider>
+        <NodeProvider device={device} format={format}>
+          <NodeBoard />
+        </NodeProvider>
       </React.StrictMode>
       }
     </div>
