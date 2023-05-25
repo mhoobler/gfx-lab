@@ -9,7 +9,7 @@
     "jsx": "react",
     "sourceMap": true,
     "moduleResolution": "node",
-    "baseUrl": "./src",
+    "baseUrl": "src",
     "typeRoots": [
       "node_modules/@types",
       "node_modules/@webgpu/types"
@@ -18,9 +18,11 @@
     "esModuleInterop": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "rootDirs": ["src"]
   },
   "include": [
+    "src",
     "src/**/*"
   ]
 }

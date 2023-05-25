@@ -1,0 +1,24 @@
+foreignObject {
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  box-shadow: 0 0 10px black;
+
+  .node-header {
+    color: black;
+    text-align: center;
+    border-radius: 5 5 0 0;
+    user-select: none;
+  }
+
+  .node-header:hover {
+    background-color: cyan;
+  }
+
+  .fi {
+    border-radius: 15px;
+  }
+
+  .node-body > *:not(form) {
+    pointer-events: none;
+  }
+}
