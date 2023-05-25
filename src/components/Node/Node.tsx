@@ -1,8 +1,5 @@
 import {
   NodeData,
-  NODE_COLORS,
-  NodeSender,
-  NodeReceivers,
   INodeReceiver,
 } from "../../data";
 import React, { FC, RefObject, createRef, useContext, useRef } from "react";
@@ -23,9 +20,10 @@ import Sender from "./Sender";
 import Receiver from "./Receiver";
 import { relativeCoords } from "../../dnd";
 
+// eslint-disable-next-line
 type Props = { data: NodeData<any>; svgRef: RefObject<SVGElement> };
 
-const Node: React.FC<Props> = ({ data, svgRef }) => {
+const Node: FC<Props> = ({ data, svgRef }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
@@ -38,32 +36,33 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
       throw new Error("Ref error");
     }
 
-    let e = evt as unknown as MouseEvent;
+    const e = evt as unknown as MouseEvent;
     const [dx, dy] = relativeCoords(e);
 
     svgRef.current.removeChild(gRef.current);
     svgRef.current.appendChild(gRef.current);
 
-    let senders = document.querySelectorAll(`.sender-${data.uuid}`);
-    let receivers = document.querySelectorAll(`.receiver-${data.uuid}`);
+    const senders = document.querySelectorAll(`.sender-${data.uuid}`);
+    const receivers = document.querySelectorAll(`.receiver-${data.uuid}`);
 
+    // eslint-disable-next-line
     const handleMouseMove: any = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
-        // eslint-disable-line
         const moveX = evt2.clientX + dx;
         const moveY = evt2.clientY + dy;
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
-        for (let sender of senders) {
-          let cx = parseInt(senderRef.current.getAttribute("cx"));
-          let cy = parseInt(senderRef.current.getAttribute("cy"));
-          console.log(cx, cy);
-          sender.setAttribute("x1", (moveX + cx).toString());
+        for (const sender of senders) {
+          const cx = parseInt(senderRef.current.getAttribute("cx"));
+          const cy = parseInt(senderRef.current.getAttribute("cy"));
+          const r = parseInt(senderRef.current.getAttribute("r"));
+
+          sender.setAttribute("x1", (moveX + cx + r).toString());
           sender.setAttribute("y1", (moveY + cy).toString());
         }
-        for (let receiver of receivers) {
-          let attr = (receiver as HTMLElement).dataset["receiverType"];
-          let ref = receiverRefs.current.get(attr);
+        for (const receiver of receivers) {
+          const attr = (receiver as HTMLElement).dataset["receiverType"];
+          const ref = receiverRefs.current.get(attr);
           receiver.setAttribute(
             "x2",
             (moveX + parseInt(ref.current.getAttribute("cx"))).toString()
@@ -76,8 +75,8 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
       });
     };
 
+    // eslint-disable-next-line
     const handleMouseUp: any = (evt2: MouseEvent) => {
-      // eslint-disable-line
       const x = evt2.clientX + dx;
       const y = evt2.clientY + dy;
       dispatch({ type: "MOVE_NODE", payload: { x, y, data } });
@@ -155,12 +154,12 @@ const Node: React.FC<Props> = ({ data, svgRef }) => {
       {data.receivers &&
         data.receivers.map(
           (receiver: INodeReceiver<GPUObjectBase>, index: number) => {
-            let f = createRef<any>();
+            const f = createRef<SVGCircleElement>();
             receiverRefs.current.set(receiver.type, f);
             return (
               <Receiver
                 svgRef={svgRef}
-                key={receiver.uuid + receiver.type}
+                key={receiver.uuid + receiver.type + index}
                 receiver={receiver}
                 receiverRef={f}
                 index={index}

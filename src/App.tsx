@@ -2,6 +2,8 @@ import React, { useContext } from "react";
 import { WgpuContext } from "./wgpu";
 import { NodeBoard, NodeProvider } from "./components";
 
+import "./style.less";
+
 const App: React.FC = () => {
   const { device, format } = useContext(WgpuContext);
 

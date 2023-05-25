@@ -8,35 +8,28 @@ import {
 } from "../data";
 
 export function getAllNodes(manager: NodeManager) {
-  let arr = [
-    ...manager.canvasPanels,
-    ...manager.shaderModules,
-    ...manager.renderPipelines,
-    ...manager.vertexStates,
-    ...manager.fragmentStates,
-    ...manager.renderPasses,
-    ...manager.commandEncoders,
-    ...manager.drawCalls,
-  ].sort((a, b) => a.xyz[2] - b.xyz[2]);
+  const arr = [...Object.values(manager.nodes)].sort(
+    (a, b) => a.xyz[2] - b.xyz[2]
+  );
 
-  arr.forEach((n: NodeData<any>, i: number) => {
+  arr.forEach((n: NodeData<unknown>, i: number) => {
     n.xyz[2] = i;
   });
   return arr;
 }
 
 function getNodeConnection(
-  senderNode: NodeData<any>,
-  receiverNode: NodeData<any>,
-  receiver: INodeReceiver<any>
+  senderNode: NodeData<unknown>,
+  receiverNode: NodeData<unknown>,
+  receiver: INodeReceiver<unknown>
 ): NodeConnection {
-  let receiverXYZ: [n, n, n] = [...receiverNode.xyz];
-  let i = receiverNode.receivers.findIndex((r) => r === receiver);
-  receiverXYZ[0] += 10;
-  receiverXYZ[1] += 40 + 40 * i;
+  const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
+  const i = receiverNode.receivers.findIndex((r) => r === receiver);
+  receiverXYZ[0] += 8;
+  receiverXYZ[1] += 30 + 30 * i;
 
-  let senderXYZ: [n, n, n] = [...senderNode.xyz];
-  senderXYZ[0] += senderNode.size[0] - 10;
+  const senderXYZ: [n, n, n] = [...senderNode.xyz];
+  senderXYZ[0] += senderNode.size[0];
   senderXYZ[1] += 30;
 
   return {
@@ -53,15 +46,15 @@ function getNodeConnection(
 }
 
 export function getAllConnections(manager: NodeManager): NodeConnection[] {
-  let connections: NodeConnection[] = [];
+  const connections: NodeConnection[] = [];
 
-  for (let senderNode of getAllNodes(manager)) {
-    let { sender } = senderNode;
+  for (const senderNode of getAllNodes(manager)) {
+    const { sender } = senderNode;
 
-    for (let receiverNode of sender.to) {
-      let { receivers } = receiverNode;
+    for (const receiverNode of sender.to) {
+      const { receivers } = receiverNode;
 
-      for (let receiver of receivers) {
+      for (const receiver of receivers) {
         if (receiver.type === senderNode.type) {
           connections.push(
             getNodeConnection(senderNode, receiverNode, receiver)
@@ -79,9 +72,9 @@ export function removeConnection(
   receiverId: string,
   receiverType: NodeType
 ) {
-  let nodes = getAllNodes(manager);
+  const nodes = getAllNodes(manager);
 
-  let receiverNode = nodes.find((node) => node.uuid === receiverId);
+  const receiverNode = nodes.find((node) => node.uuid === receiverId);
   if (!receiverNode) {
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
@@ -89,7 +82,7 @@ export function removeConnection(
     throw new Error(`receiverNode does not have receivers: ${receiverNode}`);
   }
 
-  let receiver = receiverNode.receivers.find(
+  const receiver = receiverNode.receivers.find(
     (rec) => rec.type === receiverType
   );
   if (!receiver) {
@@ -101,13 +94,13 @@ export function removeConnection(
     );
   }
 
-  let senderNode = nodes.find((node) => node.uuid === receiver.from.uuid);
+  const senderNode = nodes.find((node) => node.uuid === receiver.from.uuid);
   if (!senderNode) {
     throw new Error(
       `Could not find senderNode with uuid: ${receiver.from.uuid}`
     );
   }
-  let sender = senderNode.sender;
+  const sender = senderNode.sender;
 
   sender.to.delete(receiverNode);
   receiver.from = null;
@@ -116,31 +109,31 @@ export function removeConnection(
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
-  s: INodeSender<any, any>,
+  sender: INodeSender<unknown, unknown>,
   receiverId: string
 ) {
-  let nodes = getAllNodes(manager);
+  const nodes = getAllNodes(manager);
 
-  let senderNode: NodeData<any> = nodes.find((node) => node.uuid === s.uuid);
+  const senderNode: NodeData<unknown> = nodes.find((node) => node.uuid === sender.uuid);
   if (!senderNode) {
-    throw new Error(`Could not find senderNode with uuid: ${s.uuid}`);
+    throw new Error(`Could not find senderNode with uuid: ${sender.uuid}`);
   }
 
-  let receiverNode: NodeData<any> = nodes.find(
+  const receiverNode: NodeData<unknown> = nodes.find(
     (node) => node.uuid === receiverId
   );
   if (!receiverNode) {
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
 
-  let r =
-    receiverNode && receiverNode.receivers.find((rec) => rec.type === s.type);
-  if (!r) {
-    throw new Error(`Could not find receiver with type: ${s.type}`);
+  const receiver =
+    receiverNode && receiverNode.receivers.find((rec) => rec.type === sender.type);
+  if (!receiver) {
+    throw new Error(`Could not find receiver with type: ${sender.type}`);
   }
 
-  r.from = senderNode;
-  s.to.add(receiverNode);
+  receiver.from = senderNode;
+  sender.to.add(receiverNode);
 
   switch (senderNode.type) {
     case "ShaderModule": {
@@ -164,13 +157,16 @@ export function createConnection(
       break;
     }
     case "CanvasPanel": {
-      let createView = () =>
+      const createView = () =>
         senderNode.body.ctx.getCurrentTexture().createView();
       receiverNode.body.createView = createView;
       break;
     }
     case "RenderPass": {
       receiverNode.body.renderPassDesc = senderNode.body;
+      break;
+    }
+    case "DrawCall": {
       break;
     }
     default: {

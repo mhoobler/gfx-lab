@@ -13,7 +13,7 @@ it("initializes React", () => {
 });
 
 it("tests drag and drop utility functions", () => {
-  let elm = {
+  const elm = {
     getBoundingClientRect: () => ({
       x: 20,
       y: 30,
@@ -21,18 +21,18 @@ it("tests drag and drop utility functions", () => {
       height: 70,
     }),
   } as HTMLElement;
-  let [x, y] = centerCoords(elm);
+  const [x, y] = centerCoords(elm);
 
   expect(x).toBe(45);
   expect(y).toBe(65);
 
-  let evt = ({
+  const evt = ({
     clientX: 40, 
     clientY: 60, 
     currentTarget: elm
   } as unknown) as MouseEvent;
 
-  let [dx, dy] = relativeCoords(evt);
+  const [dx, dy] = relativeCoords(evt);
 
   expect(dx).toBe(-20);
   expect(dy).toBe(-30);

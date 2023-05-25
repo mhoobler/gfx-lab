@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useReducer } from "react";
 import { createContext, FC } from "react";
 //import nodeReducer from "./reducer";
 import NodeManager, { initManagerWithJunk, render2 } from "./NodeManager";
-import { NodeContextState, NodeData } from "../../data";
+import { NodeContextState } from "../../data";
 import {
   createConnection,
   getAllConnections,
@@ -15,7 +15,9 @@ const NodeContext = createContext({
     nodes: [],
     connections: [],
   },
-  dispatch: (() => {}) as React.Dispatch<any>, // eslint-disable-line
+  // TODO: iron out reducer action-types
+  // eslint-disable-next-line 
+  dispatch: (() => {}) as React.Dispatch<any>,
 });
 const { Provider } = NodeContext;
 
@@ -26,14 +28,15 @@ type Props = {
 };
 const NodeProvider: FC<Props> = ({ device, children, format }) => {
   const nm = useMemo(() => {
-    let manager = new NodeManager(device, format);
-    initManagerWithJunk(manager, device, format);
+    const manager = new NodeManager(device, format);
+    initManagerWithJunk(manager);
     return manager;
   }, [device, format]);
 
   const nodeReducer = useCallback(
+    // TODO: iron out reducer action-types
+    // eslint-disable-next-line 
     (state: NodeContextState, action: any) => {
-      // eslint-disable-line
       // TODO: Svg State Management
       const { type, payload } = action;
 
@@ -48,7 +51,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "LINK_SENDER_NODE": {
-          let { sender, receiverId } = payload;
+          const { sender, receiverId } = payload;
           createConnection(nm, sender, receiverId);
 
           return {
@@ -58,8 +61,8 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "LINK_MULTIPLE_NODES": {
-          for (let link of payload) {
-            let { sender, receiverId } = link;
+          for (const link of payload) {
+            const { sender, receiverId } = link;
             createConnection(nm, sender, receiverId);
           }
 
@@ -70,13 +73,32 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "DELETE_CONNECTION": {
-          let { receiverType, receiverId } = payload;
+          const { receiverType, receiverId } = payload;
           removeConnection(nm, receiverId, receiverType);
 
           return {
             nodes: state.nodes,
             connections: getAllConnections(nm),
           };
+        }
+
+        case "ADD_DRAW_CALL": {
+          const {uuid, receiver} = payload;
+          const index = state.nodes.findIndex(e => e.uuid === uuid);
+          const node = {...state.nodes[index]};
+
+          if (node.receivers.includes(receiver)) {
+            return state;
+          }
+
+          node.receivers.push(receiver);
+          state.nodes[index] = node;
+
+          return {
+            nodes: getAllNodes(nm),
+            connections: state.connections
+          };
+
         }
 
         case "RENDER": {

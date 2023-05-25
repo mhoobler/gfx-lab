@@ -1,3 +1,4 @@
+/* eslint-disable */
 export class Color {
   static Red = new Color(255, 0, 0);
   static Green = new Color(0, 255, 0);
@@ -14,11 +15,11 @@ export class Color {
   }
 
   hexString() {
-    let [r, g, b, _] = this.xyzw;
+    const [r, g, b] = this.xyzw;
     return `${((r << 16) + (g << 8) + b).toString(16)}`;
   }
   rgbaString() {
-    let [r, g, b, a] = this.xyzw;
+    const [r, g, b, a] = this.xyzw;
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
 }
@@ -48,7 +49,7 @@ export type NodeConnection = {
   };
 };
 
-const NodeTypes = [
+export const NodeTypes = [
   "ShaderModule",
   "VertexState",
   "FragmentState",
@@ -132,6 +133,11 @@ const NodeReceiveTypes: {
     {
       uuid,
       type: "RenderPass",
+      from: null,
+    },
+    {
+      uuid,
+      type: "DrawCall",
       from: null,
     },
   ],

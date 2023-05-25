@@ -4,7 +4,7 @@ import { INodeReceiver } from "data";
 type Props = {
   svgRef: RefObject<SVGElement>;
   receiver: INodeReceiver<GPUObjectBase>;
-  receiverRef: any;
+  receiverRef: RefObject<SVGCircleElement>;
   index: number;
 };
 const Receiver: FC<Props> = ({ receiver, index, receiverRef }) => {
@@ -15,8 +15,8 @@ const Receiver: FC<Props> = ({ receiver, index, receiverRef }) => {
       className="receiver"
       data-receiver-type={receiver.type}
       data-uuid={receiver.uuid}
-      cx="10"
-      cy={40 + 40 * index}
+      cx="8"
+      cy={30 + 30 * index}
       r="10"
     />
   );

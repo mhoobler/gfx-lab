@@ -1,13 +1,4 @@
-import {getAllNodes} from "node_utils";
-import {
-  NodeFactory,
-  NodeData,
-  INodeSender,
-  NodeConnection,
-  GPUType,
-  INodeReceiver,
-  createNodeData,
-} from "../../data";
+import { NodeFactory, NodeData, NodeType, NodeTypes } from "../../data";
 
 const HELLO_TRIANGLE = `@vertex fn vs(
   @builtin(vertex_index) vertexIndex : u32
@@ -25,17 +16,17 @@ const HELLO_TRIANGLE = `@vertex fn vs(
   return vec4f(1.0, 0.0, 0.0, 1.0);
 }`;
 
-var lut = [];
-for (var i = 0; i < 256; i++) {
+const lut = [];
+for (let i = 0; i < 256; i++) {
   lut[i] = (i < 16 ? "0" : "") + i.toString(16);
 }
 
 // https://stackoverflow.com/a/21963136/10606203
 function uuid() {
-  var d0 = (Math.random() * 0xffffffff) | 0;
-  var d1 = (Math.random() * 0xffffffff) | 0;
-  var d2 = (Math.random() * 0xffffffff) | 0;
-  var d3 = (Math.random() * 0xffffffff) | 0;
+  const d0 = (Math.random() * 0xffffffff) | 0;
+  const d1 = (Math.random() * 0xffffffff) | 0;
+  const d2 = (Math.random() * 0xffffffff) | 0;
+  const d3 = (Math.random() * 0xffffffff) | 0;
   return (
     lut[d0 & 0xff] +
     lut[(d0 >> 8) & 0xff] +
@@ -60,128 +51,76 @@ function uuid() {
   );
 }
 
+type ByCategory = { [Property in keyof NodeType]: string[] };
 class NodeManager {
   device: GPUDevice;
   format: GPUTextureFormat;
-  shaderModules: NodeData<GPUShaderModuleDescriptor>[];
-  _gpuShaderModules: GPUShaderModule[];
-  renderPipelines: NodeData<GPURenderPipelineDescriptor>[];
-  _gpuRenderPipelines: GPURenderPipeline[];
-  vertexStates: NodeData<GPUVertexState>[];
-  fragmentStates: NodeData<GPUFragmentState>[];
-  canvasPanels: NodeData<GPUCanvasPanel>[];
-  renderPasses: NodeData<GPURenderPassDescriptorEXT>[];
-  commandEncoders: NodeData<GPUCommandEncoderDescriptorEXT>[];
-  drawCalls: NodeData<GPUDrawCall>[];
+  // eslint-disable-next-line
+  nodes: { [key: string]: NodeData<any> };
+  byCategory: ByCategory;
 
   constructor(device: GPUDevice, format: GPUTextureFormat) {
-    this.shaderModules = [];
-    this._gpuShaderModules = [];
-    this.renderPipelines = [];
-    this._gpuRenderPipelines = [];
-    this.vertexStates = [];
-    this.fragmentStates = [];
-    this.canvasPanels = [];
     this.device = device;
     this.format = format;
-    this.renderPasses = [];
-    this.commandEncoders = [];
-    this.drawCalls = []
+
+    this.nodes = {};
+    const byCategory = {};
+    for (const nodeType of NodeTypes) {
+      byCategory[nodeType] = [];
+    }
+    this.byCategory = byCategory as ByCategory;
   }
 }
 
-export function initManagerWithJunk(
-  manager: NodeManager,
-  device: GPUDevice,
-  format: GPUTextureFormat
-) {
-  let z = 0;
-
-  manager.canvasPanels = [
-    NodeFactory.CanvasPanel(uuid(), [600, 200, z++]),
-  ];
-
-  manager.shaderModules = [
-    NodeFactory.ShaderModule(uuid(), [0, 0, z++]),
-  ];
-  manager.shaderModules[0].body.code = HELLO_TRIANGLE;
-
-  manager.vertexStates = [
-    NodeFactory.VertexState(uuid(), [400, 0, z++]),
-  ];
-
-  manager.fragmentStates = [
-    NodeFactory.FragmentState(uuid(), [400, 200, z++]),
-  ];
-  manager.fragmentStates[0].body.targets = [{format}];
-
-  manager.renderPipelines = [
-    NodeFactory.RenderPipeline(uuid(), [600, 0, z++]),
-  ];
-
-  manager.renderPasses = [
-    NodeFactory.RenderPass(uuid(), [800, 200, z++]),
-  ];
-
-  manager.commandEncoders = [
-    NodeFactory.CommandEncoder(uuid(), [800, 400, z++]),
-  ]
-
-  manager.drawCalls = [
-    NodeFactory.DrawCall(uuid(), [800, 0, z++]),
-  ];
-
-  //render(manager, device);
+// eslint-disable-next-line
+export function addNode(manager: NodeManager, node: NodeData<any>): string {
+  manager.byCategory[node.type].push(node.uuid);
+  manager.nodes[node.uuid] = node;
+  return node.uuid;
 }
 
-export function render(manager: NodeManager, device: GPUDevice) {
-  const renderPassDescriptor: GPURenderPassDescriptorEXT = {
-    label: "our basic canvas renderPass",
-    colorAttachments: [
-      {
-        view: undefined,
-        clearValue: [0.0, 0.0, 0.3, 1],
-        loadOp: "clear",
-        storeOp: "store",
-      },
-    ],
-    createView: () =>
-      manager.canvasPanels[0].body.ctx.getCurrentTexture().createView(),
-  };
+export function initManagerWithJunk(manager: NodeManager) {
+  let z = 0;
 
-  renderPassDescriptor.colorAttachments[0].view =
-    renderPassDescriptor.createView();
-  //renderPassDescriptor.colorAttachments[0].view = manager.canvasPanels[0].body.ctx.getCurrentTexture().createView()
-  const encoder = device.createCommandEncoder({ label: "our encoder" });
-  const pass = encoder.beginRenderPass(renderPassDescriptor);
-  pass.setPipeline(manager._gpuRenderPipelines[0]);
-  pass.draw(3); // call our vertex shader 3 times
-  pass.end();
-
-  const commandBuffer = encoder.finish();
-  device.queue.submit([commandBuffer]);
+  let id: string;
+  addNode(manager, NodeFactory.CanvasPanel(uuid(), [600, 200, z++]));
+  id = addNode(manager, NodeFactory.ShaderModule(uuid(), [0, 0, z++]));
+  manager.nodes[id].body.code = HELLO_TRIANGLE;
+  addNode(manager, NodeFactory.VertexState(uuid(), [400, 0, z++]));
+  id = addNode(manager, NodeFactory.FragmentState(uuid(), [400, 200, z++]));
+  manager.nodes[id].body.targets = [{ format: manager.format }]; //TODO
+  addNode(manager, NodeFactory.RenderPipeline(uuid(), [600, 0, z++]));
+  addNode(manager, NodeFactory.RenderPass(uuid(), [800, 200, z++]));
+  addNode(manager, NodeFactory.CommandEncoder(uuid(), [800, 400, z++]));
+  addNode(manager, NodeFactory.DrawCall(uuid(), [800, 0, z++]));
 }
 
 export function render2(manager: NodeManager) {
-  //let allNodes = getAllNodes(manager);
-
-  for(let canvasPanel of manager.canvasPanels) {
+  for (const cID of manager.byCategory["CanvasPanel"]) {
+    const canvasPanel = manager.nodes[cID];
     canvasPanel.body.ctx.configure({
       device: manager.device,
-        format: manager.format,
+      format: manager.format,
     });
   }
-  console.log("render2");
-  for(let command of manager.commandEncoders) {
+
+  for (const cID of manager.byCategory["CommandEncoder"]) {
+    const command = manager.nodes[cID];
     command.body.renderPassDesc.colorAttachments[0].view =
       command.body.renderPassDesc.createView();
 
-    let encoder = manager.device.createCommandEncoder(command.body);
-    let pass = encoder.beginRenderPass(command.body.renderPassDesc);
+    const encoder = manager.device.createCommandEncoder(command.body);
+    const pass = encoder.beginRenderPass(command.body.renderPassDesc);
 
-    for(let drawCall of manager.drawCalls) {
-      pass.setPipeline(drawCall.body.renderPipeline);
-      pass.draw(drawCall.body.vertexCount);
+    const lim = command.receivers.length;
+    for (let i = 1; i < lim; i++) {
+      const drawCall = command.receivers[i].from
+
+      if (drawCall && drawCall.body.renderPipeline) {
+        pass.setPipeline(drawCall.body.renderPipeline);
+        pass.draw(drawCall.body.vertexCount);
+      }
+
       pass.end();
     }
 

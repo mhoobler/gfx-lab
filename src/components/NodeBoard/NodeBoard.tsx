@@ -1,38 +1,36 @@
 import { Connection, Node, NodeContext } from "../../components";
 import { NodeConnection, NodeData } from "../../data";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
 import "./style.less";
-
-let bool = false;
 
 const NodeBoard: React.FC = () => {
   const { state, dispatch } = useContext(NodeContext);
   const svgRef = useRef(null);
 
-  console.log(bool);
-  if (!bool && state.nodes) {
-    let shaderNode = state.nodes.find((node) => node.type === "ShaderModule");
+  useEffect(() => {
+    console.log("INIT NODES");
+    const shaderNode = state.nodes.find((node) => node.type === "ShaderModule");
 
-    let vertexNode: NodeData<GPUVertexState> = state.nodes.find(
+    const vertexNode: NodeData<GPUVertexState> = state.nodes.find(
       (node) => node.type === "VertexState"
     );
-    let fragmentNode: NodeData<GPUFragmentState> = state.nodes.find(
+    const fragmentNode: NodeData<GPUFragmentState> = state.nodes.find(
       (node) => node.type === "FragmentState"
     );
-    let pipelineNode: NodeData<GPURenderPipelineDescriptor> = state.nodes.find(
+    const pipelineNode: NodeData<GPURenderPipelineDescriptor> = state.nodes.find(
       (node) => node.type === "RenderPipeline"
     );
-    let canvasNode: NodeData<GPUCanvasPanel> = state.nodes.find(
+    const canvasNode: NodeData<GPUCanvasPanel> = state.nodes.find(
       (rec) => rec.type === "CanvasPanel"
     );
-    let renderPassNode: NodeData<GPURenderPassDescriptorEXT> = state.nodes.find(
+    const renderPassNode: NodeData<GPURenderPassDescriptorEXT> = state.nodes.find(
       (rec) => rec.type === "RenderPass"
     );
-    let commandEncoderNode: NodeData<GPUCommandEncoderDescriptorEXT> = state.nodes.find(
+    const commandEncoderNode: NodeData<GPUCommandEncoderDescriptorEXT> = state.nodes.find(
       (rec) => rec.type === "CommandEncoder"
     )
-    let drawCallNode: NodeData<GPUCommandEncoderDescriptorEXT> = state.nodes.find(
+    const drawCallNode: NodeData<GPUCommandEncoderDescriptorEXT> = state.nodes.find(
       (rec) => rec.type === "DrawCall"
     )
 
@@ -55,37 +53,9 @@ const NodeBoard: React.FC = () => {
         { sender: pipelineNode.sender, receiverId: drawCallNode.uuid },
       ],
     });
-
-    //let pipelineNode: NodeData<GPURenderPipelineDescriptor> = state.nodes.find(
-    //  (node) => node.type === "RenderPipeline"
-    //);
-
-    //// Connect VertexState to Pipeline
-    //let pipelineReceiver = pipelineNode.receivers.find(
-    //  (rec) => rec.type === "VertexState"
-    //);
-    //dispatch({
-    //  type: "LINK_SENDER_NODE",
-    //  payload: { sender: vertexNode.sender, recieverId: pipelineReceiver.uuid },
-    //});
-
-    // Connect FragmentState to Pipeline
-    //pipelineReceiver = pipelineNode.receivers.find(
-    //  (rec) => rec.type === "FragmentState"
-    //);
-    //dispatch({
-    //  type: "LINK_SENDER_NODE",
-    //  payload: {
-    //    sender: fragmentNode.sender,
-    //    recieverId: pipelineReceiver.uuid,
-    //  },
-    //});
-
-    bool = true;
-  }
+  }, []);
 
   const handleClick = () => {
-    console.log("click");
     dispatch({type:"RENDER", payload: null});
   }
 
@@ -94,7 +64,7 @@ const NodeBoard: React.FC = () => {
       <button onClick={handleClick}>DRAW</button>
       <svg xmlns="http://www.w3.org/2000/svg">
         <g ref={svgRef}>
-          {state.nodes.map((data: NodeData<any>) => {
+          {state.nodes.map((data: NodeData<unknown>) => {
             return <Node key={data.sender.uuid} data={data} svgRef={svgRef} />;
           })}
         </g>

@@ -20,6 +20,7 @@ interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
 
 interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
   renderPassDesc: GPURenderPassDescriptorEXT
+  drawCall: GPUDrawCall[];
 }
 
 interface GPUDrawCall extends GPUObjectBase {

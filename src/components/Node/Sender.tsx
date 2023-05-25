@@ -6,7 +6,7 @@ import { NodeContext } from "../../components";
 type Props = {
   svgRef: RefObject<SVGElement>;
   sender: NodeSender;
-  senderRef: any;
+  senderRef: RefObject<SVGCircleElement>;
   width: number;
 };
 const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
@@ -20,22 +20,22 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
     const downTarget = evt.currentTarget as unknown as HTMLElement;
     const [cx, cy] = centerCoords(downTarget);
 
-    let line = getLine(cx, cy);
+    const line = getLine(cx, cy);
     svgRef.current.appendChild(line);
 
     let elm: HTMLElement | null;
     let correctType = false;
 
+      // eslint-disable-next-line
     const handleMouseMove: any = (evt2: MouseEvent) => {
-      // eslint-disable-line
-      let moveTarget = evt2.target as HTMLElement;
+      const moveTarget = evt2.target as HTMLElement;
       const x = evt2.clientX;
       const y = evt2.clientY;
 
       line.setAttribute("x2", x.toString());
       line.setAttribute("y2", y.toString());
 
-      let recieverType = moveTarget.dataset["receiverType"];
+      const recieverType = moveTarget.dataset["receiverType"];
       correctType = recieverType === sender.type;
 
       if (recieverType && !correctType) {
@@ -50,10 +50,10 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       }
     };
 
-    const handleMouseUp: any = (evt2: MouseEvent) => {
-      // eslint-disable-line
+      // eslint-disable-next-line
+    const handleMouseUp: any = () => {
       if (elm && correctType) {
-        let receiverId = elm.dataset["uuid"];
+        const receiverId = elm.dataset["uuid"];
         dispatch({ type: "LINK_SENDER_NODE", payload: { sender, receiverId } });
 
         svgRef.current.removeChild(line);
@@ -79,14 +79,14 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       ref={senderRef}
       cx={`${width - 10}`}
       cy="30"
-      r="10"
+      r="8"
       fill="orange"
     />
   );
 };
 
 function getLine(x: number, y: number): SVGLineElement {
-  let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
   line.setAttribute("x1", x.toString());
   line.setAttribute("y1", y.toString());
   line.setAttribute("x2", x.toString());

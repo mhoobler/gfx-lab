@@ -1,7 +1,5 @@
 import React, { ChangeEvent, FC, useState } from "react";
 
-import { Connector } from "../../components";
-
 import "./style.less";
 
 type Props = PanelProps<GPUShaderModuleDescriptor>;
