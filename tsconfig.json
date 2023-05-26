@@ -3,11 +3,12 @@
     "target": "ES2015",
     "module": "ESNext",
     "lib": [
-      "ESNext",
-      "DOM"
+      "DOM",
+      "ESNext"
     ],
-    "jsx": "react",
+    "jsx": "react-jsx",
     "sourceMap": true,
+    "noEmit": false,
     "moduleResolution": "node",
     "baseUrl": "src",
     "typeRoots": [
@@ -16,13 +17,14 @@
     ],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "isolatedModules": true,
-    "rootDirs": ["src"]
+    "declaration": false,
+    "isolatedModules": true
   },
   "include": [
     "src",
     "src/**/*"
+  ],
+  "exclude": [
+    "**/node_modules"
   ]
 }

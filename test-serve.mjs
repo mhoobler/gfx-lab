@@ -5,7 +5,7 @@ app.use("/wgpu-lab", express.static('docs'));
 app.use("/", express.static('docs'));
 
 
-app.listen(1234, () => {
-  console.log("Verify build at http://localhost:1234")
+app.listen(3000, () => {
+  console.log("Verify build at http://localhost:3000")
 });
 

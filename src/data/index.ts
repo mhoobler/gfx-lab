@@ -339,6 +339,7 @@ export const NodeFactory: {
       body: {
         label: "CommandEncoder",
         renderPassDesc: null,
+        drawCall: [],
       },
     }),
   DrawCall: (uuid, xyz): NodeData<GPUDrawCall> =>
