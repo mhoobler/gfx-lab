@@ -109,17 +109,17 @@ export function removeConnection(
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
-  sender: INodeSender<unknown, unknown>,
+  sender: INodeSender<any, any>,
   receiverId: string
 ) {
   const nodes = getAllNodes(manager);
 
-  const senderNode: NodeData<unknown> = nodes.find((node) => node.uuid === sender.uuid);
+  const senderNode: NodeData<any> = nodes.find((node) => node.uuid === sender.uuid);
   if (!senderNode) {
     throw new Error(`Could not find senderNode with uuid: ${sender.uuid}`);
   }
 
-  const receiverNode: NodeData<unknown> = nodes.find(
+  const receiverNode: NodeData<any> = nodes.find(
     (node) => node.uuid === receiverId
   );
   if (!receiverNode) {
