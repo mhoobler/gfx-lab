@@ -42,8 +42,8 @@ const Node: FC<Props> = ({ data, svgRef }) => {
     svgRef.current.removeChild(gRef.current);
     svgRef.current.appendChild(gRef.current);
 
-    const senders = document.querySelectorAll(`.sender-${data.uuid}`);
-    const receivers = document.querySelectorAll(`.receiver-${data.uuid}`);
+    const senders = document.querySelectorAll(`[data-sender-id="${data.uuid}"]`);
+    const receivers = document.querySelectorAll(`[data-receiver-id="${data.uuid}"]`);
 
     // eslint-disable-next-line
     const handleMouseMove: any = (evt2: MouseEvent) => {

@@ -15,6 +15,7 @@ const Receiver: FC<Props> = ({ receiver, index, receiverRef }) => {
       className="receiver"
       data-receiver-type={receiver.type}
       data-uuid={receiver.uuid}
+      data-index={index}
       cx="8"
       cy={30 + 30 * index}
       r="10"

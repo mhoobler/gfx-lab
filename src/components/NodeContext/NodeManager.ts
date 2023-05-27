@@ -1,4 +1,10 @@
-import { NodeFactory, NodeData, NodeType, NodeTypes } from "../../data";
+import {
+  NodeFactory,
+  NodeData,
+  NodeType,
+  NodeTypes,
+  ConnectionMap,
+} from "../../data";
 
 const HELLO_TRIANGLE = `@vertex fn vs(
   @builtin(vertex_index) vertexIndex : u32
@@ -57,11 +63,13 @@ class NodeManager {
   format: GPUTextureFormat;
   // eslint-disable-next-line
   nodes: { [key: string]: NodeData<any> };
+  connections: ConnectionMap;
   byCategory: ByCategory;
 
   constructor(device: GPUDevice, format: GPUTextureFormat) {
     this.device = device;
     this.format = format;
+    this.connections = new Map();
 
     this.nodes = {};
     const byCategory = {};
@@ -95,7 +103,7 @@ export function initManagerWithJunk(manager: NodeManager) {
   addNode(manager, NodeFactory.DrawCall(uuid(), [800, 0, z++]));
 }
 
-export function render2(manager: NodeManager) {
+export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CanvasPanel"]) {
     const canvasPanel = manager.nodes[cID];
     canvasPanel.body.ctx.configure({
@@ -106,26 +114,27 @@ export function render2(manager: NodeManager) {
 
   for (const cID of manager.byCategory["CommandEncoder"]) {
     const command = manager.nodes[cID];
-    command.body.renderPassDesc.colorAttachments[0].view =
-      command.body.renderPassDesc.createView();
+    if (command.body.renderPassDesc) {
+      command.body.renderPassDesc.colorAttachments[0].view =
+        command.body.renderPassDesc.createView();
 
-    const encoder = manager.device.createCommandEncoder(command.body);
-    const pass = encoder.beginRenderPass(command.body.renderPassDesc);
+      const encoder = manager.device.createCommandEncoder(command.body);
+      const pass = encoder.beginRenderPass(command.body.renderPassDesc);
 
-    const lim = command.receivers.length;
-    for (let i = 1; i < lim; i++) {
-      const drawCall = command.receivers[i].from
+      const lim = command.receivers.length;
+      for (let i = 1; i < lim; i++) {
+        const drawCall = command.receivers[i].from;
 
-      if (drawCall && drawCall.body.renderPipeline) {
-        pass.setPipeline(drawCall.body.renderPipeline);
-        pass.draw(drawCall.body.vertexCount);
+        if (drawCall && drawCall.body.renderPipeline) {
+          pass.setPipeline(drawCall.body.renderPipeline);
+          pass.draw(drawCall.body.vertexCount);
+        }
       }
-
       pass.end();
-    }
 
-    const commandBuffer = encoder.finish();
-    manager.device.queue.submit([commandBuffer]);
+      const commandBuffer = encoder.finish();
+      manager.device.queue.submit([commandBuffer]);
+    }
   }
 }
 

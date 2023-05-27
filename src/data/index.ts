@@ -24,6 +24,13 @@ export class Color {
   }
 }
 
+export type ConnectionMap = Map<NodeData<any>, Map<NodeData<any>, number>>;
+//export type NodeConnection2 = {
+//  senderNode: NodeData<any>,
+//  receiverNode: NodeData<any>, 
+//  receiverIndex: number,
+//};
+
 export interface INodeSender<K, T> {
   uuid: string;
   type: K;
