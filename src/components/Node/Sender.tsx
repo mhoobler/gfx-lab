@@ -35,13 +35,14 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       line.setAttribute("x2", x.toString());
       line.setAttribute("y2", y.toString());
 
+      const isReceiver = moveTarget.classList.contains("receiver");
       const recieverType = moveTarget.dataset["receiverType"];
       correctType = recieverType === sender.type;
 
-      if (recieverType && !correctType) {
+      if (isReceiver && recieverType && !correctType) {
         elm = moveTarget;
         elm.style.filter = "drop-shadow(0 0 5px red)";
-      } else if (recieverType && correctType) {
+      } else if (isReceiver && recieverType && correctType) {
         elm = moveTarget;
         elm.style.filter = "drop-shadow(0 0 5px green)";
       } else if (elm) {
@@ -54,7 +55,9 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
     const handleMouseUp: any = () => {
       if (elm && correctType) {
         const receiverId = elm.dataset["uuid"];
-        dispatch({ type: "LINK_SENDER_NODE", payload: { sender, receiverId } });
+        const receiverIndex = parseInt(elm.dataset["index"]);
+        let payload = {sender, receiverId, receiverIndex};
+        dispatch({ type: "LINK_SENDER_NODE", payload });
 
         svgRef.current.removeChild(line);
         elm.style.filter = "";

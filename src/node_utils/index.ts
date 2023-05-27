@@ -1,6 +1,5 @@
 import NodeManager from "../components/NodeContext/NodeManager";
 import {
-  INodeReceiver,
   INodeSender,
   NodeConnection,
   NodeData,
@@ -21,12 +20,11 @@ export function getAllNodes(manager: NodeManager) {
 function getNodeConnection(
   senderNode: NodeData<unknown>,
   receiverNode: NodeData<unknown>,
-  receiver: INodeReceiver<unknown>
+  receiverIndex: number,
 ): NodeConnection {
   const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
-  const i = receiverNode.receivers.findIndex((r) => r === receiver);
   receiverXYZ[0] += 8;
-  receiverXYZ[1] += 30 + 30 * i;
+  receiverXYZ[1] += 30 + 30 * receiverIndex;
 
   const senderXYZ: [n, n, n] = [...senderNode.xyz];
   senderXYZ[0] += senderNode.size[0];
@@ -38,29 +36,19 @@ function getNodeConnection(
       xyz: senderXYZ,
     },
     receiver: {
-      type: receiverNode.receivers[i].type,
+      type: receiverNode.receivers[receiverIndex].type,
       uuid: receiverNode.uuid,
       xyz: receiverXYZ,
     },
   };
 }
 
-export function getAllConnections(manager: NodeManager): NodeConnection[] {
-  const connections: NodeConnection[] = [];
+export function getAllConnections2(manager: NodeManager): NodeConnection[] {
+  let connections = [];
 
-  for (const senderNode of getAllNodes(manager)) {
-    const { sender } = senderNode;
-
-    for (const receiverNode of sender.to) {
-      const { receivers } = receiverNode;
-
-      for (const receiver of receivers) {
-        if (receiver.type === senderNode.type) {
-          connections.push(
-            getNodeConnection(senderNode, receiverNode, receiver)
-          );
-        }
-      }
+  for(let [senderNode, innerMap] of manager.connections.entries() ) {
+    for(let [receiverNode, receiverIndex] of innerMap.entries() ) {
+      connections.push(getNodeConnection(senderNode, receiverNode, receiverIndex));
     }
   }
 
@@ -69,101 +57,104 @@ export function getAllConnections(manager: NodeManager): NodeConnection[] {
 
 export function removeConnection(
   manager: NodeManager,
-  receiverId: string,
-  receiverType: NodeType
+  ids: {
+    receiverId: string,
+    senderId: string
+  }
 ) {
-  const nodes = getAllNodes(manager);
+  let {senderId, receiverId} = ids;
+  let senderNode = manager.nodes[senderId];
+  if (!senderNode) {
+    throw new Error(`Could not find senderNode with uuid: ${receiverId}`);
+  }
 
-  const receiverNode = nodes.find((node) => node.uuid === receiverId);
+  let receiverNode = manager.nodes[receiverId];
   if (!receiverNode) {
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
-  if (!receiverNode) {
-    throw new Error(`receiverNode does not have receivers: ${receiverNode}`);
-  }
 
-  const receiver = receiverNode.receivers.find(
-    (rec) => rec.type === receiverType
-  );
-  if (!receiver) {
-    throw new Error(`Could not find receiver with type: ${receiverType}`);
+  let innerMap = manager.connections.get(senderNode);
+  let receiverIndex = innerMap.get(receiverNode);
+  if(receiverIndex >= 0) {
+    receiverNode.receivers[receiverIndex].from = null;
+    senderNode.sender.to.delete(receiverNode);
+    innerMap.delete(receiverNode);
+    finalizeConnection(manager, senderNode, receiverNode, true);
   }
-  if (receiver.from === null) {
-    return console.warn(
-      "Dev tools reruns this function in reducer, which causes an error in dev builds. If connection gets deleted, it's probably fine."
-    );
-  }
-
-  const senderNode = nodes.find((node) => node.uuid === receiver.from.uuid);
-  if (!senderNode) {
-    throw new Error(
-      `Could not find senderNode with uuid: ${receiver.from.uuid}`
-    );
-  }
-  const sender = senderNode.sender;
-
-  sender.to.delete(receiverNode);
-  receiver.from = null;
 }
 
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
   sender: INodeSender<any, any>,
-  receiverId: string
+  receiverId: string,
+  receiverIndex: number
 ) {
-  const nodes = getAllNodes(manager);
-
-  const senderNode: NodeData<any> = nodes.find((node) => node.uuid === sender.uuid);
+  let senderNode = manager.nodes[sender.uuid];
   if (!senderNode) {
     throw new Error(`Could not find senderNode with uuid: ${sender.uuid}`);
   }
 
-  const receiverNode: NodeData<any> = nodes.find(
-    (node) => node.uuid === receiverId
-  );
+  let receiverNode = manager.nodes[receiverId];
   if (!receiverNode) {
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
 
   const receiver =
-    receiverNode && receiverNode.receivers.find((rec) => rec.type === sender.type);
+    receiverNode &&
+    receiverNode.receivers[receiverIndex];
   if (!receiver) {
-    throw new Error(`Could not find receiver with type: ${sender.type}`);
+    throw new Error(`Could not find receiver with index: ${receiverIndex}`);
+  }
+  if (receiver.type !== senderNode.type) {
+    throw new Error(`Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type}`);
+  }
+
+  let innerMap = manager.connections.get(senderNode);
+
+  if(innerMap) {
+    innerMap.set(receiverNode, receiverIndex);
+  } else {
+    let newInnerMap: Map<NodeData<any>, number> = new Map();
+    newInnerMap.set(receiverNode, receiverIndex);
+    manager.connections.set(senderNode, newInnerMap);
   }
 
   receiver.from = senderNode;
   sender.to.add(receiverNode);
+  finalizeConnection(manager, senderNode, receiverNode);
+}
 
+function finalizeConnection(manager: NodeManager, senderNode: NodeData<any>, receiverNode: NodeData<any>, isDelete: boolean = false) {
   switch (senderNode.type) {
     case "ShaderModule": {
-      receiverNode.body.module = manager.device.createShaderModule(
+      receiverNode.body.module = isDelete ? null : manager.device.createShaderModule(
         senderNode.body
       );
       break;
     }
     case "VertexState": {
-      receiverNode.body.vertex = senderNode.body;
+      receiverNode.body.vertex = isDelete ? null : senderNode.body;
       break;
     }
     case "FragmentState": {
-      receiverNode.body.fragment = senderNode.body;
+      receiverNode.body.fragment = isDelete ? null : senderNode.body;
       break;
     }
     case "RenderPipeline": {
-      receiverNode.body.renderPipeline = manager.device.createRenderPipeline(
+      receiverNode.body.renderPipeline = isDelete ? null : manager.device.createRenderPipeline(
         senderNode.body
       );
       break;
     }
     case "CanvasPanel": {
-      const createView = () =>
+      const createView = isDelete ? null : () =>
         senderNode.body.ctx.getCurrentTexture().createView();
       receiverNode.body.createView = createView;
       break;
     }
     case "RenderPass": {
-      receiverNode.body.renderPassDesc = senderNode.body;
+      receiverNode.body.renderPassDesc = isDelete ? null : senderNode.body;
       break;
     }
     case "DrawCall": {

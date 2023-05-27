@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo, useReducer } from "react";
 import { createContext, FC } from "react";
 //import nodeReducer from "./reducer";
-import NodeManager, { initManagerWithJunk, render2 } from "./NodeManager";
+import NodeManager, { initManagerWithJunk, render } from "./NodeManager";
 import { NodeContextState } from "../../data";
 import {
   createConnection,
-  getAllConnections,
+  getAllConnections2,
   getAllNodes,
   removeConnection,
 } from "../../node_utils";
@@ -51,34 +51,37 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "LINK_SENDER_NODE": {
-          const { sender, receiverId } = payload;
-          createConnection(nm, sender, receiverId);
+          const { sender, receiverId, receiverIndex } = payload;
+          createConnection(nm, sender, receiverId, receiverIndex);
 
           return {
             nodes: state.nodes,
-            connections: getAllConnections(nm),
+            connections: getAllConnections2(nm),
           };
         }
 
         case "LINK_MULTIPLE_NODES": {
           for (const link of payload) {
-            const { sender, receiverId } = link;
-            createConnection(nm, sender, receiverId);
+            const { sender, receiverId, receiverIndex } = link;
+            createConnection(nm, sender, receiverId, receiverIndex);
           }
 
           return {
             nodes: state.nodes,
-            connections: getAllConnections(nm),
+            connections: getAllConnections2(nm),
           };
         }
 
         case "DELETE_CONNECTION": {
-          const { receiverType, receiverId } = payload;
-          removeConnection(nm, receiverId, receiverType);
+          const { senderId, receiverId } = payload;
+          if(receiverId === undefined) {
+            return state;
+          }
+          removeConnection(nm, { receiverId, senderId });
 
           return {
             nodes: state.nodes,
-            connections: getAllConnections(nm),
+            connections: getAllConnections2(nm),
           };
         }
 
@@ -102,7 +105,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "RENDER": {
-          render2(nm);
+          render(nm);
           
           return state;
         }
@@ -118,7 +121,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
   const [state, dispatch] = useReducer(nodeReducer, {
     nodes: getAllNodes(nm),
-    connections: getAllConnections(nm),
+    connections: getAllConnections2(nm),
   });
 
   return <Provider value={{ state, dispatch }}>{children}</Provider>;

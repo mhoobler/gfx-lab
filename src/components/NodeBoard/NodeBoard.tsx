@@ -38,19 +38,19 @@ const NodeBoard: React.FC = () => {
       type: "LINK_MULTIPLE_NODES",
       payload: [
         // Connect ShaderModule to VertexState
-        { sender: shaderNode.sender, receiverId: vertexNode.uuid },
+        { sender: shaderNode.sender, receiverId: vertexNode.uuid, receiverIndex: 0 },
         // Connect ShaderModule to FragmentState
-        { sender: shaderNode.sender, receiverId: fragmentNode.uuid },
+        { sender: shaderNode.sender, receiverId: fragmentNode.uuid, receiverIndex: 0 },
         // Connect VertexState to Pipeline
-        { sender: vertexNode.sender, receiverId: pipelineNode.uuid },
+        { sender: vertexNode.sender, receiverId: pipelineNode.uuid, receiverIndex: 0 },
         // Connect FragmentState to Pipeline
-        { sender: fragmentNode.sender, receiverId: pipelineNode.uuid },
+        { sender: fragmentNode.sender, receiverId: pipelineNode.uuid, receiverIndex: 1 },
         // Connect CanvasPanel to RenderPass
-        { sender: canvasNode.sender, receiverId: renderPassNode.uuid },
+        { sender: canvasNode.sender, receiverId: renderPassNode.uuid, receiverIndex: 0 },
         // Connect RenderPass to CommandEncoder
-        { sender: renderPassNode.sender, receiverId: commandEncoderNode.uuid },
+        { sender: renderPassNode.sender, receiverId: commandEncoderNode.uuid, receiverIndex: 0 },
         // Connect Pipeline to DrawCall
-        { sender: pipelineNode.sender, receiverId: drawCallNode.uuid },
+        { sender: pipelineNode.sender, receiverId: drawCallNode.uuid, receiverIndex: 0 },
       ],
     });
   }, []);
