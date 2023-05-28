@@ -4,7 +4,10 @@ import { Color } from "../../data";
 import { NodeContext } from "../../components";
 
 const type = "CommandEncoder";
-const CommandEncoderInit: NodeInitFn<GPUCommandEncoderDescriptorEXT> = (uuid, xyz) => ({
+const CommandEncoderInit: NodeInitFn<GPUCommandEncoderDescriptorEXT> = (
+  uuid,
+  xyz
+) => ({
   type,
   uuid,
   headerColor: Color.Sage,
@@ -32,7 +35,7 @@ const CommandEncoderInit: NodeInitFn<GPUCommandEncoderDescriptorEXT> = (uuid, xy
       type: "DrawCall",
       from: null,
     },
-  ]
+  ],
 });
 
 type Props = PanelProps<GPUCommandEncoderDescriptorEXT>;

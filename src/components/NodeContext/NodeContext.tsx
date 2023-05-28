@@ -19,7 +19,7 @@ const NodeContext = createContext({
     connections: [],
   },
   // TODO: iron out reducer action-types
-  // eslint-disable-next-line 
+  // eslint-disable-next-line
   dispatch: (() => {}) as React.Dispatch<any>,
 });
 const { Provider } = NodeContext;
@@ -38,7 +38,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
   const nodeReducer = useCallback(
     // TODO: iron out reducer action-types
-    // eslint-disable-next-line 
+    // eslint-disable-next-line
     (state: NodeContextState, action: any) => {
       // TODO: Svg State Management
       const { type, payload } = action;
@@ -77,7 +77,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
         case "DELETE_CONNECTION": {
           const { senderId, receiverId } = payload;
-          if(receiverId === undefined) {
+          if (receiverId === undefined) {
             return state;
           }
           removeConnection(nm, { receiverId, senderId });
@@ -89,9 +89,9 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "ADD_DRAW_CALL": {
-          const {uuid, receiver} = payload;
-          const index = state.nodes.findIndex(e => e.uuid === uuid);
-          const node = {...state.nodes[index]};
+          const { uuid, receiver } = payload;
+          const index = state.nodes.findIndex((e) => e.uuid === uuid);
+          const node = { ...state.nodes[index] };
 
           if (node.receivers.includes(receiver)) {
             return state;
@@ -102,14 +102,13 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
           return {
             nodes: getAllNodes(nm),
-            connections: state.connections
+            connections: state.connections,
           };
-
         }
 
         case "RENDER": {
           render(nm);
-          
+
           return state;
         }
 

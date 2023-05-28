@@ -16,8 +16,8 @@ const Connection: FC<Props> = ({ conn }) => {
     const receiverId = receiver.uuid;
     const senderId = sender.uuid;
 
-    dispatch({type: "DELETE_CONNECTION", payload: { receiverId, senderId }});
-  }
+    dispatch({ type: "DELETE_CONNECTION", payload: { receiverId, senderId } });
+  };
 
   return (
     <line

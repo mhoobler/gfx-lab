@@ -16,10 +16,16 @@ it("renders Connection with important data attributes", () => {
     },
   };
 
-  const {container} = render(<svg><Connection conn={conn} /></svg>);
+  const { container } = render(
+    <svg>
+      <Connection conn={conn} />
+    </svg>
+  );
 
   // These attributes are used in other areas of the codebase, see Node
   expect(container.querySelector("line").dataset["senderId"]).toBe("1");
   expect(container.querySelector("line").dataset["receiverId"]).toBe("2");
-  expect(container.querySelector("line").dataset["receiverType"]).toBe("GPUVertexState");
+  expect(container.querySelector("line").dataset["receiverType"]).toBe(
+    "GPUVertexState"
+  );
 });

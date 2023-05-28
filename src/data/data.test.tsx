@@ -1,6 +1,6 @@
 import { Color } from "../data";
 
-it('converts Color to proper CSS strings', () => {
+it("converts Color to proper CSS strings", () => {
   const color = new Color(255, 0, 0);
   expect(color.xyzw).toStrictEqual([255, 0, 0, 1]);
 

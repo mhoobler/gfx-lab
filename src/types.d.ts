@@ -1,7 +1,11 @@
 type DefaultProps = { children: React.ReactNode };
 type n = number;
 
-type GPUBase = GPUObjectBase | GPUObjectDescriptorBase | GPUPipelineBase | GPUPipelineDescriptorBase;
+type GPUBase =
+  | GPUObjectBase
+  | GPUObjectDescriptorBase
+  | GPUPipelineBase
+  | GPUPipelineDescriptorBase;
 
 type WgpuContextState = {
   device?: GPUDevice;
@@ -17,16 +21,16 @@ interface GPUCanvasPanel {
 }
 
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
-  createView: (() => GPUTextureView) | null
+  createView: (() => GPUTextureView) | null;
 }
 
 interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
-  renderPassDesc: GPURenderPassDescriptorEXT
+  renderPassDesc: GPURenderPassDescriptorEXT;
   drawCall: GPUDrawCall[];
 }
 
 interface GPUDrawCall extends GPUObjectBase {
-  commandEncoderDesc: GPUCommandEncoderDescriptorEXT
+  commandEncoderDesc: GPUCommandEncoderDescriptorEXT;
   renderPipeline?: GPURenderPipeline;
   vertexCount: number;
   instanceCount?: number;
@@ -54,23 +58,23 @@ type NodeTypes = [
   "RenderPipeline",
   "RenderPass",
   "CommandEncoder",
-  "DrawCall",
+  "DrawCall"
 ];
 
 type NodeType = NodeTypes[number];
 
 type NodeSender = {
-  uuid: string,
-  type: NodeType,
-  value: GPUBase,
-  to: Set<NodeData<GPUBase>>
+  uuid: string;
+  type: NodeType;
+  value: GPUBase;
+  to: Set<NodeData<GPUBase>>;
 };
 
 type NodeReceiver = {
   uuid: string;
   type: NodeType;
   from: NodeData<GPUBase> | null;
-}
+};
 
 type NodeConnection = {
   sender: {
@@ -86,11 +90,11 @@ type NodeConnection = {
 type ConnectionMap = Map<NodeData<GPUBase>, Map<NodeData<GPUBase>, number>>;
 
 interface NodeBase {
-  uuid: string,
-  type: NodeType,
-  headerColor: IColor,
-  xyz: [n, n, n]
-  size: [n, n]
+  uuid: string;
+  type: NodeType;
+  headerColor: IColor;
+  xyz: [n, n, n];
+  size: [n, n];
 }
 interface NodeData<T> extends NodeBase {
   body: T;

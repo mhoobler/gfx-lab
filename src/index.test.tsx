@@ -26,11 +26,11 @@ it("tests drag and drop utility functions", () => {
   expect(x).toBe(45);
   expect(y).toBe(65);
 
-  const evt = ({
-    clientX: 40, 
-    clientY: 60, 
-    currentTarget: elm
-  } as unknown) as MouseEvent;
+  const evt = {
+    clientX: 40,
+    clientY: 60,
+    currentTarget: elm,
+  } as unknown as MouseEvent;
 
   const [dx, dy] = relativeCoords(evt);
 

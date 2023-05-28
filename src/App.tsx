@@ -9,13 +9,13 @@ const App: React.FC = () => {
 
   return (
     <div>
-      { device && format &&
-      <React.StrictMode>
-        <NodeProvider device={device} format={format}>
-          <NodeBoard />
-        </NodeProvider>
-      </React.StrictMode>
-      }
+      {device && format && (
+        <React.StrictMode>
+          <NodeProvider device={device} format={format}>
+            <NodeBoard />
+          </NodeProvider>
+        </React.StrictMode>
+      )}
     </div>
   );
 };

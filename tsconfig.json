@@ -2,29 +2,18 @@
   "compilerOptions": {
     "target": "ES2015",
     "module": "ESNext",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
+    "lib": ["DOM", "ESNext"],
     "jsx": "react-jsx",
     "sourceMap": true,
     "noEmit": false,
     "moduleResolution": "node",
     "baseUrl": "src",
-    "typeRoots": [
-      "node_modules/@types",
-      "node_modules/@webgpu/types"
-    ],
+    "typeRoots": ["node_modules/@types", "node_modules/@webgpu/types"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "declaration": false,
     "isolatedModules": true
   },
-  "include": [
-    "src",
-    "src/**/*"
-  ],
-  "exclude": [
-    "**/node_modules"
-  ]
+  "include": ["src", "src/**/*"],
+  "exclude": ["**/node_modules"]
 }
