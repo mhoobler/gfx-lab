@@ -1,7 +1,7 @@
 {
-  "name": "wgpu-lab",
+  "name": "gfx-lab",
   "version": "1.0.0",
-  "repository": "git@github.com:mhoobler/wgpu-lab.git",
+  "repository": "git@github.com:mhoobler/gfx-lab.git",
   "author": "mhoobler <hoobler.michael@gmail.com>",
   "license": "MIT",
   "scripts": {
