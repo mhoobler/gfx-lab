@@ -1,8 +1,4 @@
-import {
-  NodeData,
-  INodeReceiver,
-} from "../../data";
-import React, { FC, RefObject, createRef, useContext, useRef } from "react";
+import { FC, RefObject, createRef, useContext, useRef } from "react";
 
 import "./style.less";
 import {
@@ -42,8 +38,12 @@ const Node: FC<Props> = ({ data, svgRef }) => {
     svgRef.current.removeChild(gRef.current);
     svgRef.current.appendChild(gRef.current);
 
-    const senders = document.querySelectorAll(`[data-sender-id="${data.uuid}"]`);
-    const receivers = document.querySelectorAll(`[data-receiver-id="${data.uuid}"]`);
+    const senders = document.querySelectorAll(
+      `[data-sender-id="${data.uuid}"]`
+    );
+    const receivers = document.querySelectorAll(
+      `[data-receiver-id="${data.uuid}"]`
+    );
 
     // eslint-disable-next-line
     const handleMouseMove: any = (evt2: MouseEvent) => {
@@ -139,7 +139,7 @@ const Node: FC<Props> = ({ data, svgRef }) => {
             ) : (
               (() => {
                 console.error("Node.tsx fallthrough case");
-                return (<div></div>)
+                return <div></div>;
               })()
             )}
           </div>
@@ -152,21 +152,19 @@ const Node: FC<Props> = ({ data, svgRef }) => {
         width={data.size[0]}
       />
       {data.receivers &&
-        data.receivers.map(
-          (receiver: INodeReceiver<GPUObjectBase>, index: number) => {
-            const f = createRef<SVGCircleElement>();
-            receiverRefs.current.set(receiver.type, f);
-            return (
-              <Receiver
-                svgRef={svgRef}
-                key={receiver.uuid + receiver.type + index}
-                receiver={receiver}
-                receiverRef={f}
-                index={index}
-              />
-            );
-          }
-        )}
+        data.receivers.map((receiver: NodeReceiver, index: number) => {
+          const f = createRef<SVGCircleElement>();
+          receiverRefs.current.set(receiver.type, f);
+          return (
+            <Receiver
+              svgRef={svgRef}
+              key={receiver.uuid + receiver.type + index}
+              receiver={receiver}
+              receiverRef={f}
+              index={index}
+            />
+          );
+        })}
     </g>
   );
 };

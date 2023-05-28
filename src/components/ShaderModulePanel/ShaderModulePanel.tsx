@@ -1,9 +1,32 @@
-import React, { ChangeEvent, FC, useState } from "react";
+import { ChangeEvent, FC, useState } from "react";
+import { Color } from "../../data";
 
 import "./style.less";
 
-type Props = PanelProps<GPUShaderModuleDescriptor>;
+const type = "ShaderModule";
+const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor> = (
+  uuid,
+  xyz
+) => ({
+  type,
+  headerColor: new Color(255, 255, 0),
+  uuid,
+  size: [400, 600],
+  xyz,
+  body: {
+    label: type,
+    code: "",
+  },
+  sender: {
+    uuid,
+    type,
+    value: null,
+    to: new Set(),
+  },
+  receivers: null,
+});
 
+type Props = PanelProps<GPUShaderModuleDescriptor>;
 const ShaderModulePanel: FC<Props> = ({ body, children }) => {
   const [code, setCode] = useState<string>(body.code);
 
@@ -24,4 +47,4 @@ const ShaderModulePanel: FC<Props> = ({ body, children }) => {
   );
 };
 
-export default ShaderModulePanel;
+export { ShaderModulePanel, ShaderModuleInit };

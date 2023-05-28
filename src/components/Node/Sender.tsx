@@ -1,5 +1,4 @@
-import React, { FC, RefObject, useContext } from "react";
-import { NodeSender } from "../../data";
+import { FC, RefObject, useContext } from "react";
 import { centerCoords } from "../../dnd";
 import { NodeContext } from "../../components";
 
@@ -26,8 +25,8 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
     let elm: HTMLElement | null;
     let correctType = false;
 
-      // eslint-disable-next-line
-    const handleMouseMove: any = (evt2: MouseEvent) => {
+    // eslint-disable-next-line
+    const handleMouseMove: any = (evt2: React.MouseEvent) => {
       const moveTarget = evt2.target as HTMLElement;
       const x = evt2.clientX;
       const y = evt2.clientY;
@@ -51,12 +50,12 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       }
     };
 
-      // eslint-disable-next-line
+    // eslint-disable-next-line
     const handleMouseUp: any = () => {
       if (elm && correctType) {
         const receiverId = elm.dataset["uuid"];
         const receiverIndex = parseInt(elm.dataset["index"]);
-        let payload = {sender, receiverId, receiverIndex};
+        const payload = { sender, receiverId, receiverIndex };
         dispatch({ type: "LINK_SENDER_NODE", payload });
 
         svgRef.current.removeChild(line);
