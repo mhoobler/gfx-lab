@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "webpack serve --open --config webpack.dev.js",
+    "test": "jest --watchAll",
     "build": "NODE_ENV=production webpack --config webpack.prod.js && node test-serve.mjs"
   },
   "devDependencies": {
@@ -45,13 +46,14 @@
     },
     "testEnvironment": "jsdom",
     "transform": {
-      "^.+\\.tsx?$": [ 
-        "ts-jest", 
+      "^.+\\.tsx?$": [
+        "ts-jest",
         {}
       ]
     }
   },
   "dependencies": {
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10"
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
+    "eslint": "^8.41.0"
   }
 }

@@ -1,8 +1,4 @@
-import {
-  NodeData,
-  INodeReceiver,
-} from "../../data";
-import React, { FC, RefObject, createRef, useContext, useRef } from "react";
+import { FC, RefObject, createRef, useContext, useRef } from "react";
 
 import "./style.less";
 import {
@@ -153,7 +149,7 @@ const Node: FC<Props> = ({ data, svgRef }) => {
       />
       {data.receivers &&
         data.receivers.map(
-          (receiver: INodeReceiver<GPUObjectBase>, index: number) => {
+          (receiver: NodeReceiver, index: number) => {
             const f = createRef<SVGCircleElement>();
             receiverRefs.current.set(receiver.type, f);
             return (

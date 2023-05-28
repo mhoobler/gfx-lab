@@ -1,9 +1,8 @@
-import React, { FC, RefObject } from "react";
-import { INodeReceiver } from "data";
+import { FC, RefObject } from "react";
 
 type Props = {
   svgRef: RefObject<SVGElement>;
-  receiver: INodeReceiver<GPUObjectBase>;
+  receiver: NodeReceiver;
   receiverRef: RefObject<SVGCircleElement>;
   index: number;
 };

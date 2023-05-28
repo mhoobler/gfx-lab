@@ -1,6 +1,5 @@
 import { NodeContext } from "../../components";
-import { NodeConnection } from "../../data";
-import React, { FC, useContext } from "react";
+import { FC, useContext } from "react";
 
 type Props = { conn: NodeConnection };
 

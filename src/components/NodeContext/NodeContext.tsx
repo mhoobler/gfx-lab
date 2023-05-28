@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo, useReducer } from "react";
 import { createContext, FC } from "react";
-//import nodeReducer from "./reducer";
 import NodeManager, { initManagerWithJunk, render } from "./NodeManager";
-import { NodeContextState } from "../../data";
 import {
   createConnection,
   getAllConnections2,
   getAllNodes,
   removeConnection,
 } from "../../node_utils";
+
+type NodeContextState = {
+  nodes: NodeData<unknown>[];
+  connections: NodeConnection[];
+};
 
 const NodeContext = createContext({
   state: {

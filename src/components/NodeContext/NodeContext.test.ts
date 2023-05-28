@@ -1,6 +1,6 @@
+import { NodeInitFn } from "../../components";
 import { createConnection, removeConnection } from "../../node_utils";
-import { NodeFactory } from "../../data";
-import NodeManager, {addNode} from "./NodeManager";
+import NodeManager, { addNode } from "./NodeManager";
 
 const device = {
   // eslint-disable-next-line
@@ -10,16 +10,18 @@ const device = {
 it("creates and deletes a NodeConnection", () => {
   const manager = new NodeManager(device, null);
 
-  const shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
+  const shaderModule = NodeInitFn.ShaderModule("1", [600, 200, 0]);
   addNode(manager, shaderModule);
 
-  const vertexState = NodeFactory.VertexState("2", [400, 0, 1])
+  const vertexState = NodeInitFn.VertexState("2", [400, 0, 1]);
   addNode(manager, vertexState);
 
   const sender = shaderModule.sender;
   const receiver = vertexState.receivers[0];
   const receiverId = vertexState.uuid;
-  const receiverIndex = vertexState.receivers.findIndex((rec) => rec.type === shaderModule.type);
+  const receiverIndex = vertexState.receivers.findIndex(
+    (rec) => rec.type === shaderModule.type
+  );
 
   createConnection(manager, sender, receiverId, receiverIndex);
   expect(sender.to.size).toBe(1);
@@ -29,23 +31,25 @@ it("creates and deletes a NodeConnection", () => {
   expect(sender.to.size).toBe(0);
   expect(receiver.from).toBeFalsy();
 
-  let innerMap = manager.connections.get(shaderModule);
+  const innerMap = manager.connections.get(shaderModule);
   expect(innerMap).not.toBeFalsy();
 });
 
 it("throws an error with Invalid SenderId", () => {
   const manager = new NodeManager(null, null);
 
-  const shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
+  const shaderModule = NodeInitFn.ShaderModule("1", [600, 200, 0]);
   addNode(manager, shaderModule);
 
-  const vertexState = NodeFactory.VertexState("2", [400, 0, 1])
+  const vertexState = NodeInitFn.VertexState("2", [400, 0, 1]);
   addNode(manager, vertexState);
 
   const sender = shaderModule.sender;
   sender.uuid = "40";
   const receiverId = vertexState.uuid;
-  const receiverIndex = vertexState.receivers.findIndex((rec) => rec.type === shaderModule.type);
+  const receiverIndex = vertexState.receivers.findIndex(
+    (rec) => rec.type === shaderModule.type
+  );
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
@@ -55,15 +59,17 @@ it("throws an error with Invalid SenderId", () => {
 it("throws with Invalid ReceiverId", () => {
   const manager = new NodeManager(null, null);
 
-  const shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
+  const shaderModule = NodeInitFn.ShaderModule("1", [600, 200, 0]);
   addNode(manager, shaderModule);
 
-  const vertexState = NodeFactory.VertexState("2", [400, 0, 1])
+  const vertexState = NodeInitFn.VertexState("2", [400, 0, 1]);
   addNode(manager, vertexState);
 
   const sender = shaderModule.sender;
   const receiverId = "40";
-  const receiverIndex = vertexState.receivers.findIndex((rec) => rec.type === shaderModule.type);
+  const receiverIndex = vertexState.receivers.findIndex(
+    (rec) => rec.type === shaderModule.type
+  );
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
@@ -73,10 +79,10 @@ it("throws with Invalid ReceiverId", () => {
 it("throws with Invalid Sender Type", () => {
   const manager = new NodeManager(null, null);
 
-  const shaderModule = NodeFactory.ShaderModule("1", [600, 200, 0]);
+  const shaderModule = NodeInitFn.ShaderModule("1", [600, 200, 0]);
   addNode(manager, shaderModule);
 
-  const pipeline = NodeFactory.RenderPipeline("2", [600, 0, 1]);
+  const pipeline = NodeInitFn.RenderPipeline("2", [600, 0, 1]);
   addNode(manager, pipeline);
 
   const sender = shaderModule.sender;
@@ -87,5 +93,7 @@ it("throws with Invalid Sender Type", () => {
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
-  }).toThrow(`Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type}`);
+  }).toThrow(
+    `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type}`
+  );
 });

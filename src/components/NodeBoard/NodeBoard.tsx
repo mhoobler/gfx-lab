@@ -1,10 +1,9 @@
 import { Connection, Node, NodeContext } from "../../components";
-import { NodeConnection, NodeData } from "../../data";
-import React, { useContext, useEffect, useRef } from "react";
+import { FC, useContext, useEffect, useRef } from "react";
 
 import "./style.less";
 
-const NodeBoard: React.FC = () => {
+const NodeBoard: FC = () => {
   const { state, dispatch } = useContext(NodeContext);
   const svgRef = useRef(null);
 
