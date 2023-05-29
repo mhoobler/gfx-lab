@@ -55,3 +55,10 @@ export const VertexFormats: ReadonlyArray<GPUVertexFormat> = [
   "sint32x3",
   "sint32x4",
 ];
+
+export const viewBoxCoords = (x: n, y: n, view: any): [n, n] => {
+  return [
+    (x / window.innerWidth) * view.viewBox[2] + view.viewBox[0],
+    (y / window.innerHeight) * view.viewBox[3] + view.viewBox[1],
+  ];
+}

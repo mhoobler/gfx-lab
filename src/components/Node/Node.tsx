@@ -1,15 +1,14 @@
 import { FC, RefObject, createRef, useContext, useRef } from "react";
 
 import "./style.less";
-import { NodeContext, Panel } from "../../components";
+import { NodeContext, Panel } from "components";
 import Sender from "./Sender";
 import Receiver from "./Receiver";
-import { relativeCoords } from "../../dnd";
+import {viewBoxCoords} from "data";
 
-// eslint-disable-next-line
-type Props = { data: NodeData<any>; svgRef: RefObject<SVGElement> };
+type Props = { data: NodeData<GPUBase>; svgRef: RefObject<SVGElement>; view: any };
 
-const Node: FC<Props> = ({ data, svgRef }) => {
+const Node: FC<Props> = ({ data, svgRef, view }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
@@ -22,8 +21,13 @@ const Node: FC<Props> = ({ data, svgRef }) => {
       throw new Error("Ref error");
     }
 
-    const e = evt as unknown as MouseEvent;
-    const [dx, dy] = relativeCoords(e);
+    const bb = (
+      evt.currentTarget as unknown as HTMLElement
+    ).getBoundingClientRect();
+    let [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
+    let [zx, zy] = viewBoxCoords(evt.clientX, evt.clientY, view);
+    const dx = bzx - zx;
+    const dy = bzy - zy;
 
     svgRef.current.removeChild(gRef.current);
     svgRef.current.appendChild(gRef.current);
@@ -35,11 +39,11 @@ const Node: FC<Props> = ({ data, svgRef }) => {
       `[data-receiver-id="${data.uuid}"]`
     );
 
-    // eslint-disable-next-line
-    const handleMouseMove: any = (evt2: MouseEvent) => {
+    const handleMouseMove = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
-        const moveX = evt2.clientX + dx;
-        const moveY = evt2.clientY + dy;
+        let [uvx, uvy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+        const moveX = dx + uvx;
+        const moveY = dy + uvy;
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
         for (const sender of senders) {
@@ -65,10 +69,11 @@ const Node: FC<Props> = ({ data, svgRef }) => {
       });
     };
 
-    // eslint-disable-next-line
-    const handleMouseUp: any = (evt2: MouseEvent) => {
-      const x = evt2.clientX + dx;
-      const y = evt2.clientY + dy;
+    const handleMouseUp = (evt2: MouseEvent) => {
+      console.log(view.zoom);
+      let [uvx, uvy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+      const x = dx + uvx;
+      const y = dy + uvy;
       dispatch({ type: "MOVE_NODE", payload: { x, y, data } });
 
       window.removeEventListener("mouseup", handleMouseUp);
@@ -103,6 +108,7 @@ const Node: FC<Props> = ({ data, svgRef }) => {
         sender={data.sender}
         senderRef={senderRef}
         width={data.size[0]}
+        view={view}
       />
       {data.receivers &&
         data.receivers.map((receiver: NodeReceiver, index: number) => {
