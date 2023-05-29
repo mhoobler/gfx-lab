@@ -1,14 +1,15 @@
 import { FC, RefObject, useContext } from "react";
-import { centerCoords } from "../../dnd";
-import { NodeContext } from "../../components";
+import { NodeContext } from "components";
+import {viewBoxCoords} from "data";
 
 type Props = {
   svgRef: RefObject<SVGElement>;
   sender: NodeSender;
   senderRef: RefObject<SVGCircleElement>;
   width: number;
+  view: any;
 };
-const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
+const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
   const { dispatch } = useContext(NodeContext);
 
   const handleMouseDown = (evt: React.MouseEvent<SVGCircleElement>) => {
@@ -16,8 +17,8 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       throw new Error("Ref error");
     }
 
-    const downTarget = evt.currentTarget as unknown as HTMLElement;
-    const [cx, cy] = centerCoords(downTarget);
+    const bb = (evt.currentTarget as unknown as HTMLElement).getBoundingClientRect();
+    const [cx, cy] = viewBoxCoords(bb.x + bb.width / 2, bb.y + bb.height / 2, view);
 
     const line = getLine(cx, cy);
     svgRef.current.appendChild(line);
@@ -25,15 +26,13 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
     let elm: HTMLElement | null;
     let correctType = false;
 
-    // eslint-disable-next-line
-    const handleMouseMove: any = (evt2: React.MouseEvent) => {
+    const handleMouseMove = (evt2: MouseEvent) => {
+      const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+
+      line.setAttribute("x2", vx.toString());
+      line.setAttribute("y2", vy.toString());
+
       const moveTarget = evt2.target as HTMLElement;
-      const x = evt2.clientX;
-      const y = evt2.clientY;
-
-      line.setAttribute("x2", x.toString());
-      line.setAttribute("y2", y.toString());
-
       const isReceiver = moveTarget.classList.contains("receiver");
       const recieverType = moveTarget.dataset["receiverType"];
       correctType = recieverType === sender.type;
@@ -50,8 +49,7 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width }) => {
       }
     };
 
-    // eslint-disable-next-line
-    const handleMouseUp: any = () => {
+    const handleMouseUp = () => {
       if (elm && correctType) {
         const receiverId = elm.dataset["uuid"];
         const receiverIndex = parseInt(elm.dataset["index"]);

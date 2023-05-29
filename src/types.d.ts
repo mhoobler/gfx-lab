@@ -4,7 +4,6 @@ type n = number;
 type GPUBase =
   | GPUObjectBase
   | GPUObjectDescriptorBase
-  | GPUPipelineBase
   | GPUPipelineDescriptorBase;
 
 type WgpuContextState = {

@@ -1,15 +1,18 @@
 import { FC, RefObject, createRef, useContext, useRef } from "react";
 
 import "./style.less";
-import { NodeContext, Panel } from "../../components";
+import { NodeContext, Panel } from "components";
 import Sender from "./Sender";
 import Receiver from "./Receiver";
-import { relativeCoords } from "../../dnd";
+import { viewBoxCoords } from "data";
 
-// eslint-disable-next-line
-type Props = { data: NodeData<any>; svgRef: RefObject<SVGElement> };
+type Props = {
+  data: NodeData<GPUBase>;
+  svgRef: RefObject<SVGElement>;
+  view: any;
+};
 
-const Node: FC<Props> = ({ data, svgRef }) => {
+const Node: FC<Props> = ({ data, svgRef, view }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
@@ -22,27 +25,30 @@ const Node: FC<Props> = ({ data, svgRef }) => {
       throw new Error("Ref error");
     }
 
-    const e = evt as unknown as MouseEvent;
-    const [dx, dy] = relativeCoords(e);
+    const bb = (evt.currentTarget as HTMLElement).getBoundingClientRect();
+    let [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
+    let [zx, zy] = viewBoxCoords(evt.clientX, evt.clientY, view);
+    const dx = bzx - zx;
+    const dy = bzy - zy;
 
     svgRef.current.removeChild(gRef.current);
     svgRef.current.appendChild(gRef.current);
 
-    const senders = document.querySelectorAll(
-      `[data-sender-id="${data.uuid}"]`
+    const senderLines = document.querySelectorAll(
+      `line[data-sender-id="${data.uuid}"]`
     );
-    const receivers = document.querySelectorAll(
-      `[data-receiver-id="${data.uuid}"]`
+    const receiverLines = document.querySelectorAll(
+      `line[data-receiver-id="${data.uuid}"]`
     );
 
-    // eslint-disable-next-line
-    const handleMouseMove: any = (evt2: MouseEvent) => {
+    const handleMouseMove = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
-        const moveX = evt2.clientX + dx;
-        const moveY = evt2.clientY + dy;
+        let [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+        const moveX = dx + vx;
+        const moveY = dy + vy;
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
-        for (const sender of senders) {
+        for (const sender of senderLines) {
           const cx = parseInt(senderRef.current.getAttribute("cx"));
           const cy = parseInt(senderRef.current.getAttribute("cy"));
           const r = parseInt(senderRef.current.getAttribute("r"));
@@ -50,25 +56,22 @@ const Node: FC<Props> = ({ data, svgRef }) => {
           sender.setAttribute("x1", (moveX + cx + r).toString());
           sender.setAttribute("y1", (moveY + cy).toString());
         }
-        for (const receiver of receivers) {
+        for (const receiver of receiverLines) {
           const attr = (receiver as HTMLElement).dataset["receiverType"];
-          const ref = receiverRefs.current.get(attr);
-          receiver.setAttribute(
-            "x2",
-            (moveX + parseInt(ref.current.getAttribute("cx"))).toString()
-          );
-          receiver.setAttribute(
-            "y2",
-            (moveY + parseInt(ref.current.getAttribute("cy"))).toString()
-          );
+          const receiverRef = receiverRefs.current.get(attr);
+          const cx = parseInt(receiverRef.current.getAttribute("cx"));
+          const cy = parseInt(receiverRef.current.getAttribute("cy"));
+
+          receiver.setAttribute("x2", (moveX + cx).toString());
+          receiver.setAttribute("y2", (moveY + cy).toString());
         }
       });
     };
 
-    // eslint-disable-next-line
-    const handleMouseUp: any = (evt2: MouseEvent) => {
-      const x = evt2.clientX + dx;
-      const y = evt2.clientY + dy;
+    const handleMouseUp = (evt2: MouseEvent) => {
+      let [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+      const x = dx + vx;
+      const y = dy + vy;
       dispatch({ type: "MOVE_NODE", payload: { x, y, data } });
 
       window.removeEventListener("mouseup", handleMouseUp);
@@ -79,7 +82,6 @@ const Node: FC<Props> = ({ data, svgRef }) => {
     window.addEventListener("mousemove", handleMouseMove);
   };
 
-  // hexValue does not work
   const backgroundColor = data.headerColor.rgbaString();
 
   return (
@@ -103,6 +105,7 @@ const Node: FC<Props> = ({ data, svgRef }) => {
         sender={data.sender}
         senderRef={senderRef}
         width={data.size[0]}
+        view={view}
       />
       {data.receivers &&
         data.receivers.map((receiver: NodeReceiver, index: number) => {

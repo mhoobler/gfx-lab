@@ -1,4 +1,4 @@
-import NodeManager from "../components/NodeContext/NodeManager";
+import NodeManager from "components/NodeContext/NodeManager";
 export function getAllNodes(manager: NodeManager) {
   const arr = [...Object.values(manager.nodes)].sort(
     (a, b) => a.xyz[2] - b.xyz[2]
