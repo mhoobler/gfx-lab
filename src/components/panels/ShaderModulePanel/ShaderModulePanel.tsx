@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, useState } from "react";
-import { Color } from "../../data";
+import { Color } from "data";
 
 import "./style.less";
 

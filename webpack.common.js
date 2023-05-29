@@ -1,3 +1,4 @@
+const path = require("path");
 const Html = require("html-webpack-plugin");
 const RefreshWebpack = require("@pmmmwh/react-refresh-webpack-plugin");
 const RefreshTypescript = require("react-refresh-typescript");
@@ -41,6 +42,10 @@ module.exports = {
     ],
   },
   resolve: {
+    modules: [ 
+      path.resolve(__dirname, "src"),
+      path.resolve(__dirname, "node_modules"),
+    ],
     extensions: [".tsx", ".ts", ".js"],
   },
 };

@@ -18,3 +18,34 @@ export function centerCoords(elm: HTMLElement): [n, n] {
 
   return [x, y];
 }
+
+const k = 100;
+const ojbectInfos = [];
+
+// prettier-ignore
+const staticUnitSize = 
+  4 * 4 + 
+  2 * 4 +
+  2 * 4;
+
+// prettier-ignore
+const changingUnitSize = 
+  2 * 4;
+
+const vertexBuffer: GPUBufferDescriptor = {
+  label: "StaticUniform",
+  size: staticUnitSize * k,
+  usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+};
+
+const GPUVertexBuffLay: GPUVertexBufferLayout = {
+  arrayStride: 2 * 4,
+  attributes: [{ shaderLocation: 0, offset: 0, format: "float32x2" }],
+};
+
+const test: () => GPUVertexState = () => ({
+  buffers: [],
+  constants: {} as { [key: string]: number },
+  module: null,
+  entryPoint: "vs",
+});

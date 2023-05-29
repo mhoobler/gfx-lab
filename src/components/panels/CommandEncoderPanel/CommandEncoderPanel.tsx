@@ -1,7 +1,7 @@
 import { FC, useContext, MouseEvent } from "react";
 
-import { Color } from "../../data";
-import { NodeContext } from "../../components";
+import { Color } from "data";
+import { NodeContext } from "components";
 
 const type = "CommandEncoder";
 const CommandEncoderInit: NodeInitFn<GPUCommandEncoderDescriptorEXT> = (

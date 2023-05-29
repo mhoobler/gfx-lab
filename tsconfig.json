@@ -7,7 +7,7 @@
     "sourceMap": true,
     "noEmit": false,
     "moduleResolution": "node",
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "typeRoots": ["node_modules/@types", "node_modules/@webgpu/types"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

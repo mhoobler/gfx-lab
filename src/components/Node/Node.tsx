@@ -1,17 +1,7 @@
 import { FC, RefObject, createRef, useContext, useRef } from "react";
 
 import "./style.less";
-import {
-  VertexStatePanel,
-  ShaderModulePanel,
-  FragmentStatePanel,
-  RenderPipelinePanel,
-  NodeContext,
-  CanvasPanel,
-  CommandEncoderPanel,
-  RenderPassPanel,
-  DrawCallPanel,
-} from "../../components";
+import { NodeContext, Panel } from "../../components";
 import Sender from "./Sender";
 import Receiver from "./Receiver";
 import { relativeCoords } from "../../dnd";
@@ -104,44 +94,7 @@ const Node: FC<Props> = ({ data, svgRef }) => {
             {data.body.label}
           </div>
           <div className="node-body">
-            {data.type === "ShaderModule" ? (
-              <ShaderModulePanel uuid={data.uuid} body={data.body}>
-                <></>
-              </ShaderModulePanel>
-            ) : data.type === "VertexState" ? (
-              <VertexStatePanel uuid={data.uuid} body={data.body}>
-                <></>
-              </VertexStatePanel>
-            ) : data.type === "FragmentState" ? (
-              <FragmentStatePanel uuid={data.uuid} body={data.body}>
-                <></>
-              </FragmentStatePanel>
-            ) : data.type === "RenderPipeline" ? (
-              <RenderPipelinePanel uuid={data.uuid} body={data.body}>
-                <></>
-              </RenderPipelinePanel>
-            ) : data.type === "CanvasPanel" ? (
-              <CanvasPanel uuid={data.uuid} body={data.body}>
-                <></>
-              </CanvasPanel>
-            ) : data.type === "CommandEncoder" ? (
-              <CommandEncoderPanel uuid={data.uuid} body={data.body}>
-                <></>
-              </CommandEncoderPanel>
-            ) : data.type === "RenderPass" ? (
-              <RenderPassPanel uuid={data.uuid} body={data.body}>
-                <></>
-              </RenderPassPanel>
-            ) : data.type === "DrawCall" ? (
-              <DrawCallPanel uuid={data.uuid} body={data.body}>
-                <></>
-              </DrawCallPanel>
-            ) : (
-              (() => {
-                console.error("Node.tsx fallthrough case");
-                return <div></div>;
-              })()
-            )}
+            <Panel data={data} />
           </div>
         </div>
       </foreignObject>
