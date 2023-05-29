@@ -1,4 +1,4 @@
-import { Color } from "../../data";
+import { Color } from "data";
 import React, { FC } from "react";
 
 const type = "RenderPipeline";

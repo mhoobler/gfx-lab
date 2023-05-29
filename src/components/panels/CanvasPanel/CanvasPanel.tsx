@@ -1,4 +1,4 @@
-import { Color } from "../../data";
+import { Color } from "data";
 import { FC, useEffect, useRef } from "react";
 
 const type = "CanvasPanel";
