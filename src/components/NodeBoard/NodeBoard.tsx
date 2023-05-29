@@ -2,7 +2,7 @@ import { Connection, Node, NodeContext } from "../../components";
 import { FC, useContext, useEffect, useRef, useState } from "react";
 
 import "./style.less";
-import {viewBoxCoords} from "data";
+import { viewBoxCoords } from "data";
 
 const NodeBoard: FC = () => {
   const { state, dispatch } = useContext(NodeContext);
@@ -14,6 +14,18 @@ const NodeBoard: FC = () => {
   const gRef = useRef(null);
 
   useEffect(() => {
+    const handleResize = (evt: Event) => {
+      setView(({zoom, viewBox}) => {
+        const { innerWidth, innerHeight } = evt.currentTarget as Window;
+        let vb = [...viewBox];
+        return {
+          zoom,
+          viewBox: [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom ],
+        };
+      });
+    };
+    window.addEventListener("resize", handleResize);
+
     console.log("INIT NODES");
     const shaderNode = state.nodes.find((node) => node.type === "ShaderModule");
 
@@ -82,6 +94,9 @@ const NodeBoard: FC = () => {
         },
       ],
     });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const handleRenderClick = () => {
@@ -89,20 +104,20 @@ const NodeBoard: FC = () => {
   };
 
   const handleWheel = (evt: React.WheelEvent) => {
-    if(evt.buttons === 0) {
+    if (evt.buttons === 0) {
       setView(({ viewBox, zoom }) => {
         const [x, y, width, height] = [...viewBox];
         const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
         const zm = Math.round(zoom * zoomFactor * 100) / 100;
-        const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, {viewBox});
+        const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
-        let [newWidth, newHeight] = [width * zm, height * zm];
+        let [newWidth, newHeight] = [window.innerWidth * zm, window.innerHeight * zm];
         let [dx, dy] = [uvx - x, uvy - y];
         let newX = x - (dx / width) * (newWidth - width);
         let newY = y - (dy / height) * (newHeight - height);
 
         return {
-          zoom,
+          zoom: zm,
           viewBox: [newX, newY, newWidth, newHeight],
         };
       });
@@ -111,16 +126,16 @@ const NodeBoard: FC = () => {
 
   const handleSvgDown = (evt: React.MouseEvent) => {
     if (evt.button === 1 && svgRef.current) {
-
       let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, view);
       const mousemove = (evt2: MouseEvent) => {
         const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
-        const vb = svgRef.current.getAttribute("viewBox").split(" ").map(parseFloat);
+        const vb = svgRef.current
+          .getAttribute("viewBox")
+          .split(" ")
+          .map(parseFloat);
 
-        const dx = mx - moveX;
-        const dy = my - moveY;
-        vb[0] += dx;
-        vb[1] += dy;
+        vb[0] += mx - moveX;
+        vb[1] += my - moveY;
         svgRef.current.setAttribute("viewBox", vb.join(" "));
 
         mx = moveX;
@@ -131,7 +146,10 @@ const NodeBoard: FC = () => {
           setView((state) => {
             return {
               ...state,
-              viewBox: svgRef.current.getAttribute("viewBox").split(" ").map(parseFloat),
+              viewBox: svgRef.current
+                .getAttribute("viewBox")
+                .split(" ")
+                .map(parseFloat),
             };
           });
           window.removeEventListener("mousemove", mousemove);
@@ -156,7 +174,14 @@ const NodeBoard: FC = () => {
       >
         <g ref={gRef}>
           {state.nodes.map((data: NodeData<unknown>) => {
-            return <Node key={data.sender.uuid} data={data} svgRef={gRef} view={view} />;
+            return (
+              <Node
+                key={data.sender.uuid}
+                data={data}
+                svgRef={gRef}
+                view={view}
+              />
+            );
           })}
         </g>
         {state.connections.map((conn: NodeConnection) => {

@@ -27,12 +27,10 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
     let correctType = false;
 
     const handleMouseMove = (evt2: MouseEvent) => {
-      const [uvx, uvy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
-      const x = uvx;
-      const y = uvy;
+      const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
 
-      line.setAttribute("x2", x.toString());
-      line.setAttribute("y2", y.toString());
+      line.setAttribute("x2", vx.toString());
+      line.setAttribute("y2", vy.toString());
 
       const moveTarget = evt2.target as HTMLElement;
       const isReceiver = moveTarget.classList.contains("receiver");
