@@ -45,11 +45,11 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
       const { type, payload } = action;
 
       switch (type) {
-        case "EDIT_NODE_BODY" : {
+        case "EDIT_NODE_BODY": {
           const { uuid, body } = payload;
           nm.nodes[uuid].body = body;
           updateConnections(nm, nm.nodes[uuid]);
-          return {...state};
+          return { ...state };
         }
         case "MOVE_NODE": {
           const { data, x, y } = payload;

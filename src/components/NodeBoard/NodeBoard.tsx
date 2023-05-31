@@ -15,12 +15,12 @@ const NodeBoard: FC = () => {
 
   useEffect(() => {
     const handleResize = (evt: Event) => {
-      setView(({zoom, viewBox}) => {
+      setView(({ zoom, viewBox }) => {
         const { innerWidth, innerHeight } = evt.currentTarget as Window;
-        let vb = [...viewBox];
+        const vb = [...viewBox];
         return {
           zoom,
-          viewBox: [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom ],
+          viewBox: [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom],
         };
       });
     };
@@ -46,8 +46,9 @@ const NodeBoard: FC = () => {
       state.nodes.find((rec) => rec.type === "CommandEncoder");
     const drawCallNode: NodeData<GPUCommandEncoderDescriptorEXT> =
       state.nodes.find((rec) => rec.type === "DrawCall");
-    const dataNode: NodeData<GPUCommandEncoderDescriptorEXT> =
-      state.nodes.find((rec) => rec.type === "Data");
+    const dataNode: NodeData<GPUCommandEncoderDescriptorEXT> = state.nodes.find(
+      (rec) => rec.type === "Data"
+    );
     const bufferNode: NodeData<GPUCommandEncoderDescriptorEXT> =
       state.nodes.find((rec) => rec.type === "Buffer");
 
@@ -133,10 +134,13 @@ const NodeBoard: FC = () => {
         const zm = Math.round(zoom * zoomFactor * 100) / 100;
         const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
-        let [newWidth, newHeight] = [window.innerWidth * zm, window.innerHeight * zm];
-        let [dx, dy] = [uvx - x, uvy - y];
-        let newX = x - (dx / width) * (newWidth - width);
-        let newY = y - (dy / height) * (newHeight - height);
+        const [newWidth, newHeight] = [
+          window.innerWidth * zm,
+          window.innerHeight * zm,
+        ];
+        const [dx, dy] = [uvx - x, uvy - y];
+        const newX = x - (dx / width) * (newWidth - width);
+        const newY = y - (dy / height) * (newHeight - height);
 
         return {
           zoom: zm,
@@ -186,7 +190,9 @@ const NodeBoard: FC = () => {
 
   return (
     <div className="node-board">
-      <button className="render" onClick={handleRenderClick}>DRAW</button>
+      <button className="render" onClick={handleRenderClick}>
+        DRAW
+      </button>
       <svg
         ref={svgRef}
         onWheel={handleWheel}

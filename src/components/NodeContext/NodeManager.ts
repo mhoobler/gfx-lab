@@ -1,48 +1,5 @@
+import {HELLO_VERTEX, HELLO_VERTEX_DATA} from "data";
 import { NodeInitFn, VertexStateUtils } from "../../components";
-
-const HELLO_TRIANGLE = `@vertex fn vs(
-  @builtin(vertex_index) vertexIndex : u32
-) -> @builtin(position) vec4f {
-  var pos = array<vec2f, 3>(
-    vec2f( 0.0,  0.5),  // top center
-    vec2f(-0.5, -0.5),  // bottom left
-    vec2f( 0.5, -0.5)   // bottom right
-  );
-
-  return vec4f(pos[vertexIndex], 0.0, 1.0);
-}
-
-@fragment fn fs() -> @location(0) vec4f {
-  return vec4f(1.0, 0.0, 0.0, 1.0);
-}`;
-const HELLO_VERTEX_DATA = `0.0,  0.5, 1, 0, 0,
- 0.5, -0.5, 0, 1, 0,
--0.5, -0.5, 0, 0, 1,`;
-
-const HELLO_VERTEX = `struct Vertex {
-  @location(0) position: vec2f,
-  @location(1) color: vec3f,
-};
-
-struct VSOutput {
-  @builtin(position) position: vec4f,
-  @location(0) color: vec4f,
-};
-
-@vertex fn vs(
-  vert: Vertex,
-  @builtin(instance_index) instanceIndex: u32
-) -> VSOutput {
-  var vsOut: VSOutput;
-  vsOut.position = vec4f(vert.position, 1.0, 1.0);
-  vsOut.color = vec4f(vert.color, 1.0);
-  return vsOut;
-}
-
-@fragment fn fs(vsOut: VSOutput) -> @location(0) vec4f {
-  return vsOut.color;
-}
-`;
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -117,7 +74,7 @@ export function initManagerWithJunk(manager: NodeManager) {
   shaderModule.body.code = HELLO_VERTEX;
 
   const vertexState = NodeInitFn.VertexState(uuid(), [200, 0, z++]);
-  let layout = VertexStateUtils.newLayout();
+  const layout = VertexStateUtils.newLayout();
   layout.arrayStride = 20;
   layout.attributes = [
     { shaderLocation: 0, offset: 0, format: "float32x2" }, // position

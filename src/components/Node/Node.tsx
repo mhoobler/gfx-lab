@@ -9,7 +9,7 @@ import { viewBoxCoords } from "data";
 type Props = {
   data: NodeData<GPUBase>;
   svgRef: RefObject<SVGElement>;
-  view: any;
+  view: { viewBox: n[] };
 };
 
 const Node: FC<Props> = ({ data, svgRef, view }) => {
@@ -26,8 +26,8 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     }
 
     const bb = (evt.currentTarget as HTMLElement).getBoundingClientRect();
-    let [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
-    let [zx, zy] = viewBoxCoords(evt.clientX, evt.clientY, view);
+    const [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
+    const [zx, zy] = viewBoxCoords(evt.clientX, evt.clientY, view);
     const dx = bzx - zx;
     const dy = bzy - zy;
 
@@ -43,7 +43,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
 
     const handleMouseMove = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
-        let [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+        const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
         const moveX = Math.round((dx + vx) * 100) / 100;
         const moveY = Math.round((dy + vy) * 100) / 100;
 
@@ -69,7 +69,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     };
 
     const handleMouseUp = (evt2: MouseEvent) => {
-      let [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+      const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
       const x = dx + vx;
       const y = dy + vy;
       dispatch({ type: "MOVE_NODE", payload: { x, y, data } });
@@ -82,9 +82,9 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     window.addEventListener("mousemove", handleMouseMove);
   };
 
-  const handleResize = (evt: React.MouseEvent) => {
+  const handleResize = () => {
     console.warn("TODO!");
-  }
+  };
 
   const backgroundColor = data.headerColor.rgbaString();
 

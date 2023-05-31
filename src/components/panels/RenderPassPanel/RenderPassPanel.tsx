@@ -38,8 +38,6 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT> = (uuid, xyz) => ({
 
 type Props = PanelProps<GPURenderPassDescriptorEXT>;
 const RenderPassPanel: FC<Props> = () => {
-  return (
-      <div className="input-container">RenderPassPanel</div>
-  );
+  return <div className="input-container">RenderPassPanel</div>;
 };
 export { RenderPassPanel, RenderPassInit };

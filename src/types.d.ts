@@ -43,7 +43,7 @@ interface GPUDrawCall extends GPUObjectBase {
 }
 
 interface GPUData extends GPUObjectBase {
-  text: string,
+  text: string;
   data?: Float32Array | Float64Array | Uint32Array | Uint16Array;
 }
 

@@ -30,17 +30,19 @@ const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
       uuid,
       type: "Buffer",
       from: null,
-    }
+    },
   ],
 });
 
 type Props = PanelProps<GPUDrawCall>;
 const DrawCallPanel: FC<Props> = () => {
-  return <div className="input-container draw-call-panel">
-    <div>
-      <button>Add Buffer</button>
+  return (
+    <div className="input-container draw-call-panel">
+      <div>
+        <button>Add Buffer</button>
+      </div>
     </div>
-  </div>;
+  );
 };
 
 export { DrawCallPanel, DrawCallInit };

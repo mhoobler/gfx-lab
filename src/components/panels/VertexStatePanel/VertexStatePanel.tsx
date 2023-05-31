@@ -1,4 +1,4 @@
-import { NodeManager, NodeContext } from "components";
+import { NodeContext } from "components";
 import { Color } from "data";
 import React, { FC, useContext, useState } from "react";
 
@@ -37,7 +37,7 @@ const VertexStatePanel: FC<Props> = ({ uuid, body }) => {
   const { dispatch } = useContext(NodeContext);
   const { addAttribute, newLayout } = VertexStateUtils;
 
-  let [layouts, setLayouts] = useState<GPUVertexBufferLayout[]>([
+  const [layouts, setLayouts] = useState<GPUVertexBufferLayout[]>([
     ...body.buffers,
   ]);
 
@@ -57,20 +57,20 @@ const VertexStatePanel: FC<Props> = ({ uuid, body }) => {
 
   const handleEditAttribute =
     (layoutIndex: n, attributeIndex: n) => (evt: React.ChangeEvent) => {
-      let key = (evt.target as HTMLElement).dataset["key"];
-      let value = (evt.target as HTMLInputElement).value;
+      const key = (evt.target as HTMLElement).dataset["key"];
+      const value = (evt.target as HTMLInputElement).value;
       layouts[layoutIndex].attributes[attributeIndex][key] = value;
 
-      let newBody: GPUVertexState = { ...body, buffers: [...layouts] };
+      const newBody: GPUVertexState = { ...body, buffers: [...layouts] };
       dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body: newBody } });
     };
 
   const handleEditArrayStride = (evt: React.ChangeEvent, index: n) => {
-    let value = (evt.target as HTMLInputElement).value;
+    const value = (evt.target as HTMLInputElement).value;
 
-    let buffers = [...layouts];
+    const buffers = [...layouts];
     buffers[index].arrayStride = parseInt(value);
-    let newBody: GPUVertexState = { ...body, buffers };
+    const newBody: GPUVertexState = { ...body, buffers };
     dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body: newBody } });
   };
 
@@ -128,7 +128,7 @@ const VertexStatePanel: FC<Props> = ({ uuid, body }) => {
             onChange={(evt) => handleEditArrayStride(evt, index)}
           />
           <label>Attributes:</label>
-          {(layout.attributes as Array<any>).map((attr, i: number) => (
+          {(layout.attributes as Array<GPUVertexAttribute>).map((attr, i: number) => (
             <Attribute
               attribute={attr}
               index={i}
@@ -156,25 +156,22 @@ const VertexStatePanel: FC<Props> = ({ uuid, body }) => {
   );
 };
 
-namespace VertexStateUtils {
-  export const newLayout = (): GPUVertexBufferLayout => ({
+const VertexStateUtils = {
+  newLayout: (): GPUVertexBufferLayout => ({
     arrayStride: 4 * 4,
     attributes: [{ shaderLocation: 0, offset: 0, format: "float32x4" }],
-  });
-
-  export const addAttribute = (
-    layout: GPUVertexBufferLayout
-  ): GPUVertexBufferLayout => ({
+  }),
+  addAttribute: (layout: GPUVertexBufferLayout): GPUVertexBufferLayout => ({
     arrayStride: layout.arrayStride * 4,
     attributes: [
       ...layout.attributes,
       {
-        shaderLocation: (layout.attributes as Array<any>).length,
+        shaderLocation: (layout.attributes as Array<GPUVertexAttribute>).length,
         offset: 0,
         format: "float32x4",
       },
     ],
-  });
-}
+  }),
+};
 
 export { VertexStatePanel, VertexStateInit, VertexStateUtils };

@@ -101,7 +101,7 @@ export function createConnection(
   }
   if (receiver.type !== senderNode.type) {
     throw new Error(
-                                                                                                                      `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type} \n(HINT: check payload.receiverIndex)`
+      `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type} \n(HINT: check payload.receiverIndex)`
     );
   }
 
@@ -172,7 +172,11 @@ function finalizeConnection(
     case "Data": {
       receiverNode.body.size = senderNode.body.data.byteLength;
       receiverNode.body.buffer = manager.device.createBuffer(receiverNode.body);
-      manager.device.queue.writeBuffer(receiverNode.body.buffer, 0, senderNode.body.data);
+      manager.device.queue.writeBuffer(
+        receiverNode.body.buffer,
+        0,
+        senderNode.body.data
+      );
       break;
     }
     default: {
@@ -183,9 +187,9 @@ function finalizeConnection(
   }
 }
 
-export function updateConnections(manager: NodeManager, node: NodeData<any>) {
-  for(let sendTo of node.sender.to) {
-    let receiverNode = manager.nodes[sendTo.uuid];
+export function updateConnections(manager: NodeManager, node: NodeData<GPUBase>) {
+  for (const sendTo of node.sender.to) {
+    const receiverNode = manager.nodes[sendTo.uuid];
     finalizeConnection(manager, node, receiverNode);
     updateConnections(manager, receiverNode);
   }

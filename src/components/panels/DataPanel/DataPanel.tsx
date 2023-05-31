@@ -28,9 +28,9 @@ const DataPanel: FC<Props> = ({ uuid, body }) => {
   const { dispatch } = useContext(NodeContext);
 
   const handleChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
-    let text = evt.target.value;
+    const text = evt.target.value;
 
-    let newBody = {
+    const newBody = {
       ...body,
       text,
       data: new Float32Array(

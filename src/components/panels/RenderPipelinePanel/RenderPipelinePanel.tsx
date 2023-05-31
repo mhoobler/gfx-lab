@@ -42,8 +42,6 @@ const RenderPipelineInit: NodeInitFn<GPURenderPipelineDescriptor> = (
 
 type Props = PanelProps<GPURenderPipelineDescriptor>;
 const RenderPipelinePanel: FC<Props> = () => {
-  return (
-      <div className="input-container">RenderPipelinePanel</div>
-  );
+  return <div className="input-container">RenderPipelinePanel</div>;
 };
 export { RenderPipelinePanel, RenderPipelineInit };

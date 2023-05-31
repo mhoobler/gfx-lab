@@ -1,13 +1,13 @@
 import { FC, RefObject, useContext } from "react";
 import { NodeContext } from "components";
-import {viewBoxCoords} from "data";
+import { viewBoxCoords } from "data";
 
 type Props = {
   svgRef: RefObject<SVGElement>;
   sender: NodeSender;
   senderRef: RefObject<SVGCircleElement>;
   width: number;
-  view: any;
+  view: {viewBox: n[]};
 };
 const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
   const { dispatch } = useContext(NodeContext);
@@ -17,8 +17,14 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
       throw new Error("Ref error");
     }
 
-    const bb = (evt.currentTarget as unknown as HTMLElement).getBoundingClientRect();
-    const [cx, cy] = viewBoxCoords(bb.x + bb.width / 2, bb.y + bb.height / 2, view);
+    const bb = (
+      evt.currentTarget as unknown as HTMLElement
+    ).getBoundingClientRect();
+    const [cx, cy] = viewBoxCoords(
+      bb.x + bb.width / 2,
+      bb.y + bb.height / 2,
+      view
+    );
 
     const line = getLine(cx, cy);
     svgRef.current.appendChild(line);
