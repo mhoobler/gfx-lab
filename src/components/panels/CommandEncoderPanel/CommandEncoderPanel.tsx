@@ -50,9 +50,9 @@ const CommandEncoderPanel: FC<Props> = ({ uuid }) => {
 
   return (
     <>
-      <form>
+      <div className="input-container">
         <button onClick={handleClick}>Add Draw Call</button>
-      </form>
+      </div>
     </>
   );
 };

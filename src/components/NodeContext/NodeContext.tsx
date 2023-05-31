@@ -6,7 +6,8 @@ import {
   getAllConnections2,
   getAllNodes,
   removeConnection,
-} from "../../node_utils";
+  updateConnections,
+} from "node_utils";
 
 type NodeContextState = {
   nodes: NodeData<unknown>[];
@@ -44,6 +45,12 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
       const { type, payload } = action;
 
       switch (type) {
+        case "EDIT_NODE_BODY" : {
+          const { uuid, body } = payload;
+          nm.nodes[uuid].body = body;
+          updateConnections(nm, nm.nodes[uuid]);
+          return {...state};
+        }
         case "MOVE_NODE": {
           const { data, x, y } = payload;
           data.xyz[0] = x;

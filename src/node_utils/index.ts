@@ -101,7 +101,7 @@ export function createConnection(
   }
   if (receiver.type !== senderNode.type) {
     throw new Error(
-      `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type}`
+                                                                                                                      `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type} \n(HINT: check payload.receiverIndex)`
     );
   }
 
@@ -165,10 +165,28 @@ function finalizeConnection(
     case "DrawCall": {
       break;
     }
+    case "Buffer": {
+      receiverNode.body.buffer = isDelete ? null : senderNode.body.buffer;
+      break;
+    }
+    case "Data": {
+      receiverNode.body.size = senderNode.body.data.byteLength;
+      receiverNode.body.buffer = manager.device.createBuffer(receiverNode.body);
+      manager.device.queue.writeBuffer(receiverNode.body.buffer, 0, senderNode.body.data);
+      break;
+    }
     default: {
       throw new Error(
         "Fallthrough case, connection not created: " + senderNode.type
       );
     }
+  }
+}
+
+export function updateConnections(manager: NodeManager, node: NodeData<any>) {
+  for(let sendTo of node.sender.to) {
+    let receiverNode = manager.nodes[sendTo.uuid];
+    finalizeConnection(manager, node, receiverNode);
+    updateConnections(manager, receiverNode);
   }
 }

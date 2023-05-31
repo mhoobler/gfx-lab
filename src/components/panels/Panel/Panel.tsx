@@ -1,7 +1,9 @@
 import { FC } from "react";
 
+import { BufferPanel } from "../BufferPanel/BufferPanel";
 import { CanvasPanel } from "../CanvasPanel/CanvasPanel";
 import { CommandEncoderPanel } from "../CommandEncoderPanel/CommandEncoderPanel";
+import { DataPanel } from "../DataPanel/DataPanel";
 import { DrawCallPanel } from "../DrawCallPanel/DrawCallPanel";
 import { FragmentStatePanel } from "../FragmentStatePanel/FragmentStatePanel";
 import { RenderPassPanel } from "../RenderPassPanel/RenderPassPanel";
@@ -11,63 +13,99 @@ import { VertexStatePanel } from "../VertexStatePanel/VertexStatePanel";
 
 type Props = { data: NodeData<GPUBase> };
 const Panel: FC<Props> = ({ data }) => {
-  return (
-    <>
-      {data.type === "ShaderModule" ? (
-        <ShaderModulePanel
-          uuid={data.uuid}
-          body={data.body as GPUShaderModuleDescriptor}
-        >
+  switch (data.type) {
+    case "Buffer": {
+      return (
+        <BufferPanel uuid={data.uuid} body={data.body as GPUBufferDescriptor}>
           <></>
-        </ShaderModulePanel>
-      ) : data.type === "VertexState" ? (
-        <VertexStatePanel uuid={data.uuid} body={data.body as GPUVertexState}>
-          <></>
-        </VertexStatePanel>
-      ) : data.type === "FragmentState" ? (
-        <FragmentStatePanel
-          uuid={data.uuid}
-          body={data.body as GPUFragmentState}
-        >
-          <></>
-        </FragmentStatePanel>
-      ) : data.type === "RenderPipeline" ? (
-        <RenderPipelinePanel
-          uuid={data.uuid}
-          body={data.body as GPURenderPipelineDescriptor}
-        >
-          <></>
-        </RenderPipelinePanel>
-      ) : data.type === "CanvasPanel" ? (
+        </BufferPanel>
+      );
+    }
+    case "CanvasPanel": {
+      return (
         <CanvasPanel uuid={data.uuid} body={data.body as GPUCanvasPanel}>
           <></>
         </CanvasPanel>
-      ) : data.type === "CommandEncoder" ? (
+      );
+    }
+    case "CommandEncoder": {
+      return (
         <CommandEncoderPanel
           uuid={data.uuid}
           body={data.body as GPUCommandEncoderDescriptorEXT}
         >
           <></>
         </CommandEncoderPanel>
-      ) : data.type === "RenderPass" ? (
+      );
+    }
+    case "Data": {
+      return (
+        <DataPanel uuid={data.uuid} body={data.body as GPUData}>
+          <></>
+        </DataPanel>
+      );
+    }
+    case "DrawCall": {
+      return (
+        <DrawCallPanel uuid={data.uuid} body={data.body as GPUDrawCall}>
+          <></>
+        </DrawCallPanel>
+      );
+    }
+    case "FragmentState": {
+      return (
+        <FragmentStatePanel
+          uuid={data.uuid}
+          body={data.body as GPUFragmentState}
+        >
+          <></>
+        </FragmentStatePanel>
+      );
+    }
+    case "RenderPass": {
+      return (
         <RenderPassPanel
           uuid={data.uuid}
           body={data.body as GPURenderPassDescriptorEXT}
         >
           <></>
         </RenderPassPanel>
-      ) : data.type === "DrawCall" ? (
-        <DrawCallPanel uuid={data.uuid} body={data.body as GPUDrawCall}>
+      );
+    }
+    case "RenderPipeline": {
+      return (
+        <RenderPipelinePanel
+          uuid={data.uuid}
+          body={data.body as GPURenderPipelineDescriptor}
+        >
           <></>
-        </DrawCallPanel>
-      ) : (
-        (() => {
-          console.error("Node.tsx fallthrough case");
-          return <div></div>;
-        })()
-      )}
-    </>
-  );
+        </RenderPipelinePanel>
+      );
+    }
+    case "ShaderModule": {
+      return (
+        <ShaderModulePanel
+          uuid={data.uuid}
+          body={data.body as GPUShaderModuleDescriptor}
+        >
+          <></>
+        </ShaderModulePanel>
+      );
+    }
+    case "VertexState": {
+      return (
+        <VertexStatePanel uuid={data.uuid} body={data.body as GPUVertexState}>
+          <></>
+        </VertexStatePanel>
+      );
+    }
+    default: {
+      (() => {
+        console.error("Node.tsx fallthrough case");
+        return <div></div>;
+      })();
+    }
+  }
 };
 
 export default Panel;

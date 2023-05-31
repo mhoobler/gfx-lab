@@ -1,4 +1,4 @@
-import { NodeInitFn } from "../../components";
+import { NodeInitFn, VertexStateUtils } from "../../components";
 
 const HELLO_TRIANGLE = `@vertex fn vs(
   @builtin(vertex_index) vertexIndex : u32
@@ -15,6 +15,34 @@ const HELLO_TRIANGLE = `@vertex fn vs(
 @fragment fn fs() -> @location(0) vec4f {
   return vec4f(1.0, 0.0, 0.0, 1.0);
 }`;
+const HELLO_VERTEX_DATA = `0.0,  0.5, 1, 0, 0,
+ 0.5, -0.5, 0, 1, 0,
+-0.5, -0.5, 0, 0, 1,`;
+
+const HELLO_VERTEX = `struct Vertex {
+  @location(0) position: vec2f,
+  @location(1) color: vec3f,
+};
+
+struct VSOutput {
+  @builtin(position) position: vec4f,
+  @location(0) color: vec4f,
+};
+
+@vertex fn vs(
+  vert: Vertex,
+  @builtin(instance_index) instanceIndex: u32
+) -> VSOutput {
+  var vsOut: VSOutput;
+  vsOut.position = vec4f(vert.position, 1.0, 1.0);
+  vsOut.color = vec4f(vert.color, 1.0);
+  return vsOut;
+}
+
+@fragment fn fs(vsOut: VSOutput) -> @location(0) vec4f {
+  return vsOut.color;
+}
+`;
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -50,16 +78,6 @@ function uuid() {
     lut[(d3 >> 24) & 0xff]
   );
 }
-const node_types: NodeTypes = [
-  "ShaderModule",
-  "VertexState",
-  "FragmentState",
-  "CanvasPanel",
-  "RenderPipeline",
-  "RenderPass",
-  "CommandEncoder",
-  "DrawCall",
-];
 
 type ByCategory = { [Property in keyof NodeType]: string[] };
 class NodeManager {
@@ -75,16 +93,14 @@ class NodeManager {
     this.connections = new Map();
 
     this.nodes = {};
-    const byCategory = {};
-    for (const nodeType of node_types) {
-      byCategory[nodeType] = [];
-    }
-    this.byCategory = byCategory as ByCategory;
+    this.byCategory = {} as ByCategory;
   }
 }
 
-// eslint-disable-next-line
-export function addNode(manager: NodeManager, node: NodeData<any>): string {
+export function addNode<T>(manager: NodeManager, node: NodeData<T>): string {
+  if (!manager.byCategory[node.type]) {
+    manager.byCategory[node.type] = [];
+  }
   manager.byCategory[node.type].push(node.uuid);
   manager.nodes[node.uuid] = node;
   return node.uuid;
@@ -94,23 +110,50 @@ export function initManagerWithJunk(manager: NodeManager) {
   let z = 0;
 
   const canvasPanel = NodeInitFn.CanvasPanel(uuid(), [600, 200, z++]);
-  const shaderModule = NodeInitFn.ShaderModule(uuid(), [0, 0, z++]);
-  const vertexState = NodeInitFn.VertexState(uuid(), [400, 0, z++]);
-  const fragmentState = NodeInitFn.FragmentState(uuid(), [400, 200, z++]);
-  const renderPipeline = NodeInitFn.RenderPipeline(uuid(), [600, 0, z++]);
-  const renderPass = NodeInitFn.RenderPass(uuid(), [800, 200, z++]);
-  const commandEncoder = NodeInitFn.CommandEncoder(uuid(), [800, 400, z++]);
-  const drawCall = NodeInitFn.DrawCall(uuid(), [800, 0, z++]);
-
   addNode(manager, canvasPanel);
+
+  const shaderModule = NodeInitFn.ShaderModule(uuid(), [0, 200, z++]);
   addNode(manager, shaderModule);
-  shaderModule.body.code = HELLO_TRIANGLE;
+  shaderModule.body.code = HELLO_VERTEX;
+
+  const vertexState = NodeInitFn.VertexState(uuid(), [200, 0, z++]);
+  let layout = VertexStateUtils.newLayout();
+  layout.arrayStride = 20;
+  layout.attributes = [
+    { shaderLocation: 0, offset: 0, format: "float32x2" }, // position
+    { shaderLocation: 1, offset: 8, format: "float32x3" }, // color
+  ];
+  (vertexState.body.buffers as Array<GPUVertexBufferLayout>).push(layout);
   addNode(manager, vertexState);
+
+  const dataNode = NodeInitFn.Data(uuid(), [-200, 0, z++]);
+  dataNode.body.text = HELLO_VERTEX_DATA;
+
+  dataNode.body.data = new Float32Array(
+    HELLO_VERTEX_DATA.split(",")
+      .map((n) => parseFloat(n))
+      .filter((e) => !isNaN(e))
+  );
+  addNode(manager, dataNode);
+
+  const bufferNode = NodeInitFn.Buffer(uuid(), [0, 0, z++]);
+  (bufferNode.body.usage = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST),
+    addNode(manager, bufferNode);
+
+  const fragmentState = NodeInitFn.FragmentState(uuid(), [400, 200, z++]);
   addNode(manager, fragmentState);
-  fragmentState.body.targets = [{ format: manager.format }]; //TODO
+
+  const renderPipeline = NodeInitFn.RenderPipeline(uuid(), [600, 0, z++]);
   addNode(manager, renderPipeline);
+  fragmentState.body.targets = [{ format: manager.format }]; //TODO
+
+  const renderPass = NodeInitFn.RenderPass(uuid(), [800, 200, z++]);
   addNode(manager, renderPass);
+
+  const commandEncoder = NodeInitFn.CommandEncoder(uuid(), [1000, 200, z++]);
   addNode(manager, commandEncoder);
+
+  const drawCall = NodeInitFn.DrawCall(uuid(), [800, 0, z++]);
   addNode(manager, drawCall);
 }
 
@@ -130,8 +173,13 @@ export function render(manager: NodeManager) {
       for (let i = 1; i < lim; i++) {
         const drawCall = command.receivers[i].from as NodeData<GPUDrawCall>;
 
-        if (drawCall && drawCall.body.renderPipeline) {
-          pass.setPipeline(drawCall.body.renderPipeline);
+        if (drawCall) {
+          if (drawCall.body.renderPipeline) {
+            pass.setPipeline(drawCall.body.renderPipeline);
+          }
+          if (drawCall.body.buffer) {
+            pass.setVertexBuffer(0, drawCall.body.buffer);
+          }
           pass.draw(drawCall.body.vertexCount);
         }
       }
