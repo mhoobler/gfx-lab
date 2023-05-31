@@ -33,7 +33,11 @@ const CanvasPanel: FC<Props> = ({ body }) => {
     }
   }, [body]);
 
-  return <canvas ref={canvasRef} width={200} height={180}></canvas>;
+  return (
+    <div className="input-container">
+      <canvas ref={canvasRef} width={142} height={170}></canvas>
+    </div>
+  );
 };
 
 export { CanvasPanel, CanvasPanelInit };

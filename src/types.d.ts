@@ -19,6 +19,10 @@ interface GPUCanvasPanel {
   ctx: GPUCanvasContext;
 }
 
+interface GPUVertexAttributeEXT extends GPUVertexAttribute {
+  label?: string;
+}
+
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
   createView: (() => GPUTextureView) | null;
 }
@@ -30,11 +34,17 @@ interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
 
 interface GPUDrawCall extends GPUObjectBase {
   commandEncoderDesc: GPUCommandEncoderDescriptorEXT;
+  buffer: GPUBuffer;
   renderPipeline?: GPURenderPipeline;
   vertexCount: number;
   instanceCount?: number;
   firstVertex?: number;
   firstInstance?: number;
+}
+
+interface GPUData extends GPUObjectBase {
+  text: string,
+  data?: Float32Array | Float64Array | Uint32Array | Uint16Array;
 }
 
 type PanelProps<T> = {
@@ -49,18 +59,17 @@ interface IColor {
   rgbaString: () => string;
 }
 
-type NodeTypes = [
-  "ShaderModule",
-  "VertexState",
-  "FragmentState",
-  "CanvasPanel",
-  "RenderPipeline",
-  "RenderPass",
-  "CommandEncoder",
-  "DrawCall"
-];
-
-type NodeType = NodeTypes[number];
+type NodeType =
+  | "Data"
+  | "Buffer"
+  | "ShaderModule"
+  | "VertexState"
+  | "FragmentState"
+  | "CanvasPanel"
+  | "RenderPipeline"
+  | "RenderPass"
+  | "CommandEncoder"
+  | "DrawCall";
 
 type NodeSender = {
   uuid: string;

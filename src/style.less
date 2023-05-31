@@ -1,14 +1,35 @@
 * {
   font-family: "Roboto", sans-serif;
+
+  &::-webkit-scrollbar {
+    z-index: 1;
+    width: .75rem;
+    background-color: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-width: .75rem;
+    padding: .75rem;
+    border-radius: .75rem;
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+  &::-webkit-resizer {
+    width: 16px;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
 }
 
-input {
-  border: none;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0);
-  color: white;
+.row {
+  display: flex;
 }
 
-input:focus {
+//input {
+//  border: none;
+//  width: 100%;
+//  background-color: rgba(0, 0, 0, 0);
+//  color: white;
+//}
+
+input:focus,
+select:focus {
   outline: none;
 }

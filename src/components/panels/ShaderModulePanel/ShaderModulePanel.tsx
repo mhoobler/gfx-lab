@@ -1,7 +1,7 @@
 import { ChangeEvent, FC, useState } from "react";
 import { Color } from "data";
 
-import "./style.less";
+import "./ShaderModulePanel.less";
 
 const type = "ShaderModule";
 const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor> = (
@@ -38,11 +38,10 @@ const ShaderModulePanel: FC<Props> = ({ body, children }) => {
 
   return (
     <>
-      <form className="shader-module-descriptor">
-        <br />
+      <div className="input-container shader-module-descriptor">
         <textarea value={code} onChange={handleChange} spellCheck="false" />
         {children}
-      </form>
+      </div>
     </>
   );
 };

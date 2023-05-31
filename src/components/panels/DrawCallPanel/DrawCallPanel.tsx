@@ -11,6 +11,7 @@ const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
   body: {
     label: type,
     commandEncoderDesc: null,
+    buffer: null,
     vertexCount: 3,
   },
   sender: {
@@ -25,12 +26,21 @@ const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
       type: "RenderPipeline",
       from: null,
     },
+    {
+      uuid,
+      type: "Buffer",
+      from: null,
+    }
   ],
 });
 
 type Props = PanelProps<GPUDrawCall>;
 const DrawCallPanel: FC<Props> = () => {
-  return <div>DrawCallPanel</div>;
+  return <div className="input-container draw-call-panel">
+    <div>
+      <button>Add Buffer</button>
+    </div>
+  </div>;
 };
 
 export { DrawCallPanel, DrawCallInit };

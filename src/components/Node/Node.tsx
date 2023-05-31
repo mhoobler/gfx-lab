@@ -20,7 +20,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     new Map()
   );
 
-  const handleMouseDown = (evt: React.MouseEvent<HTMLDivElement>) => {
+  const handleMove = (evt: React.MouseEvent<HTMLDivElement>) => {
     if (!svgRef.current || !gRef.current || !senderRef.current) {
       throw new Error("Ref error");
     }
@@ -44,8 +44,8 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     const handleMouseMove = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
         let [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
-        const moveX = dx + vx;
-        const moveY = dy + vy;
+        const moveX = Math.round((dx + vx) * 100) / 100;
+        const moveY = Math.round((dy + vy) * 100) / 100;
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
         for (const sender of senderLines) {
@@ -82,6 +82,10 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     window.addEventListener("mousemove", handleMouseMove);
   };
 
+  const handleResize = (evt: React.MouseEvent) => {
+    console.warn("TODO!");
+  }
+
   const backgroundColor = data.headerColor.rgbaString();
 
   return (
@@ -90,13 +94,16 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
         <div className="node-card">
           <div
             className="node-header"
-            onMouseDown={handleMouseDown}
+            onMouseDown={handleMove}
             style={{ backgroundColor }}
           >
             {data.body.label}
           </div>
           <div className="node-body">
             <Panel data={data} />
+          </div>
+          <div className="node-footer">
+            <div className="resizer" onMouseDown={handleResize}></div>
           </div>
         </div>
       </foreignObject>

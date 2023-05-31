@@ -7,8 +7,8 @@ import { viewBoxCoords } from "data";
 const NodeBoard: FC = () => {
   const { state, dispatch } = useContext(NodeContext);
   const [view, setView] = useState({
-    zoom: 1,
-    viewBox: [0, 0, window.innerWidth, window.innerHeight],
+    zoom: 1.3,
+    viewBox: [-200, -200, window.innerWidth * 1.3, window.innerHeight * 1.3],
   });
   const svgRef = useRef(null);
   const gRef = useRef(null);
@@ -46,6 +46,10 @@ const NodeBoard: FC = () => {
       state.nodes.find((rec) => rec.type === "CommandEncoder");
     const drawCallNode: NodeData<GPUCommandEncoderDescriptorEXT> =
       state.nodes.find((rec) => rec.type === "DrawCall");
+    const dataNode: NodeData<GPUCommandEncoderDescriptorEXT> =
+      state.nodes.find((rec) => rec.type === "Data");
+    const bufferNode: NodeData<GPUCommandEncoderDescriptorEXT> =
+      state.nodes.find((rec) => rec.type === "Buffer");
 
     dispatch({
       type: "LINK_MULTIPLE_NODES",
@@ -92,6 +96,24 @@ const NodeBoard: FC = () => {
           receiverId: drawCallNode.uuid,
           receiverIndex: 0,
         },
+        // Connect DrawCall to CommandEncoder
+        {
+          sender: drawCallNode.sender,
+          receiverId: commandEncoderNode.uuid,
+          receiverIndex: 1,
+        },
+        // Connect Data to Buffer
+        {
+          sender: dataNode.sender,
+          receiverId: bufferNode.uuid,
+          receiverIndex: 0,
+        },
+        // Connect Buffer to DrawCall
+        {
+          sender: bufferNode.sender,
+          receiverId: drawCallNode.uuid,
+          receiverIndex: 1,
+        },
       ],
     });
     return () => {
@@ -104,7 +126,7 @@ const NodeBoard: FC = () => {
   };
 
   const handleWheel = (evt: React.WheelEvent) => {
-    if (evt.buttons === 0) {
+    if (evt.buttons === 0 && evt.target === svgRef.current) {
       setView(({ viewBox, zoom }) => {
         const [x, y, width, height] = [...viewBox];
         const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
@@ -164,7 +186,7 @@ const NodeBoard: FC = () => {
 
   return (
     <div className="node-board">
-      <button onClick={handleRenderClick}>DRAW</button>
+      <button className="render" onClick={handleRenderClick}>DRAW</button>
       <svg
         ref={svgRef}
         onWheel={handleWheel}

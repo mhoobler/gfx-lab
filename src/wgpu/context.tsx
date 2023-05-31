@@ -33,8 +33,9 @@ const WgpuProvider: FC<DefaultProps> = ({ children }) => {
           setAdapter(adapter);
         })
         .catch((err) => {
-          error = err;
-          setError(error);
+          if(!error) {
+            setError(error);
+          }
           throw err;
         });
     }

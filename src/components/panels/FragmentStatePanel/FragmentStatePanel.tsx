@@ -31,7 +31,7 @@ const FragmentStateInit: NodeInitFn<GPUFragmentState> = (uuid, xyz) => ({
 
 type Props = PanelProps<GPUFragmentState>;
 const FragmentStatePanel: FC<Props> = ({ children }) => {
-  return <div>{children}</div>;
+  return <div className="input-container">{children}</div>;
 };
 
 export { FragmentStatePanel, FragmentStateInit };
