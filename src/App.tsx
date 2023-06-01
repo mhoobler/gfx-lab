@@ -1,20 +1,26 @@
-import React, { useContext } from "react";
+import { FC, StrictMode, useContext, useEffect } from "react";
 import { WgpuContext } from "./wgpu";
-import { NodeBoard, NodeProvider } from "./components";
+import { NodeBoard, NodeProvider } from "components";
 
 import "./style.less";
 
-const App: React.FC = () => {
+const App: FC = () => {
   const { device, format } = useContext(WgpuContext);
+
+  useEffect(() => {
+    //import("json_layouts/hello_triangle.json")
+    //  .then((data) => console.log(data.default))
+    //  .catch((err) => console.error(err));
+  }, []);
 
   return (
     <div>
       {device && format && (
-        <React.StrictMode>
+        <StrictMode>
           <NodeProvider device={device} format={format}>
             <NodeBoard />
           </NodeProvider>
-        </React.StrictMode>
+        </StrictMode>
       )}
     </div>
   );

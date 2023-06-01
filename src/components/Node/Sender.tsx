@@ -7,7 +7,7 @@ type Props = {
   sender: NodeSender;
   senderRef: RefObject<SVGCircleElement>;
   width: number;
-  view: {viewBox: n[]};
+  view: { viewBox: n[] };
 };
 const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
   const { dispatch } = useContext(NodeContext);

@@ -1,0 +1,120 @@
+{
+  "name": "Hello Triangle",
+  "nodes": {
+    "1a": {
+      "uuid": "1a",
+      "xyz": [0, 0, 0],
+      "type": "ShaderModule",
+      "body": {
+        "label": "HelloTriangleShader",
+        "code": "@vertex fn vs(\n  @builtin(vertex_index) vertexIndex : u32\n) -> @builtin(position) vec4f {\n  var pos = array<vec2f, 3>(\n    vec2f( 0.0,  0.5),  // CHANGE ME\n    vec2f(-0.5, -0.5),  // CHANGE ME\n    vec2f( 0.5, -0.5)   // CHANGE ME\n  );\n\n  return vec4f(pos[vertexIndex], 0.0, 1.0);\n}\n\n@fragment fn fs() -> @location(0) vec4f {\n  return vec4f(1.0, 0.0, 0.0, 1.0);\n}"
+      },
+      "connections": [
+        {
+          "uuid": "2a",
+          "receiverIndex": 0
+        },
+        {
+          "uuid": "3a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "2a": {
+      "uuid": "2a",
+      "xyz": [400, 0, 0],
+      "type": "VertexState",
+      "body": {
+        "label": "VertexState",
+        "entryPoint": "vs"
+      },
+      "connections": [
+        {
+          "uuid": "4a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "3a": {
+      "uuid": "3a",
+      "xyz": [400, 200, 0],
+      "type": "FragmentState",
+      "body": {
+        "label": "FragmentState",
+        "entryPoint": "fs",
+        "targets": [{ "format": "bgra8unorm" }]
+      },
+      "connections": [
+        {
+          "uuid": "4a",
+          "receiverIndex": 1
+        }
+      ]
+    },
+    "4a": {
+      "uuid": "4a",
+      "xyz": [600, 0, 0],
+      "type": "RenderPipeline",
+      "body": {
+        "label": "RenderPipeline"
+      },
+      "connections": [
+        {
+          "uuid": "7a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "5a": {
+      "uuid": "5a",
+      "xyz": [800, 200, 0],
+      "type": "RenderPass",
+      "body": {
+        "label": "RenderPass"
+      },
+      "connections": [
+        {
+          "uuid": "6a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "6a": {
+      "uuid": "6a",
+      "xyz": [800,400, 0],
+      "type": "CommandEncoder",
+      "body": {
+        "label": "CommandEncoder"
+      }
+    },
+    "7a": {
+      "uuid": "7a",
+      "xyz": [800, 0, 0],
+      "type": "DrawCall",
+      "body": {
+        "label": "DrawCall"
+      },
+      "connections": [
+        {
+          "uuid": "6a",
+          "receiverIndex": 1
+        }
+      ]
+    },
+    "8a": {
+      "uuid": "8a",
+      "xyz": [600, 200, 0],
+      "size": [300, 300],
+      "type": "CanvasPanel",
+      "body": {
+        "label": "CanvasPanel"
+      },
+      "connections": [
+        {
+          "uuid": "5a",
+          "receiverIndex": 0
+        }
+      ]
+    }
+  }
+}

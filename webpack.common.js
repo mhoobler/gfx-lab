@@ -2,6 +2,7 @@ const path = require("path");
 const Html = require("html-webpack-plugin");
 const RefreshWebpack = require("@pmmmwh/react-refresh-webpack-plugin");
 const RefreshTypescript = require("react-refresh-typescript");
+const Copy = require("copy-webpack-plugin");
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 console.log("NODE_ENV: " + process.env.NODE_ENV);
@@ -15,6 +16,11 @@ module.exports = {
     new Html({
       title: "Development",
       template: "./src/index.html",
+    }),
+    new Copy({
+      patterns: [
+        { from: "src/json_layouts", to: "json_layouts" }
+      ]
     }),
     isDevelopment && new RefreshWebpack(),
   ].filter(Boolean),

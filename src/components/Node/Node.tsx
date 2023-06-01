@@ -89,7 +89,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
   const backgroundColor = data.headerColor.rgbaString();
 
   return (
-    <g ref={gRef} transform={`translate(${data.xyz[0]}, ${data.xyz[1]})`}>
+    <g className={data.type} ref={gRef} transform={`translate(${data.xyz[0]}, ${data.xyz[1]})`}>
       <foreignObject width={data.size[0]} height={data.size[1]}>
         <div className="node-card">
           <div
