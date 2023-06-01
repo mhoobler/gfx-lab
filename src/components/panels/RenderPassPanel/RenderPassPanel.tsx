@@ -12,14 +12,13 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT> = (uuid, xyz) => ({
     label: type,
     colorAttachments: [
       {
-        view: undefined,
+        view: null,
         clearValue: [0.0, 0.0, 0.3, 1],
         loadOp: "clear",
         storeOp: "store",
       },
     ],
-    createView: null,
-    drawVertecies: 3,
+    canvasPointer: null,
   },
   sender: {
     uuid,

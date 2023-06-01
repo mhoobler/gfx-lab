@@ -1,5 +1,5 @@
-import {HELLO_VERTEX, HELLO_VERTEX_DATA} from "data";
-import { NodeInitFn, VertexStateUtils } from "../../components";
+import { NodeInitFn } from "components";
+import { createConnection } from "node_utils";
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -54,6 +54,54 @@ class NodeManager {
   }
 }
 
+export function loadJson(
+  manager: NodeManager,
+  json: { [key: string]: NodeJson }
+) {
+  for (const nodeJson of Object.values(json)) {
+    const { uuid, type, xyz, size, body } = nodeJson;
+    if (!manager.nodes[uuid]) {
+      const newNode = NodeInitFn[type](uuid, xyz);
+      addNode(manager, newNode as NodeData<GPUBase>);
+
+      if (body) {
+        newNode.body = { ...newNode.body, ...body };
+        if (type === "Data") {
+          console.log(newNode.body);
+          console.log(body);
+          const b = newNode.body as GPUData;
+          b.data = new Float32Array(
+            b.text
+              .split(",")
+              .map((n) => parseFloat(n))
+              .filter((e) => !isNaN(e))
+          );
+        }
+      }
+      if (size) {
+        newNode.size = size;
+      }
+    }
+  }
+
+  // TODO: Need to sort with "connection priority"
+  // Check broken_connection.json vs. hello_vertex.json
+  for (const node of Object.values(manager.nodes)) {
+    const { connections } = json[node.uuid];
+    if (connections) {
+      for (const { uuid, receiverIndex } of connections) {
+        const [senderNode, receiverNode] = [
+          manager.nodes[node.sender.uuid],
+          manager.nodes[uuid],
+        ];
+        console.log(senderNode.uuid, receiverNode.uuid);
+        console.log(senderNode.type, receiverNode.type);
+        createConnection(manager, node.sender, uuid, receiverIndex);
+      }
+    }
+  }
+}
+
 export function addNode<T>(manager: NodeManager, node: NodeData<T>): string {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = [];
@@ -63,55 +111,24 @@ export function addNode<T>(manager: NodeManager, node: NodeData<T>): string {
   return node.uuid;
 }
 
-export function initManagerWithJunk(manager: NodeManager) {
-  let z = 0;
+export function createNode(
+  manager: NodeManager,
+  nodeJsons: NodeJson,
+  key?: string
+) {
+  if (!manager.nodes[key]) {
+    const nodeJson = nodeJsons[key];
+    const { uuid, type, xyz, size, body } = nodeJson;
+    const newNode = NodeInitFn[type](uuid, xyz);
+    addNode(manager, newNode as NodeData<GPUBase>);
 
-  const canvasPanel = NodeInitFn.CanvasPanel(uuid(), [600, 200, z++]);
-  addNode(manager, canvasPanel);
-
-  const shaderModule = NodeInitFn.ShaderModule(uuid(), [0, 200, z++]);
-  addNode(manager, shaderModule);
-  shaderModule.body.code = HELLO_VERTEX;
-
-  const vertexState = NodeInitFn.VertexState(uuid(), [200, 0, z++]);
-  const layout = VertexStateUtils.newLayout();
-  layout.arrayStride = 20;
-  layout.attributes = [
-    { shaderLocation: 0, offset: 0, format: "float32x2" }, // position
-    { shaderLocation: 1, offset: 8, format: "float32x3" }, // color
-  ];
-  (vertexState.body.buffers as Array<GPUVertexBufferLayout>).push(layout);
-  addNode(manager, vertexState);
-
-  const dataNode = NodeInitFn.Data(uuid(), [-200, 0, z++]);
-  dataNode.body.text = HELLO_VERTEX_DATA;
-
-  dataNode.body.data = new Float32Array(
-    HELLO_VERTEX_DATA.split(",")
-      .map((n) => parseFloat(n))
-      .filter((e) => !isNaN(e))
-  );
-  addNode(manager, dataNode);
-
-  const bufferNode = NodeInitFn.Buffer(uuid(), [0, 0, z++]);
-  (bufferNode.body.usage = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST),
-    addNode(manager, bufferNode);
-
-  const fragmentState = NodeInitFn.FragmentState(uuid(), [400, 200, z++]);
-  addNode(manager, fragmentState);
-
-  const renderPipeline = NodeInitFn.RenderPipeline(uuid(), [600, 0, z++]);
-  addNode(manager, renderPipeline);
-  fragmentState.body.targets = [{ format: manager.format }]; //TODO
-
-  const renderPass = NodeInitFn.RenderPass(uuid(), [800, 200, z++]);
-  addNode(manager, renderPass);
-
-  const commandEncoder = NodeInitFn.CommandEncoder(uuid(), [1000, 200, z++]);
-  addNode(manager, commandEncoder);
-
-  const drawCall = NodeInitFn.DrawCall(uuid(), [800, 0, z++]);
-  addNode(manager, drawCall);
+    if (body) {
+      newNode.body = { ...newNode.body, ...body };
+    }
+    if (size) {
+      newNode.size = size;
+    }
+  }
 }
 
 export function render(manager: NodeManager) {
@@ -121,7 +138,7 @@ export function render(manager: NodeManager) {
     ] as NodeData<GPUCommandEncoderDescriptorEXT>;
     if (command.body.renderPassDesc) {
       command.body.renderPassDesc.colorAttachments[0].view =
-        command.body.renderPassDesc.createView();
+        command.body.renderPassDesc.canvasPointer.createView();
 
       const encoder = manager.device.createCommandEncoder(command.body);
       const pass = encoder.beginRenderPass(command.body.renderPassDesc);

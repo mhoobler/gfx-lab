@@ -1,7 +1,8 @@
-import { ChangeEvent, FC, useState } from "react";
+import { ChangeEvent, FC, useContext, useState } from "react";
 import { Color } from "data";
 
 import "./ShaderModulePanel.less";
+import {NodeContext} from "components/NodeContext/NodeContext";
 
 const type = "ShaderModule";
 const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor> = (
@@ -27,13 +28,15 @@ const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor> = (
 });
 
 type Props = PanelProps<GPUShaderModuleDescriptor>;
-const ShaderModulePanel: FC<Props> = ({ body, children }) => {
+const ShaderModulePanel: FC<Props> = ({ uuid, body, children }) => {
+  const { dispatch } = useContext(NodeContext);
   const [code, setCode] = useState<string>(body.code);
 
   const handleChange = (evt: ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = evt.currentTarget;
     body.code = value;
     setCode(body.code);
+    dispatch({type: "EDIT_NODE_BODY", payload: {uuid, body} })
   };
 
   return (

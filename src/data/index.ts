@@ -71,9 +71,9 @@ export const HELLO_TRIANGLE = `@vertex fn vs(
 @fragment fn fs() -> @location(0) vec4f {
   return vec4f(1.0, 0.0, 0.0, 1.0);
 }`;
-export const HELLO_VERTEX_DATA = `0.0,  0.5, 1, 0, 0,
- 0.5, -0.5, 0, 1, 0,
--0.5, -0.5, 0, 0, 1,`;
+export const HELLO_VERTEX_DATA = `0.0, 0.5, 1.0, 0.0, 0.0,
+ 0.5, -0.5, 0.0, 1.0, 0.0,
+-0.5, -0.5, 0.0, 0.0, 1.0,`;
 
 export const HELLO_VERTEX = `struct Vertex {
   @location(0) position: vec2f,

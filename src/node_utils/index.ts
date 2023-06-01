@@ -120,12 +120,13 @@ export function createConnection(
   finalizeConnection(manager, senderNode, receiverNode);
 }
 
-function finalizeConnection(
+export function finalizeConnection(
   manager: NodeManager,
   senderNode: NodeData<any>, // eslint-disable-line
   receiverNode: NodeData<any>, // eslint-disable-line
   isDelete = false
 ) {
+
   switch (senderNode.type) {
     case "ShaderModule": {
       receiverNode.body.module = isDelete
@@ -148,14 +149,7 @@ function finalizeConnection(
       break;
     }
     case "CanvasPanel": {
-      senderNode.body.ctx.configure({
-        device: manager.device,
-        format: manager.format,
-      });
-      const createView = isDelete
-        ? null
-        : () => senderNode.body.ctx.getCurrentTexture().createView();
-      receiverNode.body.createView = createView;
+      receiverNode.body.canvasPointer = senderNode.body;
       break;
     }
     case "RenderPass": {

@@ -17,6 +17,7 @@ interface GPUCanvasPanel {
   label: string;
   canvas: HTMLCanvasElement;
   ctx: GPUCanvasContext;
+  createView: () => GPUTextureView;
 }
 
 interface GPUVertexAttributeEXT extends GPUVertexAttribute {
@@ -24,7 +25,7 @@ interface GPUVertexAttributeEXT extends GPUVertexAttribute {
 }
 
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
-  createView: (() => GPUTextureView) | null;
+  canvasPointer: GPUCanvasPanel;
 }
 
 interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
@@ -96,6 +97,17 @@ type NodeConnection = {
   };
 };
 type ConnectionMap = Map<NodeData<GPUBase>, Map<NodeData<GPUBase>, number>>;
+
+type NodeJson = {
+  uuid: string;
+  type: NodeType;
+  xyz: [n, n, n];
+  size?: [n, n];
+  body?: object;
+  connections?: ConnectionJson[];
+};
+
+type ConnectionJson = { uuid: string; receiverIndex: number };
 
 interface NodeBase {
   uuid: string;

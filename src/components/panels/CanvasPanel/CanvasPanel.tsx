@@ -1,5 +1,6 @@
 import { Color } from "data";
-import { FC, useEffect, useRef } from "react";
+import { FC, useContext, useEffect, useRef } from "react";
+import {WgpuContext} from "wgpu";
 
 const type = "CanvasPanel";
 const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
@@ -12,6 +13,7 @@ const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
     label: type,
     canvas: null,
     ctx: null,
+    createView: null
   },
   sender: {
     uuid,
@@ -24,12 +26,19 @@ const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
 
 type Props = PanelProps<GPUCanvasPanel>;
 const CanvasPanel: FC<Props> = ({ body }) => {
+  const { device, format } = useContext(WgpuContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (canvasRef.current && !body.canvas) {
+      const ctx = canvasRef.current.getContext("webgpu");
+      ctx.configure({
+        device: device,
+        format: format,
+      });
       body.canvas = canvasRef.current;
-      body.ctx = body.canvas.getContext("webgpu");
+      body.ctx = ctx;
+      body.createView = () => ctx.getCurrentTexture().createView();
     }
   }, [body]);
 
