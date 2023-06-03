@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useReducer } from "react";
+import React, { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { createContext, FC } from "react";
 import NodeManager, { loadJson, render } from "./NodeManager";
 import {
@@ -11,6 +11,7 @@ import {
 } from "node_utils";
 
 type NodeContextState = {
+  renderState: boolean;
   nodes: NodeData<unknown>[];
   connections: NodeConnection[];
   selectedLayout: { url: string; name: string };
@@ -18,6 +19,7 @@ type NodeContextState = {
 
 const NodeContext = createContext({
   state: {
+    renderState: false,
     nodes: [],
     connections: [],
     selectedLayout: { url: "", name: "hello_vertex.json" },
@@ -49,7 +51,6 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
       switch (type) {
         case "EDIT_NODE_BODY": {
-          console.log("EDIT");
           const { uuid, body } = payload;
           nm.nodes[uuid].body = body;
           updateConnections(nm, nm.nodes[uuid]);
@@ -116,6 +117,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
           const selectedLayout = { url: "", name: "Clear" };
 
           return {
+            ...state,
             nodes: getAllNodes(nm),
             connections: getAllConnections2(nm),
             selectedLayout,
@@ -129,6 +131,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
           const selectedLayout = { url: "", name: payload.data.name };
 
           return {
+            ...state,
             nodes: getAllNodes(nm),
             connections: getAllConnections2(nm),
             selectedLayout,
@@ -136,9 +139,11 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
         }
 
         case "RENDER": {
-          render(nm);
-
-          return state;
+          console.log(state);
+          return {
+            ...state,
+            renderState: !state.renderState,
+          };
         }
 
         default: {
@@ -151,10 +156,26 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
   );
 
   const [state, dispatch] = useReducer(nodeReducer, {
+    renderState: false,
     nodes: getAllNodes(nm),
     connections: getAllConnections2(nm),
     selectedLayout: { url: "", name: "hello_vertex.json" },
   });
+
+  const renderLoop = () => {
+    render(nm);
+    renderLoopRef.current = requestAnimationFrame(renderLoop);
+  }
+
+  const renderLoopRef = useRef(null);
+  useEffect(() => {
+    if(state.renderState) {
+      renderLoopRef.current = requestAnimationFrame(renderLoop);
+    }
+
+    return () => cancelAnimationFrame(renderLoopRef.current);
+  }, [state.renderState]);
+
 
   return <Provider value={{ state, dispatch }}>{children}</Provider>;
 };

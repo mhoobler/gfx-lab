@@ -32,13 +32,15 @@ const CanvasPanel: FC<Props> = ({ body }) => {
   useEffect(() => {
     if (canvasRef.current && !body.canvas) {
       const ctx = canvasRef.current.getContext("webgpu");
-      ctx.configure({
-        device: device,
-        format: format,
-      });
-      body.canvas = canvasRef.current;
-      body.ctx = ctx;
-      body.createView = () => ctx.getCurrentTexture().createView();
+      if(ctx) {
+        ctx.configure({
+          device: device,
+          format: format,
+        });
+        body.canvas = canvasRef.current;
+        body.ctx = ctx;
+        body.createView = () => ctx.getCurrentTexture().createView();
+      }
     }
   }, [body]);
 
