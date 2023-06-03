@@ -60,15 +60,13 @@ export function loadJson(
 ) {
   for (const nodeJson of Object.values(json)) {
     const { uuid, type, xyz, size, body } = nodeJson;
-    if (!manager.nodes[uuid]) {
+    if (!manager.nodes[uuid] && NodeInitFn[type]) {
       const newNode = NodeInitFn[type](uuid, xyz);
       addNode(manager, newNode as NodeData<GPUBase>);
 
       if (body) {
         newNode.body = { ...newNode.body, ...body };
         if (type === "Data") {
-          console.log(newNode.body);
-          console.log(body);
           const b = newNode.body as GPUData;
           b.data = new Float32Array(
             b.text
@@ -90,12 +88,6 @@ export function loadJson(
     const { connections } = json[node.uuid];
     if (connections) {
       for (const { uuid, receiverIndex } of connections) {
-        const [senderNode, receiverNode] = [
-          manager.nodes[node.sender.uuid],
-          manager.nodes[uuid],
-        ];
-        console.log(senderNode.uuid, receiverNode.uuid);
-        console.log(senderNode.type, receiverNode.type);
         createConnection(manager, node.sender, uuid, receiverIndex);
       }
     }
