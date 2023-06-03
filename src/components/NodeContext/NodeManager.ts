@@ -103,26 +103,6 @@ export function addNode<T>(manager: NodeManager, node: NodeData<T>): string {
   return node.uuid;
 }
 
-export function createNode(
-  manager: NodeManager,
-  nodeJsons: NodeJson,
-  key?: string
-) {
-  if (!manager.nodes[key]) {
-    const nodeJson = nodeJsons[key];
-    const { uuid, type, xyz, size, body } = nodeJson;
-    const newNode = NodeInitFn[type](uuid, xyz);
-    addNode(manager, newNode as NodeData<GPUBase>);
-
-    if (body) {
-      newNode.body = { ...newNode.body, ...body };
-    }
-    if (size) {
-      newNode.size = size;
-    }
-  }
-}
-
 export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
     const command = manager.nodes[

@@ -1,5 +1,5 @@
-import { Connection, Node, NodeContext } from "../../components";
 import { FC, useContext, useEffect, useRef, useState } from "react";
+import { Connection, Node, NodeContext, NodeToolbar } from "components";
 
 import "./NodeBoard.less";
 import { viewBoxCoords } from "data";
@@ -37,34 +37,6 @@ const NodeBoard: FC = () => {
     };
   }, []);
 
-  const handleRenderClick = () => {
-    dispatch({ type: "RENDER" });
-  };
-  const handleLayoutChange = (evt: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = evt.target;
-
-    switch(value) {
-      case(state.selectedLayout.url): {
-        break;
-      }
-      case("CLEAR"): {
-        if(window.confirm("Are you sure you want to clear the board?")) {
-          dispatch({ type: "CLEAR" });
-        }
-        break;
-      }
-      default: {
-        fetch(value)
-          .then((response) => {
-            return response.json();
-          })
-          .then((data) => {
-            dispatch({ type: "LOAD_LAYOUT", payload: { data } });
-          })
-          .catch((err) => console.error(err));
-      }
-    }
-  };
 
   const handleWheel = (evt: React.WheelEvent) => {
     if (evt.buttons === 0 && evt.target === svgRef.current) {
@@ -92,7 +64,10 @@ const NodeBoard: FC = () => {
 
   const handleSvgDown = (evt: React.MouseEvent) => {
     if (evt.button === 1 && svgRef.current) {
+      document.body.style.cursor = "grabbing";
+
       let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, view);
+
       const mousemove = (evt2: MouseEvent) => {
         const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
         const vb = svgRef.current
@@ -108,6 +83,7 @@ const NodeBoard: FC = () => {
         my = moveY;
       };
       const mouseup = (evt2: MouseEvent) => {
+      document.body.style.cursor = "";
         if (evt2.button === 1) {
           setView((state) => {
             return {
@@ -156,17 +132,7 @@ const NodeBoard: FC = () => {
           );
         })}
       </svg>
-      <div className="board-controls">
-        <select onChange={handleLayoutChange} value={state.selectedLayout.name}>
-          <option value={`${state.selectedLayout.url}`}>{state.selectedLayout.name}</option>
-          <option value="CLEAR">Clear</option>
-          <option value={`json_layouts/hello_vertex.json`}>Hello Vertex</option>
-          <option value={`json_layouts/hello_triangle.json`}>
-            Hello Triangle
-          </option>
-        </select>
-        <button onClick={handleRenderClick}>Render</button>
-      </div>
+      <NodeToolbar/>
     </div>
   );
 };

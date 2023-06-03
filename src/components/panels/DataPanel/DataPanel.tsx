@@ -1,6 +1,6 @@
 import { NodeContext } from "components";
 import { Color } from "data";
-import { FC, useContext } from "react";
+import { FC, useContext, useState } from "react";
 
 const type = "Data";
 const DataInit: NodeInitFn<GPUData> = (uuid, xyz) => ({
@@ -26,9 +26,12 @@ const DataInit: NodeInitFn<GPUData> = (uuid, xyz) => ({
 type Props = PanelProps<GPUData>;
 const DataPanel: FC<Props> = ({ uuid, body }) => {
   const { dispatch } = useContext(NodeContext);
+  const [text, setText] = useState(body.text);
 
   const handleChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = evt.target.value;
+
+    setText(text);
 
     const newBody = {
       ...body,
@@ -46,7 +49,7 @@ const DataPanel: FC<Props> = ({ uuid, body }) => {
 
   return (
     <div className="input-container">
-      <textarea value={body.text} onChange={handleChange} spellCheck="false" />
+      <textarea value={text} onChange={handleChange} spellCheck="false" />
     </div>
   );
 };

@@ -1,10 +1,11 @@
 import { FC, RefObject, createRef, useContext, useRef } from "react";
 
-import "./style.less";
 import { NodeContext, Panel } from "components";
 import Sender from "./Sender";
 import Receiver from "./Receiver";
 import { viewBoxCoords } from "data";
+
+import "./Node.less";
 
 type Props = {
   data: NodeData<GPUBase>;
@@ -25,7 +26,10 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
       throw new Error("Ref error");
     }
 
-    const bb = (evt.currentTarget as HTMLElement).getBoundingClientRect();
+    const target = evt.currentTarget as HTMLElement;
+    target.style.cursor = "grabbing";
+
+    const bb = target.getBoundingClientRect();
     const [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
     const [zx, zy] = viewBoxCoords(evt.clientX, evt.clientY, view);
     const dx = bzx - zx;
@@ -69,6 +73,8 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     };
 
     const handleMouseUp = (evt2: MouseEvent) => {
+      target.style.cursor = "grab";
+
       const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
       const x = dx + vx;
       const y = dy + vy;
