@@ -1,6 +1,8 @@
 import { NodeContext } from "../../components";
 import { FC, useContext } from "react";
 
+import "./Connection.less"
+
 type Props = { conn: NodeConnection };
 
 const Connection: FC<Props> = ({ conn }) => {
@@ -20,18 +22,34 @@ const Connection: FC<Props> = ({ conn }) => {
   };
 
   return (
-    <line
-      onClick={handleClick}
-      x1={sendX}
-      y1={sendY}
-      x2={receiveX}
-      y2={receiveY}
-      data-sender-id={sender.uuid}
-      data-receiver-id={receiver.uuid}
-      data-receiver-type={receiver.type}
-      stroke="black"
-      strokeWidth="3px"
-    />
+    <>
+      <line
+        className="invisible"
+        onClick={handleClick}
+        x1={sendX}
+        y1={sendY}
+        x2={receiveX}
+        y2={receiveY}
+        data-sender-id={sender.uuid}
+        data-receiver-id={receiver.uuid}
+        data-receiver-type={receiver.type}
+        stroke="black"
+        strokeOpacity="0%"
+        strokeWidth="24px"
+      />
+      <line
+        className="visible"
+        x1={sendX}
+        y1={sendY}
+        x2={receiveX}
+        y2={receiveY}
+        data-sender-id={sender.uuid}
+        data-receiver-id={receiver.uuid}
+        data-receiver-type={receiver.type}
+        stroke="black"
+        strokeWidth="4px"
+      />
+    </>
   );
 };
 
