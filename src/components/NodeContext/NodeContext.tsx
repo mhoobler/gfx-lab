@@ -128,7 +128,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
           nm.connections = new Map();
           loadJson(nm, payload.data.nodes);
 
-          const selectedLayout = { url: "", name: payload.data.name };
+          const selectedLayout = { url: payload.url, name: payload.data.name };
 
           return {
             ...state,

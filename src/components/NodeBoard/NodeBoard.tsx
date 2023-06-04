@@ -28,7 +28,7 @@ const NodeBoard: FC = () => {
     import(`json_layouts/hello_vertex.json`)
       .then((result) => {
         const data = result.default;
-        dispatch({ type: "LOAD_LAYOUT", payload: { data } });
+        dispatch({ type: "LOAD_LAYOUT", payload: { data, url: `json_layouts/hello_vertex.json` } });
       })
       .catch((err) => console.error(err));
 
