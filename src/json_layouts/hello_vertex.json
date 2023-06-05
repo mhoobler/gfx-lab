@@ -25,7 +25,7 @@
       "connections": [
         {
           "uuid": "7a",
-          "receiverIndex": 1
+          "receiverIndex": 0
         }
       ]
     },
@@ -84,7 +84,7 @@
       "connections": [
         {
           "uuid": "4a",
-          "receiverIndex": 1
+          "receiverIndex": 0
         }
       ]
     },
@@ -137,7 +137,7 @@
       "connections": [
         {
           "uuid": "6a",
-          "receiverIndex": 1
+          "receiverIndex": 0
         }
       ]
     },

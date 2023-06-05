@@ -94,7 +94,7 @@ export function loadJson(
   }
 }
 
-export function addNode<T>(manager: NodeManager, node: NodeData<T>): string {
+export function addNode<T>(manager: NodeManager, node: NodeData<T, NodeType>): string {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = [];
   }
@@ -107,7 +107,7 @@ export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
     const command = manager.nodes[
       cID
-    ] as NodeData<GPUCommandEncoderDescriptorEXT>;
+    ] as NodeData<GPUCommandEncoderDescriptorEXT, "CommandEncoder">;
     if (command.body.renderPassDesc) {
       command.body.renderPassDesc.colorAttachments[0].view =
         command.body.renderPassDesc.canvasPointer.createView();
@@ -115,9 +115,9 @@ export function render(manager: NodeManager) {
       const encoder = manager.device.createCommandEncoder(command.body);
       const pass = encoder.beginRenderPass(command.body.renderPassDesc);
 
-      const lim = command.receivers.length;
+      const lim = command.receivers["DrawCall"].length;
       for (let i = 1; i < lim; i++) {
-        const drawCall = command.receivers[i].from as NodeData<GPUDrawCall>;
+        const drawCall = command.receivers[i].from as NodeData<GPUDrawCall, "DrawCall">;
 
         if (drawCall) {
           if (drawCall.body.renderPipeline) {

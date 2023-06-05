@@ -5,7 +5,7 @@ export { default as NodeBoard } from "./NodeBoard/NodeBoard";
 export { default as Node } from "./Node/Node";
 export { default as Connection } from "./Connection/Connection";
 export { default as NodeToolbar } from "./NodeToolbar/NodeToolbar";
+export { default as Receiver2} from "./Receiver2/Receiver2";
 
 export { Panel } from "./panels";
 export { NodeInitFn } from "./panels";
-export { VertexStateUtils } from "./panels";

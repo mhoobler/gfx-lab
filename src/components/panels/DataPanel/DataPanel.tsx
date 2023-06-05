@@ -3,7 +3,7 @@ import { Color } from "data";
 import { FC, useContext, useState } from "react";
 
 const type = "Data";
-const DataInit: NodeInitFn<GPUData> = (uuid, xyz) => ({
+const DataInit: NodeInitFn<GPUData, null> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(220, 0, 220),

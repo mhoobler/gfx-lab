@@ -2,7 +2,7 @@ import { Color } from "data";
 import { FC } from "react";
 
 const type = "Buffer";
-const BufferInit: NodeInitFn<GPUBufferDescriptor> = (uuid, xyz) => ({
+const BufferInit: NodeInitFn<GPUBufferDescriptor, "Data"> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(220, 0, 220),
@@ -20,13 +20,15 @@ const BufferInit: NodeInitFn<GPUBufferDescriptor> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "Data",
-      from: null,
-    },
-  ],
+  receivers: {
+    Data: [
+      {
+        uuid,
+        type: "Data",
+        from: null,
+      },
+    ],
+  },
 });
 
 type Props = PanelProps<GPUBufferDescriptor>;

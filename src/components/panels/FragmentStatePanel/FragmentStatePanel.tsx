@@ -2,7 +2,10 @@ import { Color } from "data";
 import { FC } from "react";
 
 const type = "FragmentState";
-const FragmentStateInit: NodeInitFn<GPUFragmentState> = (uuid, xyz) => ({
+const FragmentStateInit: NodeInitFn<GPUFragmentState, "ShaderModule"> = (
+  uuid,
+  xyz
+) => ({
   type,
   headerColor: new Color(0, 255, 0),
   uuid,
@@ -20,13 +23,15 @@ const FragmentStateInit: NodeInitFn<GPUFragmentState> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "ShaderModule",
-      from: null,
-    },
-  ],
+  receivers: {
+    ShaderModule: [
+      {
+        uuid,
+        type: "ShaderModule",
+        from: null,
+      },
+    ],
+  },
 });
 
 type Props = PanelProps<GPUFragmentState>;

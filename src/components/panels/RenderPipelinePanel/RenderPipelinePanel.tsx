@@ -1,11 +1,11 @@
 import { Color } from "data";
-import React, { FC } from "react";
+import { FC } from "react";
 
 const type = "RenderPipeline";
-const RenderPipelineInit: NodeInitFn<GPURenderPipelineDescriptor> = (
-  uuid,
-  xyz
-) => ({
+const RenderPipelineInit: NodeInitFn<
+  GPURenderPipelineDescriptor,
+  "VertexState" | "FragmentState"
+> = (uuid, xyz) => ({
   type,
   headerColor: new Color(0, 0, 255),
   uuid,
@@ -26,18 +26,22 @@ const RenderPipelineInit: NodeInitFn<GPURenderPipelineDescriptor> = (
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "VertexState",
-      from: null,
-    },
-    {
-      uuid,
-      type: "FragmentState",
-      from: null,
-    },
-  ],
+  receivers: {
+    VertexState: [
+      {
+        uuid,
+        type: "VertexState",
+        from: null,
+      },
+    ],
+    FragmentState: [
+      {
+        uuid,
+        type: "FragmentState",
+        from: null,
+      },
+    ],
+  },
 });
 
 type Props = PanelProps<GPURenderPipelineDescriptor>;

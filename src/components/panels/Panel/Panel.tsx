@@ -94,7 +94,7 @@ const Panel: FC<Props> = ({ data }) => {
     }
     case "VertexState": {
       return (
-        <VertexStatePanel uuid={data.uuid} body={data.body as GPUVertexState}>
+        <VertexStatePanel uuid={data.uuid} data={data as NodeData<GPUVertexState>}>
           <></>
         </VertexStatePanel>
       );

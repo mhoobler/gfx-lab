@@ -5,7 +5,7 @@ import "./ShaderModulePanel.less";
 import {NodeContext} from "components/NodeContext/NodeContext";
 
 const type = "ShaderModule";
-const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor> = (
+const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor, null> = (
   uuid,
   xyz
 ) => ({

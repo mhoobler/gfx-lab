@@ -121,7 +121,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
         view={view}
       />
       {data.receivers &&
-        data.receivers.map((receiver: NodeReceiver, index: number) => {
+        Object.values(data.receivers).flat().map((receiver: NodeReceiver, index: number) => {
           const f = createRef<SVGCircleElement>();
           receiverRefs.current.set(receiver.type, f);
           return (

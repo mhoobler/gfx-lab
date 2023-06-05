@@ -113,7 +113,7 @@ const NodeBoard: FC = () => {
         viewBox={`${view.viewBox.join(" ")}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {state.nodes.map((data: NodeData<unknown>) => {
+        {state.nodes.map((data: NodeData<GPUBase, NodeType>) => {
           return (
             <Node
               key={data.sender.uuid}

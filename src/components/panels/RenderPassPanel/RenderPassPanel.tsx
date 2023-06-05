@@ -2,7 +2,10 @@ import { Color } from "data";
 import { FC } from "react";
 
 const type = "RenderPass";
-const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT> = (uuid, xyz) => ({
+const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
+  uuid,
+  xyz
+) => ({
   type,
   headerColor: new Color(255, 200, 200),
   uuid,
@@ -26,13 +29,15 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "CanvasPanel",
-      from: null,
-    },
-  ],
+  receivers: {
+    CanvasPanel: [
+      {
+        uuid,
+        type: "CanvasPanel",
+        from: null,
+      },
+    ],
+  },
 });
 
 type Props = PanelProps<GPURenderPassDescriptorEXT>;

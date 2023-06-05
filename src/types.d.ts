@@ -24,6 +24,10 @@ interface GPUVertexAttributeEXT extends GPUVertexAttribute {
   label?: string;
 }
 
+interface GPUVertexBufferLayoutEXT extends GPUVertexBufferLayout {
+  label?: string;
+}
+
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
   canvasPointer: GPUCanvasPanel;
 }
@@ -54,6 +58,12 @@ type PanelProps<T> = {
   children: React.ReactNode;
 };
 
+type PanelProps2<T> = {
+  data: NodeData<T, NodeType>;
+  uuid: string;
+  children: React.ReactNode;
+};
+
 interface IColor {
   xyzw: [n, n, n, n];
   hexString: () => string;
@@ -65,6 +75,8 @@ type NodeType =
   | "Buffer"
   | "ShaderModule"
   | "VertexState"
+  | "VertexAttribute"
+  | "VertexBufferLayout"
   | "FragmentState"
   | "CanvasPanel"
   | "RenderPipeline"
@@ -76,13 +88,21 @@ type NodeSender = {
   uuid: string;
   type: NodeType;
   value: GPUBase;
-  to: Set<NodeData<GPUBase>>;
+  to: Set<NodeData<GPUBase, NodeType>>;
 };
 
 type NodeReceiver = {
   uuid: string;
   type: NodeType;
-  from: NodeData<GPUBase> | null;
+  from: NodeData<GPUBase, NodeType> | null;
+};
+
+type NodeReceivers<K extends NodeType> = {
+  [key in K]: {
+    uuid: string;
+    type: K;
+    from: NodeData<GPUBase, NodeType> | null;
+  }[];
 };
 
 type NodeConnection = {
@@ -96,7 +116,10 @@ type NodeConnection = {
     xyz: [n, n, n];
   };
 };
-type ConnectionMap = Map<NodeData<GPUBase>, Map<NodeData<GPUBase>, number>>;
+type ConnectionMap = Map<
+  NodeData<GPUBase, NodeType>,
+  Map<NodeData<GPUBase, NodeType>, number>
+>;
 
 type NodeJson = {
   uuid: string;
@@ -116,10 +139,20 @@ interface NodeBase {
   xyz: [n, n, n];
   size: [n, n];
 }
-interface NodeData<T> extends NodeBase {
+
+//interface NodeData<T> extends NodeBase {
+//  body: T;
+//  sender: NodeSender;
+//  receivers: NodeReceiver[];
+//}
+
+interface NodeData<T, K extends NodeType> extends NodeBase {
   body: T;
   sender: NodeSender;
-  receivers: NodeReceiver[];
+  receivers: NodeReceivers<K>;
 }
 
-type NodeInitFn<T> = (uuid: string, xyz: [n, n, n]) => NodeData<T>;
+type NodeInitFn<T, K extends NodeType> = (
+  uuid: string,
+  xyz: [n, n, n]
+) => NodeData<T, K>;

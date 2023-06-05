@@ -1,7 +1,5 @@
 export { default as Panel } from "./Panel/Panel";
 
-export { VertexStateUtils } from "./VertexStatePanel/VertexStatePanel";
-
 import { CanvasPanelInit } from "./CanvasPanel/CanvasPanel";
 import { CommandEncoderInit } from "./CommandEncoderPanel/CommandEncoderPanel";
 import { DrawCallInit } from "./DrawCallPanel/DrawCallPanel";

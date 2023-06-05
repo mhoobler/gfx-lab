@@ -4,15 +4,15 @@ export function getAllNodes(manager: NodeManager) {
     (a, b) => a.xyz[2] - b.xyz[2]
   );
 
-  arr.forEach((n: NodeData<unknown>, i: number) => {
+  arr.forEach((n: NodeData<GPUBase, NodeType>, i: number) => {
     n.xyz[2] = i;
   });
   return arr;
 }
 
 function getNodeConnection(
-  senderNode: NodeData<unknown>,
-  receiverNode: NodeData<unknown>,
+  senderNode: NodeData<GPUBase, NodeType>,
+  receiverNode: NodeData<GPUBase, NodeType>,
   receiverIndex: number
 ): NodeConnection {
   const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
@@ -29,7 +29,7 @@ function getNodeConnection(
       xyz: senderXYZ,
     },
     receiver: {
-      type: receiverNode.receivers[receiverIndex].type,
+      type: senderNode.type,
       uuid: receiverNode.uuid,
       xyz: receiverXYZ,
     },
@@ -95,7 +95,9 @@ export function createConnection(
     throw new Error(`Could not find receiverNode with uuid: ${receiverId}`);
   }
 
-  const receiver = receiverNode && receiverNode.receivers[receiverIndex];
+  const receiver = receiverNode && receiverNode.receivers[sender.type][receiverIndex];
+  console.log(receiverNode);
+  console.log(senderNode.type);
   if (!receiver) {
     throw new Error(`Could not find receiver with index: ${receiverIndex}`);
   }
@@ -110,7 +112,7 @@ export function createConnection(
   if (innerMap) {
     innerMap.set(receiverNode, receiverIndex);
   } else {
-    const newInnerMap: Map<NodeData<GPUBase>, number> = new Map();
+    const newInnerMap: Map<NodeData<GPUBase, NodeType>, number> = new Map();
     newInnerMap.set(receiverNode, receiverIndex);
     manager.connections.set(senderNode, newInnerMap);
   }
@@ -122,8 +124,8 @@ export function createConnection(
 
 export function finalizeConnection(
   manager: NodeManager,
-  senderNode: NodeData<any>, // eslint-disable-line
-  receiverNode: NodeData<any>, // eslint-disable-line
+  senderNode: NodeData<any, NodeType>, // eslint-disable-line
+  receiverNode: NodeData<any, NodeType>, // eslint-disable-line
   isDelete = false
 ) {
 
@@ -181,7 +183,7 @@ export function finalizeConnection(
   }
 }
 
-export function updateConnections(manager: NodeManager, node: NodeData<GPUBase>) {
+export function updateConnections(manager: NodeManager, node: NodeData<GPUBase, NodeType>) {
   for (const sendTo of node.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];
     finalizeConnection(manager, node, receiverNode);

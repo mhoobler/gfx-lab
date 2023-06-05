@@ -2,7 +2,10 @@ import { Color } from "data";
 import { FC } from "react";
 
 const type = "DrawCall";
-const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
+const DrawCallInit: NodeInitFn<GPUDrawCall, "Buffer" | "RenderPipeline"> = (
+  uuid,
+  xyz
+) => ({
   type,
   headerColor: Color.Maroon,
   uuid,
@@ -20,18 +23,22 @@ const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "RenderPipeline",
-      from: null,
-    },
-    {
-      uuid,
-      type: "Buffer",
-      from: null,
-    },
-  ],
+  receivers: {
+    RenderPipeline: [
+      {
+        uuid,
+        type: "RenderPipeline",
+        from: null,
+      },
+    ],
+    Buffer: [
+      {
+        uuid,
+        type: "Buffer",
+        from: null,
+      },
+    ],
+  },
 });
 
 type Props = PanelProps<GPUDrawCall>;

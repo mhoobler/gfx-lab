@@ -3,7 +3,7 @@ import { FC, useContext, useEffect, useRef } from "react";
 import {WgpuContext} from "wgpu";
 
 const type = "CanvasPanel";
-const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
+const CanvasPanelInit: NodeInitFn<GPUCanvasPanel, null> = (uuid, xyz) => ({
   type,
   headerColor: new Color(255, 255, 255),
   uuid,
