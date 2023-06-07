@@ -54,6 +54,11 @@ const NodeToolbar: FC = () => {
     }
   };
 
+  const handleSave = () => {
+    //TODO:
+    //dispatch({ type: "SAVE_LAYOUT" });
+  }
+
   return (
     <div className="board-controls">
       <select onChange={handleLayoutChange} value={selectedLayout.url}>
@@ -65,6 +70,9 @@ const NodeToolbar: FC = () => {
       </select>
       <button onClick={handleRenderClick}>
         {renderState ? "Pause" : "Start Render"}
+      </button>
+      <button onClick={handleSave}>
+        Save
       </button>
     </div>
   );

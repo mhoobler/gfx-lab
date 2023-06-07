@@ -1,12 +1,12 @@
-import { NodeContext } from "components";
+import { NodeContext, Receiver2 } from "components";
 import { Color } from "data";
 import { FC, useContext, useState } from "react";
 
 const type = "VertexBufferLayout";
-const VertexBufferLayoutInit: NodeInitFn<GPUVertexBufferLayoutEXT> = (
-  uuid,
-  xyz
-) => ({
+const VertexBufferLayoutInit: NodeInitFn<
+  GPUVertexBufferLayoutEXT,
+  "VertexAttribute"
+> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
@@ -24,47 +24,60 @@ const VertexBufferLayoutInit: NodeInitFn<GPUVertexBufferLayoutEXT> = (
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "ShaderModule",
-      from: null,
-    },
-  ],
+  receivers: {
+    VertexAttribute: [
+      {
+        uuid,
+        type: "VertexAttribute",
+        from: null,
+      },
+    ],
+  },
 });
 
-type VertexBufferLayoutProps = PanelProps<GPUVertexBufferLayoutEXT>;
-const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({
-  uuid,
-  body,
-}) => {
+type VertexBufferLayoutProps = PanelProps2<
+  GPUVertexBufferLayoutEXT,
+  "VertexAttribute"
+>;
+const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
-  const [arrayStride, setArrayStride] = useState<number>(body.arrayStride);
+  const { uuid, body } = data;
+  const [arrayStride, setArrayStride] = useState(body.arrayStride.toString());
+
+  const vertexAttributeReceivers = data.receivers["VertexAttribute"];
 
   const handleEditArrayStride = (evt: React.ChangeEvent) => {
     const value = (evt.target as HTMLInputElement).value;
     const arrayStride = parseInt(value);
+
+    if (!isNaN(arrayStride)) {
+      body.arrayStride = arrayStride;
+      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+    }
+    setArrayStride(value);
   };
 
-  const handleAddAttribute = (evt: React.MouseEvent) => {
-    evt.preventDefault();
+  const handleAddAttribute = () => {
+    let receiver = { uuid, type: "VertexAttribute", from: null };
+    let index = vertexAttributeReceivers.length;
+
+    dispatch({ type: "ADD_RECEIVER", payload: { receiver, index } });
   };
 
   return (
-    <div className="buffer">
-      <div>Layout</div>
-      <div className="attributes">
-        <label>Array Stride:</label>
-        <input
-          type="number"
-          value={arrayStride}
-          onChange={(evt) => handleEditArrayStride(evt)}
-        />
-        <label>Attributes:</label>
-        <button onClick={(evt) => handleAddAttribute(evt)}>
-          Add Attribute
-        </button>
-      </div>
+    <div className="input-container vertex-buffer-layout">
+      <label>Array Stride: </label>
+      <input
+        type="number"
+        value={arrayStride}
+        onChange={handleEditArrayStride}
+      />
+      {vertexAttributeReceivers.map((receiver, index) => (
+        <Receiver2 key={uuid + index} receiver={receiver} index={index}>
+          {receiver.type}
+        </Receiver2>
+      ))}
+      <button onClick={handleAddAttribute}>Add Attribute</button>
     </div>
   );
 };

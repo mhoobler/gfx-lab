@@ -8,19 +8,21 @@ type Props = {
 
 const Receiver2: FC<Props> = ({ receiver, children, index }) => {
   const iconStyle = {
-    height: ".75rem",
-    width: ".75rem",
-    borderRadius: ".75rem",
-    backgroundColor: "red",
+    height: ".375rem",
+    width: ".375rem",
+    borderRadius: ".375rem",
+    border: ".125rem solid yellow",
     marginRight: ".5rem",
+    background: receiver.from ? "yellow" : "none"
   };
+
   return (
     <div className="receiver2 row center-v">
       <div
         className="receiver receiver-icon"
-        //ref={receiverRef}
         data-receiver-type={receiver.type}
         data-uuid={receiver.uuid}
+        data-type={receiver.type}
         data-index={index}
         style={iconStyle}
       ></div>

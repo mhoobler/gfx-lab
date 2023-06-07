@@ -23,9 +23,10 @@ const DataInit: NodeInitFn<GPUData, null> = (uuid, xyz) => ({
   receivers: null,
 });
 
-type Props = PanelProps<GPUData>;
-const DataPanel: FC<Props> = ({ uuid, body }) => {
+type Props = PanelProps2<GPUData, null>;
+const DataPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
+  const { body, uuid } = data;
   const [text, setText] = useState(body.text);
 
   const handleChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {

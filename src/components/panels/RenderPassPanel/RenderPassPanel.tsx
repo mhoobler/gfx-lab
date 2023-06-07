@@ -1,3 +1,4 @@
+import { Receiver2 } from "components";
 import { Color } from "data";
 import { FC } from "react";
 
@@ -40,8 +41,16 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
   },
 });
 
-type Props = PanelProps<GPURenderPassDescriptorEXT>;
-const RenderPassPanel: FC<Props> = () => {
-  return <div className="input-container">RenderPassPanel</div>;
+type Props = PanelProps2<GPURenderPassDescriptorEXT, "CanvasPanel">;
+const RenderPassPanel: FC<Props> = ({ data }) => {
+  const canvasPanelReceiver = data.receivers["CanvasPanel"][0];
+
+  return (
+    <div className="input-container">
+      <Receiver2 receiver={canvasPanelReceiver} index={0}>
+        {canvasPanelReceiver.type}
+      </Receiver2>
+    </div>
+  );
 };
 export { RenderPassPanel, RenderPassInit };

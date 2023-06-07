@@ -34,15 +34,34 @@ const VertexStateInit: NodeInitFn<
         from: null,
       },
     ],
-    VertexBufferLayout: [],
+    VertexBufferLayout: [
+      {
+        uuid,
+        type: "VertexBufferLayout",
+        from: null,
+      },
+    ],
   },
 });
 
-type Props = PanelProps2<GPUVertexState>;
-const VertexStatePanel: FC<Props> = ({ uuid, data }) => {
+type Props = PanelProps2<GPUVertexState, "ShaderModule" | "VertexBufferLayout">;
+const VertexStatePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
 
   const handleAddLayout = (evt: React.MouseEvent) => {
+    const index = data.receivers["VertexBufferLayout"].length;
+    const receiver = {
+      uuid: data.uuid,
+      type: "VertexBufferLayout",
+      from: null,
+    };
+    dispatch({
+      type: "ADD_RECEIVER",
+      payload: {
+        index,
+        receiver,
+      },
+    });
     evt.preventDefault();
   };
 
@@ -51,6 +70,9 @@ const VertexStatePanel: FC<Props> = ({ uuid, data }) => {
 
   return (
     <div className="input-container vertex-state-panel">
+      <Receiver2 receiver={shaderModuleReceiver} index={0}>
+        {shaderModuleReceiver.type}
+      </Receiver2>
       {bufferLayoutReceivers.map((receiver, index) => (
         <Receiver2 key={data.uuid + index} receiver={receiver} index={index}>
           {receiver.type}

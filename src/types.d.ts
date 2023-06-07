@@ -58,9 +58,8 @@ type PanelProps<T> = {
   children: React.ReactNode;
 };
 
-type PanelProps2<T> = {
-  data: NodeData<T, NodeType>;
-  uuid: string;
+type PanelProps2<T, K extends NodeType> = {
+  data: NodeData<T, K>;
   children: React.ReactNode;
 };
 
@@ -113,12 +112,15 @@ type NodeConnection = {
   receiver: {
     type: string;
     uuid: string;
+    index: ReceiverIndex;
     xyz: [n, n, n];
   };
 };
+
+type ReceiverIndex = number;
 type ConnectionMap = Map<
   NodeData<GPUBase, NodeType>,
-  Map<NodeData<GPUBase, NodeType>, number>
+  Map<NodeData<GPUBase, NodeType>, ReceiverIndex>
 >;
 
 type NodeJson = {
@@ -156,3 +158,11 @@ type NodeInitFn<T, K extends NodeType> = (
   uuid: string,
   xyz: [n, n, n]
 ) => NodeData<T, K>;
+
+type NodeContextState = {
+  renderState: boolean;
+  nodes: NodeData<GPUBase, NodeType>[];
+  connections: NodeConnection[];
+  selectedLayout: { url: string; name: string };
+};
+

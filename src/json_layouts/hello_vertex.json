@@ -54,21 +54,61 @@
       "type": "VertexState",
       "body": {
         "label": "VertexState",
-        "entryPoint": "vs",
-        "buffers": [
-          {
-            "arrayStride": 20,
-            "attributes": [
-              { "shaderLocation": 0, "offset": 0, "format": "float32x2" },
-              { "shaderLocation": 1, "offset": 8, "format": "float32x3" }
-            ]
-          }
-        ]
+        "entryPoint": "vs"
       },
       "connections": [
         {
           "uuid": "4a",
           "receiverIndex": 0
+        }
+      ]
+    },
+    "20a": {
+      "uuid": "20a",
+      "xyz": [150, -400, 0],
+      "type": "VertexBufferLayout",
+      "body": {
+        "label": "VertexBufferlayout",
+        "arrayStride": 20
+      },
+      "connections": [
+        {
+          "uuid": "2a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "21a": {
+      "uuid": "21a",
+      "xyz": [-305, -300, 0],
+      "type": "VertexAttribute",
+      "body": {
+        "label": "VertexAttribute1",
+        "shaderLocation": 0,
+        "offset": 0, 
+        "format": "float32x2"
+      },
+      "connections": [
+        {
+          "uuid": "20a",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "22a": {
+      "uuid": "22a",
+      "xyz": [-305, -515, 0],
+      "type": "VertexAttribute",
+      "body": {
+        "label": "VertexAttribute2",
+        "shaderLocation": 1,
+        "offset": 8, 
+        "format": "float32x3"
+      },
+      "connections": [
+        {
+          "uuid": "20a",
+          "receiverIndex": 1
         }
       ]
     },

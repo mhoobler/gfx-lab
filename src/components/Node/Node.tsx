@@ -1,14 +1,13 @@
-import { FC, RefObject, createRef, useContext, useRef } from "react";
+import { FC, RefObject, useContext, useRef } from "react";
 
 import { NodeContext, Panel } from "components";
 import Sender from "./Sender";
-import Receiver from "./Receiver";
 import { viewBoxCoords } from "data";
 
 import "./Node.less";
 
 type Props = {
-  data: NodeData<GPUBase>;
+  data: NodeData<GPUBase, NodeType>;
   svgRef: RefObject<SVGElement>;
   view: { viewBox: n[] };
 };
@@ -17,9 +16,6 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
-  const receiverRefs = useRef<Map<string, RefObject<SVGCircleElement>>>(
-    new Map()
-  );
 
   const handleMove = (evt: React.MouseEvent<HTMLDivElement>) => {
     if (!svgRef.current || !gRef.current || !senderRef.current) {
@@ -53,21 +49,31 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
         for (const sender of senderLines) {
-          const cx = parseInt(senderRef.current.getAttribute("cx"));
-          const cy = parseInt(senderRef.current.getAttribute("cy"));
-          const r = parseInt(senderRef.current.getAttribute("r"));
+          let bb = senderRef.current.getBoundingClientRect();
+          const [cx, cy] = viewBoxCoords(
+            bb.x + bb.width / 2,
+            bb.y + bb.height / 2,
+            view
+          );
 
-          sender.setAttribute("x1", (moveX + cx + r).toString());
-          sender.setAttribute("y1", (moveY + cy).toString());
+          sender.setAttribute("x1", cx.toString());
+          sender.setAttribute("y1", cy.toString());
         }
         for (const receiver of receiverLines) {
-          const attr = (receiver as HTMLElement).dataset["receiverType"];
-          const receiverRef = receiverRefs.current.get(attr);
-          const cx = parseInt(receiverRef.current.getAttribute("cx"));
-          const cy = parseInt(receiverRef.current.getAttribute("cy"));
+          const attrType = (receiver as HTMLElement).dataset["receiverType"];
+          const attrIndex = (receiver as HTMLElement).dataset["receiverIndex"];
+          const receiverElm = document.querySelector(
+            `.receiver[data-uuid="${data.uuid}"][data-type="${attrType}"][data-index="${attrIndex}"]`
+          );
+          let bb = receiverElm.getBoundingClientRect();
+          const [cx, cy] = viewBoxCoords(
+            bb.x + bb.width / 2,
+            bb.y + bb.height / 2,
+            view
+          );
 
-          receiver.setAttribute("x2", (moveX + cx).toString());
-          receiver.setAttribute("y2", (moveY + cy).toString());
+          receiver.setAttribute("x2", cx.toString());
+          receiver.setAttribute("y2", cy.toString());
         }
       });
     };
@@ -95,11 +101,15 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
   const backgroundColor = data.headerColor.rgbaString();
 
   return (
-    <g className={data.type} ref={gRef} transform={`translate(${data.xyz[0]}, ${data.xyz[1]})`}>
+    <g
+      className={data.type}
+      ref={gRef}
+      transform={`translate(${data.xyz[0]}, ${data.xyz[1]})`}
+    >
       <foreignObject width={data.size[0]} height={data.size[1]}>
-        <div className="node-card">
+        <div className="node-card col center-v">
           <div
-            className="node-header"
+            className="node-header center-v"
             onMouseDown={handleMove}
             style={{ backgroundColor }}
           >
@@ -120,20 +130,6 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
         width={data.size[0]}
         view={view}
       />
-      {data.receivers &&
-        Object.values(data.receivers).flat().map((receiver: NodeReceiver, index: number) => {
-          const f = createRef<SVGCircleElement>();
-          receiverRefs.current.set(receiver.type, f);
-          return (
-            <Receiver
-              svgRef={svgRef}
-              key={receiver.uuid + receiver.type + index}
-              receiver={receiver}
-              receiverRef={f}
-              index={index}
-            />
-          );
-        })}
     </g>
   );
 };

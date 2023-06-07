@@ -10,20 +10,22 @@ import { RenderPassPanel } from "../RenderPassPanel/RenderPassPanel";
 import { RenderPipelinePanel } from "../RenderPipelinePanel/RenderPipelinePanel";
 import { ShaderModulePanel } from "../ShaderModulePanel/ShaderModulePanel";
 import { VertexStatePanel } from "../VertexStatePanel/VertexStatePanel";
+import { VertexBufferLayoutPanel } from "../VertexBufferLayoutPanel/VertexBufferLayoutPanel";
+import {VertexAttributePanel} from "../VertexAttributePanel/VertexAttributePanel";
 
-type Props = { data: NodeData<GPUBase> };
+type Props = { data: NodeData<GPUBase, NodeType> };
 const Panel: FC<Props> = ({ data }) => {
   switch (data.type) {
     case "Buffer": {
       return (
-        <BufferPanel uuid={data.uuid} body={data.body as GPUBufferDescriptor}>
+        <BufferPanel data={data as NodeData<GPUBufferDescriptor, "Data">}>
           <></>
         </BufferPanel>
       );
     }
     case "CanvasPanel": {
       return (
-        <CanvasPanel uuid={data.uuid} body={data.body as GPUCanvasPanel}>
+        <CanvasPanel data={data as NodeData<GPUCanvasPanel, null>}>
           <></>
         </CanvasPanel>
       );
@@ -31,8 +33,12 @@ const Panel: FC<Props> = ({ data }) => {
     case "CommandEncoder": {
       return (
         <CommandEncoderPanel
-          uuid={data.uuid}
-          body={data.body as GPUCommandEncoderDescriptorEXT}
+          data={
+            data as NodeData<
+              GPUCommandEncoderDescriptorEXT,
+              "RenderPass" | "DrawCall"
+            >
+          }
         >
           <></>
         </CommandEncoderPanel>
@@ -40,14 +46,16 @@ const Panel: FC<Props> = ({ data }) => {
     }
     case "Data": {
       return (
-        <DataPanel uuid={data.uuid} body={data.body as GPUData}>
+        <DataPanel data={data as NodeData<GPUData, null>}>
           <></>
         </DataPanel>
       );
     }
     case "DrawCall": {
       return (
-        <DrawCallPanel uuid={data.uuid} body={data.body as GPUDrawCall}>
+        <DrawCallPanel
+          data={data as NodeData<GPUDrawCall, "RenderPipeline" | "Buffer">}
+        >
           <></>
         </DrawCallPanel>
       );
@@ -55,8 +63,7 @@ const Panel: FC<Props> = ({ data }) => {
     case "FragmentState": {
       return (
         <FragmentStatePanel
-          uuid={data.uuid}
-          body={data.body as GPUFragmentState}
+          data={data as NodeData<GPUFragmentState, "ShaderModule">}
         >
           <></>
         </FragmentStatePanel>
@@ -65,8 +72,7 @@ const Panel: FC<Props> = ({ data }) => {
     case "RenderPass": {
       return (
         <RenderPassPanel
-          uuid={data.uuid}
-          body={data.body as GPURenderPassDescriptorEXT}
+          data={data as NodeData<GPURenderPassDescriptorEXT, "CanvasPanel">}
         >
           <></>
         </RenderPassPanel>
@@ -75,8 +81,12 @@ const Panel: FC<Props> = ({ data }) => {
     case "RenderPipeline": {
       return (
         <RenderPipelinePanel
-          uuid={data.uuid}
-          body={data.body as GPURenderPipelineDescriptor}
+          data={
+            data as NodeData<
+              GPURenderPipelineDescriptor,
+              "VertexState" | "FragmentState"
+            >
+          }
         >
           <></>
         </RenderPipelinePanel>
@@ -85,8 +95,7 @@ const Panel: FC<Props> = ({ data }) => {
     case "ShaderModule": {
       return (
         <ShaderModulePanel
-          uuid={data.uuid}
-          body={data.body as GPUShaderModuleDescriptor}
+          data={data as NodeData<GPUShaderModuleDescriptor, null>}
         >
           <></>
         </ShaderModulePanel>
@@ -94,9 +103,34 @@ const Panel: FC<Props> = ({ data }) => {
     }
     case "VertexState": {
       return (
-        <VertexStatePanel uuid={data.uuid} data={data as NodeData<GPUVertexState>}>
+        <VertexStatePanel
+          data={
+            data as NodeData<
+              GPUVertexState,
+              "ShaderModule" | "VertexBufferLayout"
+            >
+          }
+        >
           <></>
         </VertexStatePanel>
+      );
+    }
+    case "VertexBufferLayout": {
+      return (
+        <VertexBufferLayoutPanel
+          data={data as NodeData<GPUVertexBufferLayoutEXT, "VertexAttribute">}
+        >
+          <></>
+        </VertexBufferLayoutPanel>
+      );
+    }
+    case "VertexAttribute": {
+      return (
+        <VertexAttributePanel
+          data={data as NodeData<GPUVertexAttributeEXT, null>}
+        >
+          <></>
+        </VertexAttributePanel>
       );
     }
     default: {

@@ -2,7 +2,7 @@ import { ChangeEvent, FC, useContext, useState } from "react";
 import { Color } from "data";
 
 import "./ShaderModulePanel.less";
-import {NodeContext} from "components/NodeContext/NodeContext";
+import { NodeContext } from "components/NodeContext/NodeContext";
 
 const type = "ShaderModule";
 const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor, null> = (
@@ -27,25 +27,23 @@ const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor, null> = (
   receivers: null,
 });
 
-type Props = PanelProps<GPUShaderModuleDescriptor>;
-const ShaderModulePanel: FC<Props> = ({ uuid, body, children }) => {
+type Props = PanelProps2<GPUShaderModuleDescriptor, null>;
+const ShaderModulePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
+  const { uuid, body } = data;
   const [code, setCode] = useState<string>(body.code);
 
   const handleChange = (evt: ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = evt.currentTarget;
     body.code = value;
     setCode(body.code);
-    dispatch({type: "EDIT_NODE_BODY", payload: {uuid, body} })
+    dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
   };
 
   return (
-    <>
-      <div className="input-container shader-module-descriptor">
-        <textarea value={code} onChange={handleChange} spellCheck="false" />
-        {children}
-      </div>
-    </>
+    <div className="input-container shader-module-descriptor">
+      <textarea value={code} onChange={handleChange} spellCheck="false" />
+    </div>
   );
 };
 
