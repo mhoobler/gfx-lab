@@ -1,7 +1,7 @@
 import { NodeContext } from "../../components";
 import { FC, useContext } from "react";
 
-import "./Connection.less"
+import "./Connection.less";
 
 type Props = { conn: NodeConnection };
 

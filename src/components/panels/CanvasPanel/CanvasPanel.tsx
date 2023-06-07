@@ -1,9 +1,9 @@
 import { Color } from "data";
 import { FC, useContext, useEffect, useRef } from "react";
-import {WgpuContext} from "wgpu";
+import { WgpuContext } from "wgpu";
 
 const type = "CanvasPanel";
-const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
+const CanvasPanelInit: NodeInitFn<GPUCanvasPanel, null> = (uuid, xyz) => ({
   type,
   headerColor: new Color(255, 255, 255),
   uuid,
@@ -13,7 +13,7 @@ const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
     label: type,
     canvas: null,
     ctx: null,
-    createView: null
+    createView: null,
   },
   sender: {
     uuid,
@@ -24,15 +24,16 @@ const CanvasPanelInit: NodeInitFn<GPUCanvasPanel> = (uuid, xyz) => ({
   receivers: null,
 });
 
-type Props = PanelProps<GPUCanvasPanel>;
-const CanvasPanel: FC<Props> = ({ body }) => {
+type Props = PanelProps2<GPUCanvasPanel, null>;
+const CanvasPanel: FC<Props> = ({ data }) => {
   const { device, format } = useContext(WgpuContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { body } = data;
 
   useEffect(() => {
     if (canvasRef.current && !body.canvas) {
       const ctx = canvasRef.current.getContext("webgpu");
-      if(ctx) {
+      if (ctx) {
         ctx.configure({
           device: device,
           format: format,

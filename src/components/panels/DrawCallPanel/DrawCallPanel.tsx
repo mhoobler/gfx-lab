@@ -1,8 +1,12 @@
+import { Receiver2 } from "components";
 import { Color } from "data";
 import { FC } from "react";
 
 const type = "DrawCall";
-const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
+const DrawCallInit: NodeInitFn<GPUDrawCall, "Buffer" | "RenderPipeline"> = (
+  uuid,
+  xyz
+) => ({
   type,
   headerColor: Color.Maroon,
   uuid,
@@ -20,24 +24,38 @@ const DrawCallInit: NodeInitFn<GPUDrawCall> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "RenderPipeline",
-      from: null,
-    },
-    {
-      uuid,
-      type: "Buffer",
-      from: null,
-    },
-  ],
+  receivers: {
+    RenderPipeline: [
+      {
+        uuid,
+        type: "RenderPipeline",
+        from: null,
+      },
+    ],
+    Buffer: [
+      {
+        uuid,
+        type: "Buffer",
+        from: null,
+      },
+    ],
+  },
 });
 
-type Props = PanelProps<GPUDrawCall>;
-const DrawCallPanel: FC<Props> = () => {
+type Props = PanelProps2<GPUDrawCall, "RenderPipeline" | "Buffer">;
+const DrawCallPanel: FC<Props> = ({ data }) => {
+  const renderPipelineReceiver = data.receivers["RenderPipeline"][0];
+  const bufferReceivers = data.receivers["Buffer"];
   return (
     <div className="input-container draw-call-panel">
+      <Receiver2 receiver={renderPipelineReceiver} index={0}>
+        {renderPipelineReceiver.type}
+      </Receiver2>
+      {bufferReceivers.map((receiver, index) => (
+        <Receiver2 key={data.uuid + index} receiver={receiver} index={index}>
+          {receiver.type}
+        </Receiver2>
+      ))}
       <div>
         <button>Add Buffer</button>
       </div>

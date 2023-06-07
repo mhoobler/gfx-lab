@@ -26,10 +26,12 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
       view
     );
 
+    // Create temporary line element
     const line = getLine(cx, cy);
     svgRef.current.appendChild(line);
 
     let elm: HTMLElement | null;
+    let backgroundColor: string | null;
     let correctType = false;
 
     const handleMouseMove = (evt2: MouseEvent) => {
@@ -45,13 +47,16 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
 
       if (isReceiver && recieverType && !correctType) {
         elm = moveTarget;
-        elm.style.filter = "drop-shadow(0 0 5px red)";
+        backgroundColor = backgroundColor || moveTarget.style.backgroundColor;
+        elm.style.backgroundColor = "red";
       } else if (isReceiver && recieverType && correctType) {
         elm = moveTarget;
-        elm.style.filter = "drop-shadow(0 0 5px green)";
+        backgroundColor = backgroundColor || moveTarget.style.backgroundColor;
+        elm.style.backgroundColor = "lime";
       } else if (elm) {
-        elm.style.filter = "";
+        elm.style.backgroundColor = backgroundColor;
         elm = null;
+        backgroundColor = null;
       }
     };
 
@@ -64,7 +69,7 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
 
         svgRef.current.removeChild(line);
         elm.style.filter = "";
-        // Remove line element and render some kind of Connector element in React
+        // Remove temporary line element and render Connector component in React
       } else {
         svgRef.current.removeChild(line);
         if (elm) {
@@ -80,13 +85,19 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
     window.addEventListener("mousemove", handleMouseMove);
   };
   return (
-    <circle
+    <path
+      transform={`translate(${width - 20}, 5) scale(.75)`}
+      cx={width - 10}
+      cy={5}
+      r="10"
+      d="M 0 14 L 0 25 C 0 28 0 28 2 26 L 10 17 C 12 14 12 14 10 11 L 2 2 C 0 0 0 0 0 3 Z"
+      className="sender"
+      data-uuid={sender.uuid}
       onMouseDown={handleMouseDown}
       ref={senderRef}
-      cx={`${width - 10}`}
-      cy="30"
-      r="8"
-      fill="orange"
+      fill="white"
+      stroke="black"
+      strokeWidth="3px"
     />
   );
 };

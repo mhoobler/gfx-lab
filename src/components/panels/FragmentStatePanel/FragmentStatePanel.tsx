@@ -1,8 +1,12 @@
 import { Color } from "data";
 import { FC } from "react";
+import { Receiver2 } from "components";
 
 const type = "FragmentState";
-const FragmentStateInit: NodeInitFn<GPUFragmentState> = (uuid, xyz) => ({
+const FragmentStateInit: NodeInitFn<GPUFragmentState, "ShaderModule"> = (
+  uuid,
+  xyz
+) => ({
   type,
   headerColor: new Color(0, 255, 0),
   uuid,
@@ -20,18 +24,27 @@ const FragmentStateInit: NodeInitFn<GPUFragmentState> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "ShaderModule",
-      from: null,
-    },
-  ],
+  receivers: {
+    ShaderModule: [
+      {
+        uuid,
+        type: "ShaderModule",
+        from: null,
+      },
+    ],
+  },
 });
 
-type Props = PanelProps<GPUFragmentState>;
-const FragmentStatePanel: FC<Props> = ({ children }) => {
-  return <div className="input-container">{children}</div>;
+type Props = PanelProps2<GPUFragmentState, "ShaderModule">;
+const FragmentStatePanel: FC<Props> = ({ data }) => {
+  const shaderModuleReceiver = data.receivers["ShaderModule"][0];
+  return (
+    <div className="input-container">
+      <Receiver2 receiver={shaderModuleReceiver} index={0}>
+        {shaderModuleReceiver.type}
+      </Receiver2>
+    </div>
+  );
 };
 
 export { FragmentStatePanel, FragmentStateInit };

@@ -1,8 +1,9 @@
+import Receiver2 from "components/Receiver2/Receiver2";
 import { Color } from "data";
 import { FC } from "react";
 
 const type = "Buffer";
-const BufferInit: NodeInitFn<GPUBufferDescriptor> = (uuid, xyz) => ({
+const BufferInit: NodeInitFn<GPUBufferDescriptor, "Data"> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(220, 0, 220),
@@ -20,18 +21,27 @@ const BufferInit: NodeInitFn<GPUBufferDescriptor> = (uuid, xyz) => ({
     value: null,
     to: new Set(),
   },
-  receivers: [
-    {
-      uuid,
-      type: "Data",
-      from: null,
-    },
-  ],
+  receivers: {
+    Data: [
+      {
+        uuid,
+        type: "Data",
+        from: null,
+      },
+    ],
+  },
 });
 
-type Props = PanelProps<GPUBufferDescriptor>;
-const BufferPanel: FC<Props> = () => {
-  return <div className="input-container">BufferPanel</div>;
+type Props = PanelProps2<GPUBufferDescriptor, "Data">;
+const BufferPanel: FC<Props> = ({ data }) => {
+  const dataReceiver = data.receivers["Data"][0];
+  return (
+    <div className="input-container">
+      <Receiver2 receiver={dataReceiver} index={0}>
+        {dataReceiver.type}
+      </Receiver2>
+    </div>
+  );
 };
 
 export { BufferPanel, BufferInit };

@@ -1,5 +1,11 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
-import { Connection, Node, NodeContext, NodeToolbar } from "components";
+import {
+  Connection,
+  Connection2,
+  Node,
+  NodeContext,
+  NodeToolbar,
+} from "components";
 
 import "./NodeBoard.less";
 import { viewBoxCoords } from "data";
@@ -28,7 +34,10 @@ const NodeBoard: FC = () => {
     import(`json_layouts/hello_vertex.json`)
       .then((result) => {
         const data = result.default;
-        dispatch({ type: "LOAD_LAYOUT", payload: { data, url: `json_layouts/hello_vertex.json` } });
+        dispatch({
+          type: "LOAD_LAYOUT",
+          payload: { data, url: `json_layouts/hello_vertex.json` },
+        });
       })
       .catch((err) => console.error(err));
 
@@ -36,7 +45,6 @@ const NodeBoard: FC = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
 
   const handleWheel = (evt: React.WheelEvent) => {
     if (evt.buttons === 0 && evt.target === svgRef.current) {
@@ -83,7 +91,7 @@ const NodeBoard: FC = () => {
         my = moveY;
       };
       const mouseup = (evt2: MouseEvent) => {
-      document.body.style.cursor = "";
+        document.body.style.cursor = "";
         if (evt2.button === 1) {
           setView((state) => {
             return {
@@ -113,7 +121,16 @@ const NodeBoard: FC = () => {
         viewBox={`${view.viewBox.join(" ")}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {state.nodes.map((data: NodeData<unknown>) => {
+        {state.connections.map((conn: NodeConnection) => {
+          return (
+            <Connection2
+              key={conn.sender.uuid + conn.receiver.uuid}
+              conn={conn}
+              view={view}
+            />
+          );
+        })}
+        {state.nodes.map((data: NodeData<GPUBase, NodeType>) => {
           return (
             <Node
               key={data.sender.uuid}
@@ -123,16 +140,8 @@ const NodeBoard: FC = () => {
             />
           );
         })}
-        {state.connections.map((conn: NodeConnection) => {
-          return (
-            <Connection
-              key={conn.sender.uuid + conn.receiver.uuid}
-              conn={conn}
-            />
-          );
-        })}
       </svg>
-      <NodeToolbar/>
+      <NodeToolbar />
     </div>
   );
 };

@@ -1,7 +1,5 @@
 export { default as Panel } from "./Panel/Panel";
 
-export { VertexStateUtils } from "./VertexStatePanel/VertexStatePanel";
-
 import { CanvasPanelInit } from "./CanvasPanel/CanvasPanel";
 import { CommandEncoderInit } from "./CommandEncoderPanel/CommandEncoderPanel";
 import { DrawCallInit } from "./DrawCallPanel/DrawCallPanel";
@@ -12,6 +10,8 @@ import { ShaderModuleInit } from "./ShaderModulePanel/ShaderModulePanel";
 import { VertexStateInit } from "./VertexStatePanel/VertexStatePanel";
 import { BufferInit } from "./BufferPanel/BufferPanel";
 import { DataInit } from "./DataPanel/DataPanel";
+import {VertexBufferLayoutInit} from "./VertexBufferLayoutPanel/VertexBufferLayoutPanel";
+import {VertexAttributeInit} from "./VertexAttributePanel/VertexAttributePanel";
 
 export class NodeInitFn {
   static CommandEncoder = CommandEncoderInit;
@@ -22,6 +22,8 @@ export class NodeInitFn {
   static RenderPipeline = RenderPipelineInit;
   static ShaderModule = ShaderModuleInit;
   static VertexState = VertexStateInit;
+  static VertexBufferLayout = VertexBufferLayoutInit;
+  static VertexAttribute = VertexAttributeInit;
   static Data = DataInit;
   static Buffer = BufferInit;
 }
