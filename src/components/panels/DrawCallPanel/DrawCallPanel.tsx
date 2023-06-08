@@ -42,6 +42,11 @@ const DrawCallInit: NodeInitFn<GPUDrawCall, "Buffer" | "RenderPipeline"> = (
   },
 });
 
+const DrawCallJson = (body: GPUDrawCall) => {
+  const { label } = body;
+  return { label }
+}
+
 type Props = PanelProps2<GPUDrawCall, "RenderPipeline" | "Buffer">;
 const DrawCallPanel: FC<Props> = ({ data }) => {
   const renderPipelineReceiver = data.receivers["RenderPipeline"][0];
@@ -63,4 +68,4 @@ const DrawCallPanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { DrawCallPanel, DrawCallInit };
+export { DrawCallPanel, DrawCallInit, DrawCallJson };

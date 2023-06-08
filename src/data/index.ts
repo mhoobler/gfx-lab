@@ -100,6 +100,26 @@ struct VSOutput {
 }
 `;
 
+export const NODE_TYPE_PRIORITY: NodeType[] = [
+  // No receivers
+  "ShaderModule",
+  "Data",
+  "VertexAttribute",
+  "CanvasPanel",
+  // Step
+  "FragmentState",
+  "VertexState",
+  "VertexBufferLayout",
+  "Buffer",
+  "RenderPass",
+  // Step
+  "RenderPipeline",
+  // Step
+  "DrawCall",
+  // Step
+  "CommandEncoder",
+];
+
 export const viewBoxCoords = (x: n, y: n, view: { viewBox: n[] }): [n, n] => {
   return [
     (x / window.innerWidth) * view.viewBox[2] + view.viewBox[0],

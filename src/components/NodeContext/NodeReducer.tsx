@@ -91,18 +91,20 @@ const NodeReducer =
         };
       }
       case "LOAD_LAYOUT": {
-        nm.nodes = {};
-        nm.connections = new Map();
         loadJson(nm, payload.data.nodes);
 
         const selectedLayout = { url: payload.url, name: payload.data.name };
 
         return {
-          ...state,
           nodes: getAllNodes(nm),
           connections: getAllConnections2(nm),
           selectedLayout,
         };
+      }
+
+      case "SAVE_LAYOUT": {
+        saveJson(nm);
+        return state;
       }
 
       case "RENDER": {

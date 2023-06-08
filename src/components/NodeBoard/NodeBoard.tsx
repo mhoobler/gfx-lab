@@ -133,7 +133,7 @@ const NodeBoard: FC = () => {
         {state.nodes.map((data: NodeData<GPUBase, NodeType>) => {
           return (
             <Node
-              key={data.sender.uuid}
+              key={data.sender.uuid + data.xyz}
               data={data}
               svgRef={svgRef}
               view={view}

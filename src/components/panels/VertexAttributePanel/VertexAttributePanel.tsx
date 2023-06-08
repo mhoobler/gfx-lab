@@ -29,6 +29,11 @@ const VertexAttributeInit: NodeInitFn<GPUVertexAttributeEXT, null> = (
   receivers: null,
 });
 
+const VertexAttributeJson = (body: GPUVertexAttributeEXT) => {
+  const { label, shaderLocation, offset, format } = body;
+  return { label, shaderLocation, offset, format }
+}
+
 type VertexAttributeProps = PanelProps2<GPUVertexAttributeEXT, null>;
 const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
@@ -102,4 +107,4 @@ const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
   );
 };
 
-export { VertexAttributePanel, VertexAttributeInit };
+export { VertexAttributePanel, VertexAttributeInit, VertexAttributeJson };

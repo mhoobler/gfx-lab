@@ -23,6 +23,11 @@ const DataInit: NodeInitFn<GPUData, null> = (uuid, xyz) => ({
   receivers: null,
 });
 
+const DataJson = (body: GPUData) => {
+  const { label, text } = body;
+  return { label, text }
+}
+
 type Props = PanelProps2<GPUData, null>;
 const DataPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
@@ -55,4 +60,4 @@ const DataPanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { DataPanel, DataInit };
+export { DataPanel, DataInit, DataJson };

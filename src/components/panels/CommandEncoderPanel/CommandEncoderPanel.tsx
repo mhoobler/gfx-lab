@@ -42,6 +42,11 @@ const CommandEncoderInit: NodeInitFn<
   },
 });
 
+const CommandEncoderJson = (body: GPUCommandEncoderDescriptorEXT) => {
+  const { label } = body;
+  return { label }
+}
+
 type Props = PanelProps2<
   GPUCommandEncoderDescriptorEXT,
   "RenderPass" | "DrawCall"
@@ -77,4 +82,4 @@ const CommandEncoderPanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { CommandEncoderPanel, CommandEncoderInit };
+export { CommandEncoderPanel, CommandEncoderInit, CommandEncoderJson };
