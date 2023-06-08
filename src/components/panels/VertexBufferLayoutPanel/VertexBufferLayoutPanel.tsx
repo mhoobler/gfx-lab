@@ -35,6 +35,11 @@ const VertexBufferLayoutInit: NodeInitFn<
   },
 });
 
+const VertexBufferLayoutJson = (body: GPUVertexBufferLayoutEXT) => {
+  const { label, arrayStride } = body;
+  return { label, arrayStride };
+}
+
 type VertexBufferLayoutProps = PanelProps2<
   GPUVertexBufferLayoutEXT,
   "VertexAttribute"
@@ -82,4 +87,4 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   );
 };
 
-export { VertexBufferLayoutPanel, VertexBufferLayoutInit };
+export { VertexBufferLayoutPanel, VertexBufferLayoutInit, VertexBufferLayoutJson };

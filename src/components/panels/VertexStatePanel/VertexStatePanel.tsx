@@ -44,6 +44,11 @@ const VertexStateInit: NodeInitFn<
   },
 });
 
+const VertexStateJson = (body: GPUVertexState & GPUBase) => {
+  const { label, entryPoint } = body;
+  return { label, entryPoint }
+}
+
 type Props = PanelProps2<GPUVertexState, "ShaderModule" | "VertexBufferLayout">;
 const VertexStatePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
@@ -83,4 +88,4 @@ const VertexStatePanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { VertexStatePanel, VertexStateInit };
+export { VertexStatePanel, VertexStateInit, VertexStateJson };

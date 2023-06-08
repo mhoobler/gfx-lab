@@ -1,4 +1,6 @@
 import { NodeInitFn } from "components";
+import { NodeBodyForJson } from "components/panels";
+import { NODE_TYPE_PRIORITY } from "data";
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -57,6 +59,14 @@ export function loadJson(
   manager: NodeManager,
   json: { [key: string]: NodeJson }
 ) {
+  delete manager.nodes;
+  delete manager.byCategory;
+  delete manager.connections;
+
+  manager.nodes = {};
+  manager.byCategory = {} as ByCategory;
+  manager.connections = new Map();
+
   for (const nodeJson of Object.values(json)) {
     const { uuid, type, xyz, size, body } = nodeJson;
     if (!manager.nodes[uuid] && NodeInitFn[type]) {
@@ -83,7 +93,11 @@ export function loadJson(
 
   // TODO: Need to implement a method to sort with "connection priority"
   // Check broken_connection.json vs. hello_vertex.json
-  for (const node of Object.values(manager.nodes)) {
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
+    ...manager.byCategory[nodeType],
+  ]).map((uuid) => manager.nodes[uuid]);
+
+  for (const node of orderedNodes) {
     const { connections } = json[node.uuid];
     if (connections) {
       for (const { uuid, receiverIndex } of connections) {
@@ -100,6 +114,53 @@ export function loadJson(
       }
     }
   }
+}
+
+export function saveJson(manager: NodeManager) {
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
+    ...manager.byCategory[nodeType],
+  ]).map((uuid) => manager.nodes[uuid]);
+
+  for (const nodeType of NODE_TYPE_PRIORITY) {
+    const uuids = manager.byCategory[nodeType];
+    for (const uuid of uuids) {
+      orderedNodes.push(manager.nodes[uuid]);
+    }
+  }
+
+  const json = {
+    name: "Test Save",
+    nodes: {},
+  };
+  for (const senderNode of orderedNodes) {
+    const { uuid, xyz, type, body, sender } = senderNode;
+
+    const connections = [...sender.to].map((receiverNode) => {
+      let receiverIndex = receiverNode.receivers[type].findIndex(
+        (receiver) => receiver.from === senderNode
+      );
+      return { uuid: receiverNode.uuid, receiverIndex };
+    });
+
+    const nodeJson = {
+      uuid,
+      xyz,
+      type,
+      body: NodeBodyForJson[type](body as any),
+      connections,
+    };
+    json.nodes[uuid] = nodeJson;
+  }
+
+  const dataStr =
+    "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json));
+  const dlAnchorElem = document.createElement("a");
+  const root = document.querySelector("#app");
+  root.appendChild(dlAnchorElem);
+  dlAnchorElem.setAttribute("href", dataStr);
+  dlAnchorElem.setAttribute("download", "scene.json");
+  dlAnchorElem.click();
+  root.removeChild(dlAnchorElem);
 }
 
 export function addNode<T>(
@@ -258,7 +319,13 @@ export function createConnection(
   const receiver =
     receiverNode && receiverNode.receivers[sender.type][receiverIndex];
   if (!receiver) {
-    throw new Error(`Could not find receiver with index: ${receiverIndex}`);
+    throw new Error(
+      `Could not find receiver with index: ${receiverIndex}\n receivers: ${JSON.stringify(
+        receiverNode.receivers,
+        null,
+        2
+      )}\n sender: ${JSON.stringify(senderNode.sender, null, 2)}`
+    );
   }
 
   const innerMap = manager.connections.get(senderNode);

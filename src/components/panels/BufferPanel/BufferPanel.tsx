@@ -32,6 +32,11 @@ const BufferInit: NodeInitFn<GPUBufferDescriptor, "Data"> = (uuid, xyz) => ({
   },
 });
 
+const BufferJson = (body: GPUBufferDescriptor & GPUBase) => {
+  const { label, usage } = body;
+  return { label, usage };
+}
+
 type Props = PanelProps2<GPUBufferDescriptor, "Data">;
 const BufferPanel: FC<Props> = ({ data }) => {
   const dataReceiver = data.receivers["Data"][0];
@@ -44,4 +49,4 @@ const BufferPanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { BufferPanel, BufferInit };
+export { BufferPanel, BufferInit, BufferJson };

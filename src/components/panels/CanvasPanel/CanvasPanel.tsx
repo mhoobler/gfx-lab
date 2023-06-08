@@ -24,6 +24,11 @@ const CanvasPanelInit: NodeInitFn<GPUCanvasPanel, null> = (uuid, xyz) => ({
   receivers: null,
 });
 
+const CanvasPanelJson = (body: GPUCanvasPanel) => {
+  const { label } = body;
+  return { label }
+}
+
 type Props = PanelProps2<GPUCanvasPanel, null>;
 const CanvasPanel: FC<Props> = ({ data }) => {
   const { device, format } = useContext(WgpuContext);
@@ -52,4 +57,4 @@ const CanvasPanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { CanvasPanel, CanvasPanelInit };
+export { CanvasPanel, CanvasPanelInit, CanvasPanelJson };

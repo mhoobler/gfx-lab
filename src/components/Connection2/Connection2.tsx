@@ -2,6 +2,8 @@ import { NodeContext } from "components";
 import { viewBoxCoords } from "data";
 import { FC, useContext, useEffect, useRef } from "react";
 
+import "./Connection2.less";
+
 type Props = { conn: NodeConnection; view: { viewBox: n[] } };
 const Connection2: FC<Props> = ({ conn, view }) => {
   const { dispatch } = useContext(NodeContext);

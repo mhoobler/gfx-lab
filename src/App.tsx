@@ -10,11 +10,11 @@ const App: FC = () => {
   return (
     <div>
       {device && format && (
-        <StrictMode>
-          <NodeProvider device={device} format={format}>
+        <NodeProvider device={device} format={format}>
+          <StrictMode>
             <NodeBoard />
-          </NodeProvider>
-        </StrictMode>
+          </StrictMode>
+        </NodeProvider>
       )}
     </div>
   );

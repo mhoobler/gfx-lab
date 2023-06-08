@@ -27,6 +27,11 @@ const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor, null> = (
   receivers: null,
 });
 
+const ShaderModuleJson = (body: GPUShaderModuleDescriptor) => {
+  const { label, code } = body;
+  return { label, code }
+}
+
 type Props = PanelProps2<GPUShaderModuleDescriptor, null>;
 const ShaderModulePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
@@ -47,4 +52,4 @@ const ShaderModulePanel: FC<Props> = ({ data }) => {
   );
 };
 
-export { ShaderModulePanel, ShaderModuleInit };
+export { ShaderModulePanel, ShaderModuleInit, ShaderModuleJson };

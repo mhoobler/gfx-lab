@@ -45,6 +45,11 @@ const RenderPipelineInit: NodeInitFn<
   },
 });
 
+const RenderPipelineJson = (body: GPURenderPipelineDescriptor) => {
+  const { label, primitive } = body;
+  return { label, primitive };
+}
+
 type Props = PanelProps2<
   GPURenderPipelineDescriptor,
   "VertexState" | "FragmentState"
@@ -66,4 +71,4 @@ const RenderPipelinePanel: FC<Props> = ({ data }) => {
     </div>
   );
 };
-export { RenderPipelinePanel, RenderPipelineInit };
+export { RenderPipelinePanel, RenderPipelineInit, RenderPipelineJson };

@@ -41,6 +41,11 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
   },
 });
 
+const RenderPassJson = (body: GPURenderPassDescriptorEXT) => {
+  const { label } = body;
+  return { label }
+}
+
 type Props = PanelProps2<GPURenderPassDescriptorEXT, "CanvasPanel">;
 const RenderPassPanel: FC<Props> = ({ data }) => {
   const canvasPanelReceiver = data.receivers["CanvasPanel"][0];
@@ -53,4 +58,4 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
     </div>
   );
 };
-export { RenderPassPanel, RenderPassInit };
+export { RenderPassPanel, RenderPassInit, RenderPassJson };

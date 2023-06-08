@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect } from "react";
+import { FC, useContext, useEffect, useRef } from "react";
 import { NodeContext } from "components";
 
 const NodeToolbar: FC = () => {
@@ -55,12 +55,22 @@ const NodeToolbar: FC = () => {
   };
 
   const handleSave = () => {
-    //TODO:
-    //dispatch({ type: "SAVE_LAYOUT" });
-  }
+    dispatch({ type: "SAVE_LAYOUT" });
+  };
+
+  const handleLoadFile = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const fr = new FileReader();
+    const value = evt.target.value;
+    fr.onload = () => {
+      const data = JSON.parse(fr.result as string);
+      dispatch({ type: "LOAD_LAYOUT", payload: { data, url: value } });
+    };
+    fr.readAsText(evt.target.files[0]);
+  };
 
   return (
     <div className="board-controls">
+      <input type="file" onChange={handleLoadFile} />
       <select onChange={handleLayoutChange} value={selectedLayout.url}>
         <option value="CLEAR">Clear</option>
         <option value={`json_layouts/hello_vertex.json`}>Hello Vertex</option>
@@ -68,11 +78,9 @@ const NodeToolbar: FC = () => {
           Hello Triangle
         </option>
       </select>
+      <button onClick={handleSave}>Save</button>
       <button onClick={handleRenderClick}>
         {renderState ? "Pause" : "Start Render"}
-      </button>
-      <button onClick={handleSave}>
-        Save
       </button>
     </div>
   );
