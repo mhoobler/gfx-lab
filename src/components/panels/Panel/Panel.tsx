@@ -11,7 +11,9 @@ import { RenderPipelinePanel } from "../RenderPipelinePanel/RenderPipelinePanel"
 import { ShaderModulePanel } from "../ShaderModulePanel/ShaderModulePanel";
 import { VertexStatePanel } from "../VertexStatePanel/VertexStatePanel";
 import { VertexBufferLayoutPanel } from "../VertexBufferLayoutPanel/VertexBufferLayoutPanel";
-import {VertexAttributePanel} from "../VertexAttributePanel/VertexAttributePanel";
+import { VertexAttributePanel } from "../VertexAttributePanel/VertexAttributePanel";
+
+import "./Panel.less";
 
 type Props = { data: NodeData<GPUBase, NodeType> };
 const Panel: FC<Props> = ({ data }) => {

@@ -54,7 +54,7 @@ const DataPanel: FC<Props> = ({ data }) => {
   };
 
   return (
-    <div className="input-container">
+    <div className="input-container data">
       <textarea value={text} onChange={handleChange} spellCheck="false" />
     </div>
   );

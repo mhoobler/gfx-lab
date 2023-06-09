@@ -6,7 +6,7 @@ type Props = {
   index: number;
 };
 
-const Receiver2: FC<Props> = ({ receiver, children, index }) => {
+const Receiver: FC<Props> = ({ receiver, children, index }) => {
   const iconStyle = {
     height: ".375rem",
     width: ".375rem",
@@ -17,7 +17,7 @@ const Receiver2: FC<Props> = ({ receiver, children, index }) => {
   };
 
   return (
-    <div className="receiver2 row center-v">
+    <div className="receiver row center-v">
       <div
         className="receiver receiver-icon"
         data-receiver-type={receiver.type}
@@ -31,4 +31,4 @@ const Receiver2: FC<Props> = ({ receiver, children, index }) => {
   );
 };
 
-export default Receiver2;
+export default Receiver;

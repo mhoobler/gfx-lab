@@ -1,7 +1,5 @@
 import { ChangeEvent, FC, useContext, useState } from "react";
 import { Color } from "data";
-
-import "./ShaderModulePanel.less";
 import { NodeContext } from "components/NodeContext/NodeContext";
 
 const type = "ShaderModule";
