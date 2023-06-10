@@ -4,7 +4,7 @@ import "jest-canvas-mock";
 
 it("contains input-container class", () => {
   const xyz = [0, 0, 0];
-  const nodeInits: NodeData<GPUBase>[] = Object.values(NodeInitFn).map((e, i) => {
+  const nodeInits = Object.values(NodeInitFn).map((e, i) => {
     return e(i.toString(), xyz);
   });
 

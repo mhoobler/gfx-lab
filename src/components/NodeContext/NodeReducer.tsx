@@ -9,11 +9,12 @@ import {
   loadJson,
   saveJson,
 } from "./NodeManager";
+import { Node } from "data"
 
 const NodeReducer =
   // TODO: iron out reducer action-types
   // eslint-disable-next-line
-  (nm: NodeManager) => (state: NodeContextState, action: any) => {
+  (nm: NodeManager) => (state: Node.ContextState, action: any): Node.ContextState => {
     // TODO: Svg State Management
     const { type, payload } = action;
 
@@ -21,7 +22,7 @@ const NodeReducer =
       case "ADD_RECEIVER": {
         const { index, receiver } = payload;
 
-        let node = nm.nodes[receiver.uuid];
+        const node = nm.nodes[receiver.uuid];
         node.receivers[receiver.type][index] = receiver;
 
         return {
@@ -96,6 +97,7 @@ const NodeReducer =
         const selectedLayout = { url: payload.url, name: payload.data.name };
 
         return {
+          renderState: false,
           nodes: getAllNodes(nm),
           connections: getAllConnections2(nm),
           selectedLayout,

@@ -1,3 +1,5 @@
+export * as Node from "./node";
+
 export class Color implements IColor {
   static Red = new Color(255, 0, 0);
   static Green = new Color(0, 255, 0);
@@ -100,7 +102,7 @@ struct VSOutput {
 }
 `;
 
-export const NODE_TYPE_PRIORITY: NodeType[] = [
+export const NODE_TYPE_PRIORITY: ReadonlyArray<string> = [
   // No receivers
   "ShaderModule",
   "Data",
@@ -122,7 +124,11 @@ export const NODE_TYPE_PRIORITY: NodeType[] = [
 
 export const viewBoxCoords = (x: n, y: n, view: { viewBox: n[] }): [n, n] => {
   return [
-    (x / window.innerWidth) * view.viewBox[2] + view.viewBox[0],
-    (y / window.innerHeight) * view.viewBox[3] + view.viewBox[1],
+    Math.round(
+      ((x / window.innerWidth) * view.viewBox[2] + view.viewBox[0]) * 1000
+    ) / 1000,
+    Math.round(
+      ((y / window.innerHeight) * view.viewBox[3] + view.viewBox[1]) * 1000
+    ) / 1000,
   ];
 };

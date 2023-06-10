@@ -1,6 +1,5 @@
 import { NodeInitFn } from "../../components";
-import { createConnection, removeConnection } from "../../node_utils";
-import NodeManager, { addNode } from "./NodeManager";
+import { NodeManager, addNode, createConnection, removeConnection } from "./NodeManager";
 
 const device = {
   // eslint-disable-next-line
@@ -17,11 +16,9 @@ it("creates and deletes a NodeConnection", () => {
   addNode(manager, vertexState);
 
   const sender = shaderModule.sender;
-  const receiver = vertexState.receivers[0];
+  const receiver = vertexState.receivers[sender.type][0];
   const receiverId = vertexState.uuid;
-  const receiverIndex = vertexState.receivers.findIndex(
-    (rec) => rec.type === shaderModule.type
-  );
+  const receiverIndex = 0;
 
   createConnection(manager, sender, receiverId, receiverIndex);
   expect(sender.to.size).toBe(1);
@@ -47,9 +44,7 @@ it("throws an error with Invalid SenderId", () => {
   const sender = shaderModule.sender;
   sender.uuid = "40";
   const receiverId = vertexState.uuid;
-  const receiverIndex = vertexState.receivers.findIndex(
-    (rec) => rec.type === shaderModule.type
-  );
+  const receiverIndex = 0;
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
@@ -67,9 +62,7 @@ it("throws with Invalid ReceiverId", () => {
 
   const sender = shaderModule.sender;
   const receiverId = "40";
-  const receiverIndex = vertexState.receivers.findIndex(
-    (rec) => rec.type === shaderModule.type
-  );
+  const receiverIndex = 0;
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
@@ -89,11 +82,10 @@ it("throws with Invalid Sender Type", () => {
   const senderNode = shaderModule;
   const receiverId = pipeline.uuid;
   const receiverIndex = 0;
-  const receiver = pipeline.receivers[receiverIndex];
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
   }).toThrow(
-    `Receiver with index: ${receiverIndex} requires type: ${receiver.type} but was sent type: ${senderNode.type}`
+    `${pipeline.type} does not receive type ${senderNode.type}`
   );
 });

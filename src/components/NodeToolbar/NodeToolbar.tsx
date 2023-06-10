@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useRef } from "react";
+import { FC, useContext, useEffect } from "react";
 import { NodeContext } from "components";
 
 const NodeToolbar: FC = () => {
@@ -77,6 +77,7 @@ const NodeToolbar: FC = () => {
         <option value={`json_layouts/hello_triangle.json`}>
           Hello Triangle
         </option>
+        <option value={selectedLayout.url}>{selectedLayout.name}</option>
       </select>
       <button onClick={handleSave}>Save</button>
       <button onClick={handleRenderClick}>

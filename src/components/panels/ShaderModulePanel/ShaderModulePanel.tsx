@@ -1,11 +1,10 @@
 import { ChangeEvent, FC, useContext, useState } from "react";
-import { Color } from "data";
-
-import "./ShaderModulePanel.less";
+import { Color, Node } from "data";
 import { NodeContext } from "components/NodeContext/NodeContext";
 
+export type ShaderModuleData = Node.Data<GPUShaderModuleDescriptor>
 const type = "ShaderModule";
-const ShaderModuleInit: NodeInitFn<GPUShaderModuleDescriptor, null> = (
+const ShaderModuleInit: Node.InitFn<ShaderModuleData> = (
   uuid,
   xyz
 ) => ({
@@ -32,7 +31,7 @@ const ShaderModuleJson = (body: GPUShaderModuleDescriptor) => {
   return { label, code }
 }
 
-type Props = PanelProps2<GPUShaderModuleDescriptor, null>;
+type Props = PanelProps<ShaderModuleData>;
 const ShaderModulePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
