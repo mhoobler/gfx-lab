@@ -41,7 +41,7 @@ const BufferJson = (body: GPUBufferDescriptor & GPUBase) => {
   return { label, usage };
 };
 
-type Props = PanelProps2<BufferData>;
+type Props = PanelProps<BufferData>;
 const BufferPanel: FC<Props> = ({ data }) => {
   const dataReceiver = data.receivers["Data"][0];
   return (

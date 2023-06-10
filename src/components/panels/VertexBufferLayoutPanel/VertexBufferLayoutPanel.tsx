@@ -38,7 +38,7 @@ const VertexBufferLayoutJson = (body: GPUVertexBufferLayoutEXT) => {
   return { label, arrayStride };
 }
 
-type VertexBufferLayoutProps = PanelProps2<VertexBufferLayoutData>;
+type VertexBufferLayoutProps = PanelProps<VertexBufferLayoutData>;
 const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;

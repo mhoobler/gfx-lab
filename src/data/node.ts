@@ -2,23 +2,23 @@ import { NODE_TYPE_PRIORITY } from "data";
 
 export type Type = (typeof NODE_TYPE_PRIORITY)[number] | null;
 
-type ContextState = {
+export type ContextState = {
   renderState: boolean;
-  nodes: Data<GPUBase>[];
+  nodes: Default[];
   connections: Connection[];
   selectedLayout: { url: string; name: string };
-}
+};
 
-type Receiver = {
+export type Receiver = {
   uuid: string;
   type: Type;
   from: Data<GPUBase, Receivers> | null;
 };
-type Receivers<K extends Type = Type> = {
+export type Receivers<K extends Type = Type> = {
   [key in K]: Receiver[];
 };
 
-type Sender = {
+export type Sender = {
   uuid: string;
   type: Type;
   value: GPUBase;
@@ -51,6 +51,7 @@ export type Data<T, K extends Receivers<Type> = null> = Base & {
   sender: Sender;
   receivers: K;
 };
+export type Default = Data<GPUBase, Receivers | null>;
 
 export type Json = {
   uuid: string;

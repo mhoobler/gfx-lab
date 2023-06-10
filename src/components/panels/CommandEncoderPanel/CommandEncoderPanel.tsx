@@ -47,7 +47,7 @@ const CommandEncoderJson = (body: GPUCommandEncoderDescriptorEXT) => {
   return { label }
 }
 
-type Props = PanelProps2<CommandEncoderData>;
+type Props = PanelProps<CommandEncoderData>;
 const CommandEncoderPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
 

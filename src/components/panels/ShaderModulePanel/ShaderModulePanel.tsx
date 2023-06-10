@@ -31,7 +31,7 @@ const ShaderModuleJson = (body: GPUShaderModuleDescriptor) => {
   return { label, code }
 }
 
-type Props = PanelProps2<ShaderModuleData>;
+type Props = PanelProps<ShaderModuleData>;
 const ShaderModulePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;

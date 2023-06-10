@@ -59,7 +59,7 @@ interface IColor {
   rgbaString: () => string;
 }
 
-type PanelProps2<T> = {
+type PanelProps<T> = {
   data: T;
   children: React.ReactNode;
 };

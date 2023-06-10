@@ -9,11 +9,12 @@ import {
   loadJson,
   saveJson,
 } from "./NodeManager";
+import { Node } from "data"
 
 const NodeReducer =
   // TODO: iron out reducer action-types
   // eslint-disable-next-line
-  (nm: NodeManager) => (state: NodeContextState, action: any): NodeContextState => {
+  (nm: NodeManager) => (state: Node.ContextState, action: any): Node.ContextState => {
     // TODO: Svg State Management
     const { type, payload } = action;
 

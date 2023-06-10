@@ -47,7 +47,7 @@ const RenderPassJson = (body: GPURenderPassDescriptorEXT) => {
   return { label }
 }
 
-type Props = PanelProps2<RenderPassData>;
+type Props = PanelProps<RenderPassData>;
 const RenderPassPanel: FC<Props> = ({ data }) => {
   const canvasPanelReceiver = data.receivers["CanvasPanel"][0];
 

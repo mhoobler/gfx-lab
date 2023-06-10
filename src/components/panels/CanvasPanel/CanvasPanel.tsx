@@ -32,7 +32,7 @@ const CanvasPanelJson = (body: GPUCanvasPanel) => {
   return { label }
 }
 
-type Props = PanelProps2<CanvasPanelData>;
+type Props = PanelProps<CanvasPanelData>;
 const CanvasPanel: FC<Props> = ({ data }) => {
   const { device, format } = useContext(WgpuContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);

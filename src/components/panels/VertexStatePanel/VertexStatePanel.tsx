@@ -47,7 +47,7 @@ const VertexStateJson = (body: GPUVertexState & GPUBase) => {
   return { label, entryPoint }
 }
 
-type Props = PanelProps2<VertexStateData>;
+type Props = PanelProps<VertexStateData>;
 const VertexStatePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
 

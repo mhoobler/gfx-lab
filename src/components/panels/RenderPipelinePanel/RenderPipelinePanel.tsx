@@ -48,7 +48,7 @@ const RenderPipelineJson = (body: GPURenderPipelineDescriptor) => {
   return { label, primitive };
 }
 
-type Props = PanelProps2<RenderPipelineData>;
+type Props = PanelProps<RenderPipelineData>;
 const RenderPipelinePanel: FC<Props> = ({ data }) => {
   const { receivers } = data;
 

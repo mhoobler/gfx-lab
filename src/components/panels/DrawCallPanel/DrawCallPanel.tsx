@@ -48,7 +48,7 @@ const DrawCallJson = (body: GPUDrawCall) => {
   return { label }
 }
 
-type Props = PanelProps2<DrawCallData>;
+type Props = PanelProps<DrawCallData>;
 const DrawCallPanel: FC<Props> = ({ data }) => {
   const renderPipelineReceiver = data.receivers["RenderPipeline"][0];
   const bufferReceivers = data.receivers["Buffer"];

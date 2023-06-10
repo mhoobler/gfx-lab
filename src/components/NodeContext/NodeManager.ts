@@ -39,14 +39,13 @@ function uuid() {
   );
 }
 
-type NodeDefault = Node.Data<GPUBase, Node.Receivers | null>;
 type ByCategory = { [Property in keyof Node.Type]: Set<string> };
-type ConnectionMap = Map<NodeDefault, Map<NodeDefault, number>>;
+type ConnectionMap = Map<Node.Default, Map<Node.Default, number>>;
 export class NodeManager {
   device: GPUDevice;
   format: GPUTextureFormat;
   nodes: {
-    [key: string]: NodeDefault;
+    [key: string]: Node.Default;
   };
   connections: ConnectionMap;
   byCategory: ByCategory;
@@ -137,7 +136,7 @@ export function saveJson(manager: NodeManager) {
   for (const senderNode of orderedNodes) {
     const { uuid, xyz, type, body, sender } = senderNode;
 
-    const getReceiverIndex = (receiverNode: NodeDefault): number => {
+    const getReceiverIndex = (receiverNode: Node.Default): number => {
       return receiverNode.receivers[type].findIndex(
         (receiver: Node.Receiver) => receiver.from === senderNode
       );
@@ -169,7 +168,7 @@ export function saveJson(manager: NodeManager) {
   root.removeChild(dlAnchorElem);
 }
 
-export function addNode<T extends NodeDefault>(
+export function addNode<T extends Node.Default>(
   manager: NodeManager,
   node: T
 ): string {
@@ -220,15 +219,15 @@ export function getAllNodes(manager: NodeManager) {
     (a, b) => a.xyz[2] - b.xyz[2]
   );
 
-  arr.forEach((node: NodeDefault, i: number) => {
+  arr.forEach((node: Node.Default, i: number) => {
     node.xyz[2] = i;
   });
   return arr;
 }
 
 function getNodeConnection(
-  senderNode: NodeDefault,
-  receiverNode: NodeDefault,
+  senderNode: Node.Default,
+  receiverNode: Node.Default,
   receiverIndex: number
 ): Node.Connection {
   const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
@@ -334,7 +333,7 @@ export function createConnection(
   if (innerMap) {
     innerMap.set(receiverNode, receiverIndex);
   } else {
-    const newInnerMap: Map<NodeDefault, number> = new Map();
+    const newInnerMap: Map<Node.Default, number> = new Map();
     newInnerMap.set(receiverNode, receiverIndex);
     manager.connections.set(senderNode, newInnerMap);
   }
@@ -420,7 +419,7 @@ export function finalizeConnection(
 
 export function updateConnections(
   manager: NodeManager,
-  node: NodeDefault
+  node: Node.Default
 ) {
   for (const sendTo of node.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];

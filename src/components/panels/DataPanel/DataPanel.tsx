@@ -29,7 +29,7 @@ const DataJson = (body: GPUData) => {
   return { label, text };
 };
 
-type Props = PanelProps2<DataData>;
+type Props = PanelProps<DataData>;
 const DataPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { body, uuid } = data;

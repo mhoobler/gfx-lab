@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useRef } from "react";
+import { FC, useContext, useEffect } from "react";
 import { NodeContext } from "components";
 
 const NodeToolbar: FC = () => {

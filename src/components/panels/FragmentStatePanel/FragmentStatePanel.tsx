@@ -41,7 +41,7 @@ const FragmentStateJson = (body: GPUFragmentState & GPUBase) => {
   return { label, entryPoint, targets }
 }
 
-type Props = PanelProps2<FragmentStateData>;
+type Props = PanelProps<FragmentStateData>;
 const FragmentStatePanel: FC<Props> = ({ data }) => {
   const shaderModuleReceiver = data.receivers["ShaderModule"][0];
   return (

@@ -8,8 +8,9 @@ import React, {
 import { createContext, FC } from "react";
 import { NodeManager, render } from "./NodeManager";
 import NodeReducer from "./NodeReducer";
+import { Node } from "data";
 
-const INIT_STATE: NodeContextState = {
+const INIT_STATE: Node.ContextState = {
   renderState: false,
   nodes: [],
   connections: [],

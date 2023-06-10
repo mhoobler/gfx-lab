@@ -35,7 +35,7 @@ const VertexAttributeJson = (body: GPUVertexAttributeEXT) => {
   return { label, shaderLocation, offset, format };
 };
 
-type VertexAttributeProps = PanelProps2<VertexAttributeData>;
+type VertexAttributeProps = PanelProps<VertexAttributeData>;
 const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
