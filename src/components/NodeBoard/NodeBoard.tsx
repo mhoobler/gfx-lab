@@ -1,20 +1,19 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import {
   Connection,
-  Connection2,
-  Node,
+  NodeSVG,
   NodeContext,
   NodeToolbar,
 } from "components";
 
 import "./NodeBoard.less";
-import { viewBoxCoords } from "data";
+import { viewBoxCoords, Node } from "data";
 
 const NodeBoard: FC = () => {
-  const { state, dispatch } = useContext(NodeContext);
+  const { state } = useContext(NodeContext);
   const [view, setView] = useState({
-    zoom: 1.3,
-    viewBox: [-200, -200, window.innerWidth * 1.3, window.innerHeight * 1.3],
+    zoom: 1.5,
+    viewBox: [0, 0, window.innerWidth * 1.5, window.innerHeight * 1.5],
   });
   const svgRef = useRef(null);
 
@@ -31,16 +30,6 @@ const NodeBoard: FC = () => {
     };
     window.addEventListener("resize", handleResize);
 
-    import(`json_layouts/hello_vertex.json`)
-      .then((result) => {
-        const data = result.default;
-        dispatch({
-          type: "LOAD_LAYOUT",
-          payload: { data, url: `json_layouts/hello_vertex.json` },
-        });
-      })
-      .catch((err) => console.error(err));
-
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -51,7 +40,7 @@ const NodeBoard: FC = () => {
       setView(({ viewBox, zoom }) => {
         const [x, y, width, height] = [...viewBox];
         const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
-        const zm = Math.round(zoom * zoomFactor * 100) / 100;
+        const zm = zoom * zoomFactor;
         const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
         const [newWidth, newHeight] = [
@@ -70,7 +59,7 @@ const NodeBoard: FC = () => {
     }
   };
 
-  const handleSvgDown = (evt: React.MouseEvent) => {
+  const handleMouseDown = (evt: React.MouseEvent) => {
     if (evt.button === 1 && svgRef.current) {
       document.body.style.cursor = "grabbing";
 
@@ -117,23 +106,23 @@ const NodeBoard: FC = () => {
       <svg
         ref={svgRef}
         onWheel={handleWheel}
-        onMouseDown={handleSvgDown}
+        onMouseDown={handleMouseDown}
         viewBox={`${view.viewBox.join(" ")}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {state.connections.map((conn: NodeConnection) => {
+        {state.connections.map((conn: Node.Connection) => {
           return (
-            <Connection2
+            <Connection
               key={conn.sender.uuid + conn.receiver.uuid}
               conn={conn}
               view={view}
             />
           );
         })}
-        {state.nodes.map((data: NodeData<GPUBase, NodeType>) => {
+        {state.nodes.map((data: Node.Data<GPUBase>) => {
           return (
-            <Node
-              key={data.sender.uuid + data.xyz}
+            <NodeSVG
+              key={data.sender.uuid}
               data={data}
               svgRef={svgRef}
               view={view}

@@ -1,10 +1,10 @@
 import { NodeContext } from "components";
-import { viewBoxCoords } from "data";
+import { viewBoxCoords, Node } from "data";
 import { FC, useContext, useEffect, useRef } from "react";
 
 import "./Connection.less";
 
-type Props = { conn: NodeConnection; view: { viewBox: n[] } };
+type Props = { conn: Node.Connection; view: { viewBox: n[] } };
 const Connection2: FC<Props> = ({ conn, view }) => {
   const { dispatch } = useContext(NodeContext);
   const visibleRef = useRef(null);

@@ -1,9 +1,10 @@
-import { Color } from "data";
+import { Color, Node } from "data";
 import { FC } from "react";
-import { Receiver2 } from "components";
+import { Receiver } from "components";
 
+export type FragmentStateData = Node.Data<GPUFragmentState, Node.Receivers<"ShaderModule">>;
 const type = "FragmentState";
-const FragmentStateInit: NodeInitFn<GPUFragmentState, "ShaderModule"> = (
+const FragmentStateInit: Node.InitFn<FragmentStateData> = (
   uuid,
   xyz
 ) => ({
@@ -40,14 +41,14 @@ const FragmentStateJson = (body: GPUFragmentState & GPUBase) => {
   return { label, entryPoint, targets }
 }
 
-type Props = PanelProps2<GPUFragmentState, "ShaderModule">;
+type Props = PanelProps2<FragmentStateData>;
 const FragmentStatePanel: FC<Props> = ({ data }) => {
   const shaderModuleReceiver = data.receivers["ShaderModule"][0];
   return (
     <div className="input-container">
-      <Receiver2 receiver={shaderModuleReceiver} index={0}>
+      <Receiver receiver={shaderModuleReceiver} index={0}>
         {shaderModuleReceiver.type}
-      </Receiver2>
+      </Receiver>
     </div>
   );
 };

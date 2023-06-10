@@ -1,18 +1,16 @@
 import { FC, useContext } from "react";
+import { Receiver, NodeContext } from "components";
+import { Color, Node } from "data";
 
 import "./VertexStatePanel.less";
-import { Receiver2, NodeContext } from "components";
-import { Color } from "data";
 
+export type VertexStateData = Node.Data<GPUVertexStateEXT, Node.Receivers<"ShaderModule" | "VertexBufferLayout">>;
 const type = "VertexState";
-const VertexStateInit: NodeInitFn<
-  GPUVertexState,
-  "ShaderModule" | "VertexBufferLayout"
-> = (uuid, xyz) => ({
+const VertexStateInit: Node.InitFn<VertexStateData> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
-  size: [400, 200],
+  size: [200, 200],
   xyz,
   body: {
     label: type,
@@ -49,7 +47,7 @@ const VertexStateJson = (body: GPUVertexState & GPUBase) => {
   return { label, entryPoint }
 }
 
-type Props = PanelProps2<GPUVertexState, "ShaderModule" | "VertexBufferLayout">;
+type Props = PanelProps2<VertexStateData>;
 const VertexStatePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
 
@@ -75,13 +73,13 @@ const VertexStatePanel: FC<Props> = ({ data }) => {
 
   return (
     <div className="input-container vertex-state-panel">
-      <Receiver2 receiver={shaderModuleReceiver} index={0}>
+      <Receiver receiver={shaderModuleReceiver} index={0}>
         {shaderModuleReceiver.type}
-      </Receiver2>
+      </Receiver>
       {bufferLayoutReceivers.map((receiver, index) => (
-        <Receiver2 key={data.uuid + index} receiver={receiver} index={index}>
+        <Receiver key={data.uuid + index} receiver={receiver} index={index}>
           {receiver.type}
-        </Receiver2>
+        </Receiver>
       ))}
       <button onClick={handleAddLayout}>Add layout</button>
     </div>

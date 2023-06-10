@@ -1,12 +1,10 @@
-import { Receiver2 } from "components";
-import { Color } from "data";
+import { Receiver } from "components";
+import { Color, Node } from "data";
 import { FC } from "react";
 
+export type RenderPipelineData = Node.Data<GPURenderPipelineDescriptor, Node.Receivers<"VertexState" | "FragmentState">>;
 const type = "RenderPipeline";
-const RenderPipelineInit: NodeInitFn<
-  GPURenderPipelineDescriptor,
-  "VertexState" | "FragmentState"
-> = (uuid, xyz) => ({
+const RenderPipelineInit: Node.InitFn<RenderPipelineData> = (uuid, xyz) => ({
   type,
   headerColor: new Color(0, 0, 255),
   uuid,
@@ -50,10 +48,7 @@ const RenderPipelineJson = (body: GPURenderPipelineDescriptor) => {
   return { label, primitive };
 }
 
-type Props = PanelProps2<
-  GPURenderPipelineDescriptor,
-  "VertexState" | "FragmentState"
->;
+type Props = PanelProps2<RenderPipelineData>;
 const RenderPipelinePanel: FC<Props> = ({ data }) => {
   const { receivers } = data;
 
@@ -62,12 +57,12 @@ const RenderPipelinePanel: FC<Props> = ({ data }) => {
 
   return (
     <div className="input-container">
-      <Receiver2 receiver={vertexStateReceiver} index={0}>
+      <Receiver receiver={vertexStateReceiver} index={0}>
         {vertexStateReceiver.type}
-      </Receiver2>
-      <Receiver2 receiver={fragmentStateReceiver} index={0}>
+      </Receiver>
+      <Receiver receiver={fragmentStateReceiver} index={0}>
         {fragmentStateReceiver.type}
-      </Receiver2>
+      </Receiver>
     </div>
   );
 };

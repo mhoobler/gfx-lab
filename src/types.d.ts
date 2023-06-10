@@ -1,10 +1,7 @@
 type DefaultProps = { children: React.ReactNode };
 type n = number;
 
-type GPUBase =
-  | GPUObjectBase
-  | GPUObjectDescriptorBase
-  | GPUPipelineDescriptorBase;
+type GPUBase = { label?: string };
 
 type WgpuContextState = {
   device?: GPUDevice;
@@ -25,6 +22,10 @@ interface GPUVertexAttributeEXT extends GPUVertexAttribute {
 }
 
 interface GPUVertexBufferLayoutEXT extends GPUVertexBufferLayout {
+  label?: string;
+}
+
+interface GPUVertexStateEXT extends GPUVertexState {
   label?: string;
 }
 
@@ -52,117 +53,14 @@ interface GPUData extends GPUObjectBase {
   data?: Float32Array | Float64Array | Uint32Array | Uint16Array;
 }
 
-type PanelProps<T> = {
-  body: T;
-  uuid: string;
-  children: React.ReactNode;
-};
-
-type PanelProps2<T, K extends NodeType> = {
-  data: NodeData<T, K>;
-  children: React.ReactNode;
-};
-
 interface IColor {
   xyzw: [n, n, n, n];
   hexString: () => string;
   rgbaString: () => string;
 }
 
-type NodeType =
-  | "Data"
-  | "Buffer"
-  | "ShaderModule"
-  | "VertexState"
-  | "VertexAttribute"
-  | "VertexBufferLayout"
-  | "FragmentState"
-  | "CanvasPanel"
-  | "RenderPipeline"
-  | "RenderPass"
-  | "CommandEncoder"
-  | "DrawCall";
-
-type NodeSender = {
-  uuid: string;
-  type: NodeType;
-  value: GPUBase;
-  to: Set<NodeData<GPUBase, NodeType>>;
-};
-
-type NodeReceiver = {
-  uuid: string;
-  type: NodeType;
-  from: NodeData<GPUBase, NodeType> | null;
-};
-
-type NodeReceivers<K extends NodeType> = {
-  [key in K]: {
-    uuid: string;
-    type: K;
-    from: NodeData<GPUBase, NodeType> | null;
-  }[];
-};
-
-type NodeConnection = {
-  sender: {
-    uuid: string;
-    xyz: [n, n, n];
-  };
-  receiver: {
-    type: string;
-    uuid: string;
-    index: ReceiverIndex;
-    xyz: [n, n, n];
-  };
-};
-
-type ReceiverIndex = number;
-type ConnectionMap = Map<
-  NodeData<GPUBase, NodeType>,
-  Map<NodeData<GPUBase, NodeType>, ReceiverIndex>
->;
-
-type NodeJson = {
-  uuid: string;
-  type: NodeType;
-  xyz: [n, n, n];
-  size?: [n, n];
-  body?: object;
-  connections?: ConnectionJson[];
-};
-
-type ConnectionJson = { uuid: string; receiverIndex: number };
-
-interface NodeBase {
-  uuid: string;
-  type: NodeType;
-  headerColor: IColor;
-  xyz: [n, n, n];
-  size: [n, n];
-}
-
-//interface NodeData<T> extends NodeBase {
-//  body: T;
-//  sender: NodeSender;
-//  receivers: NodeReceiver[];
-//}
-
-interface NodeData<T, K extends NodeType> extends NodeBase {
-  body: T;
-  sender: NodeSender;
-  receivers: NodeReceivers<K>;
-}
-
-type NodeInitFn<T, K extends NodeType> = (
-  uuid: string,
-  xyz: [n, n, n]
-) => NodeData<T, K>;
-
-type NodeContextState = {
-  renderState: boolean;
-  nodes: NodeData<GPUBase, NodeType>[];
-  connections: NodeConnection[];
-  selectedLayout: { url: string; name: string };
+type PanelProps2<T> = {
+  data: T;
+  children: React.ReactNode;
 };
 

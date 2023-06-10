@@ -77,6 +77,7 @@ const NodeToolbar: FC = () => {
         <option value={`json_layouts/hello_triangle.json`}>
           Hello Triangle
         </option>
+        <option value={selectedLayout.url}>{selectedLayout.name}</option>
       </select>
       <button onClick={handleSave}>Save</button>
       <button onClick={handleRenderClick}>

@@ -1,13 +1,13 @@
 import { FC, useContext, MouseEvent } from "react";
 
-import { Color } from "data";
-import { NodeContext, Receiver2 } from "components";
+import { Color, Node } from "data";
+import { NodeContext, Receiver } from "components";
 
+export type CommandEncoderData = Node.Data<GPUCommandEncoderDescriptorEXT, 
+  Node.Receivers<"RenderPass" | "DrawCall">
+>;
 const type = "CommandEncoder";
-const CommandEncoderInit: NodeInitFn<
-  GPUCommandEncoderDescriptorEXT,
-  "RenderPass" | "DrawCall"
-> = (uuid, xyz) => ({
+const CommandEncoderInit: Node.InitFn<CommandEncoderData> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: Color.Sage,
@@ -47,10 +47,7 @@ const CommandEncoderJson = (body: GPUCommandEncoderDescriptorEXT) => {
   return { label }
 }
 
-type Props = PanelProps2<
-  GPUCommandEncoderDescriptorEXT,
-  "RenderPass" | "DrawCall"
->;
+type Props = PanelProps2<CommandEncoderData>;
 const CommandEncoderPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
 
@@ -67,15 +64,14 @@ const CommandEncoderPanel: FC<Props> = ({ data }) => {
   return (
     <>
       <div className="input-container">
-        <Receiver2 key={data.uuid} receiver={renderPassReceiver} index={0}>
+        <Receiver key={data.uuid} receiver={renderPassReceiver} index={0}>
           {renderPassReceiver.type}
-        </Receiver2>
+        </Receiver>
         {drawCallReceivers.map((receiver, index) => (
-          <Receiver2 key={data.uuid + index} receiver={receiver} index={index}>
+          <Receiver key={data.uuid + index} receiver={receiver} index={index}>
             {receiver.type}
-          </Receiver2>
+          </Receiver>
         ))}
-        <button onClick={handleAddDrawCall}>Add Draw Call</button>
         <button onClick={handleAddDrawCall}>Add Draw Call</button>
       </div>
     </>

@@ -1,9 +1,12 @@
-import { Color } from "data";
+import { Color, Node } from "data";
 import { FC, useContext, useEffect, useRef } from "react";
 import { WgpuContext } from "wgpu";
 
+import "./CanvasPanel.less";
+
+export type CanvasPanelData = Node.Data<GPUCanvasPanel>;
 const type = "CanvasPanel";
-const CanvasPanelInit: NodeInitFn<GPUCanvasPanel, null> = (uuid, xyz) => ({
+const CanvasPanelInit: Node.InitFn<CanvasPanelData> = (uuid, xyz) => ({
   type,
   headerColor: new Color(255, 255, 255),
   uuid,
@@ -29,7 +32,7 @@ const CanvasPanelJson = (body: GPUCanvasPanel) => {
   return { label }
 }
 
-type Props = PanelProps2<GPUCanvasPanel, null>;
+type Props = PanelProps2<CanvasPanelData>;
 const CanvasPanel: FC<Props> = ({ data }) => {
   const { device, format } = useContext(WgpuContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,6 +40,10 @@ const CanvasPanel: FC<Props> = ({ data }) => {
 
   useEffect(() => {
     if (canvasRef.current && !body.canvas) {
+      const bb = canvasRef.current.parentElement.getBoundingClientRect();
+      canvasRef.current.width = bb.width;
+      canvasRef.current.height = bb.height;
+
       const ctx = canvasRef.current.getContext("webgpu");
       if (ctx) {
         ctx.configure({

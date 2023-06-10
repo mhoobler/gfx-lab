@@ -1,11 +1,12 @@
 import { FC, useContext, useState } from "react";
-import { Color } from "data";
+import { Color, Node } from "data";
 import { NodeContext } from "components";
 
 import "./VertexAttributePanel.less";
 
+export type VertexAttributeData = Node.Data<GPUVertexAttributeEXT>;
 const type = "VertexAttribute";
-const VertexAttributeInit: NodeInitFn<GPUVertexAttributeEXT, null> = (
+const VertexAttributeInit: Node.InitFn<VertexAttributeData> = (
   uuid,
   xyz
 ) => ({
@@ -31,10 +32,10 @@ const VertexAttributeInit: NodeInitFn<GPUVertexAttributeEXT, null> = (
 
 const VertexAttributeJson = (body: GPUVertexAttributeEXT) => {
   const { label, shaderLocation, offset, format } = body;
-  return { label, shaderLocation, offset, format }
-}
+  return { label, shaderLocation, offset, format };
+};
 
-type VertexAttributeProps = PanelProps2<GPUVertexAttributeEXT, null>;
+type VertexAttributeProps = PanelProps2<VertexAttributeData>;
 const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;

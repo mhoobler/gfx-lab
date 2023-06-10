@@ -1,6 +1,8 @@
 import { NodeInitFn } from "components";
 import { NodeBodyForJson } from "components/panels";
-import { NODE_TYPE_PRIORITY } from "data";
+import { CommandEncoderData } from "components/panels/CommandEncoderPanel/CommandEncoderPanel";
+import { DrawCallData } from "components/panels/DrawCallPanel/DrawCallPanel";
+import { NODE_TYPE_PRIORITY, Node } from "data";
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -37,11 +39,15 @@ function uuid() {
   );
 }
 
-type ByCategory = { [Property in keyof NodeType]: Set<string> };
+type NodeDefault = Node.Data<GPUBase, Node.Receivers | null>;
+type ByCategory = { [Property in keyof Node.Type]: Set<string> };
+type ConnectionMap = Map<NodeDefault, Map<NodeDefault, number>>;
 export class NodeManager {
   device: GPUDevice;
   format: GPUTextureFormat;
-  nodes: { [key: string]: NodeData<GPUBase, NodeType> };
+  nodes: {
+    [key: string]: NodeDefault;
+  };
   connections: ConnectionMap;
   byCategory: ByCategory;
 
@@ -57,12 +63,8 @@ export class NodeManager {
 
 export function loadJson(
   manager: NodeManager,
-  json: { [key: string]: NodeJson }
+  json: { [key: string]: Node.Json }
 ) {
-  delete manager.nodes;
-  delete manager.byCategory;
-  delete manager.connections;
-
   manager.nodes = {};
   manager.byCategory = {} as ByCategory;
   manager.connections = new Map();
@@ -71,7 +73,7 @@ export function loadJson(
     const { uuid, type, xyz, size, body } = nodeJson;
     if (!manager.nodes[uuid] && NodeInitFn[type]) {
       const newNode = NodeInitFn[type](uuid, xyz);
-      addNode(manager, newNode as NodeData<GPUBase, NodeType>);
+      addNode(manager, newNode);
 
       if (body) {
         newNode.body = { ...newNode.body, ...body };
@@ -135,10 +137,14 @@ export function saveJson(manager: NodeManager) {
   for (const senderNode of orderedNodes) {
     const { uuid, xyz, type, body, sender } = senderNode;
 
-    const connections = [...sender.to].map((receiverNode) => {
-      let receiverIndex = receiverNode.receivers[type].findIndex(
-        (receiver) => receiver.from === senderNode
+    const getReceiverIndex = (receiverNode: NodeDefault): number => {
+      return receiverNode.receivers[type].findIndex(
+        (receiver: Node.Receiver) => receiver.from === senderNode
       );
+    }
+
+    const connections = [...sender.to].map((receiverNode) => {
+      const receiverIndex = getReceiverIndex(receiverNode);
       return { uuid: receiverNode.uuid, receiverIndex };
     });
 
@@ -163,9 +169,9 @@ export function saveJson(manager: NodeManager) {
   root.removeChild(dlAnchorElem);
 }
 
-export function addNode<T>(
+export function addNode<T extends NodeDefault>(
   manager: NodeManager,
-  node: NodeData<T, NodeType>
+  node: T
 ): string {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = new Set();
@@ -178,10 +184,8 @@ export function addNode<T>(
 
 export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
-    const command = manager.nodes[cID] as NodeData<
-      GPUCommandEncoderDescriptorEXT,
-      "CommandEncoder"
-    >;
+    const command = manager.nodes[cID] as CommandEncoderData;
+
     if (command.body.renderPassDesc) {
       command.body.renderPassDesc.colorAttachments[0].view =
         command.body.renderPassDesc.canvasPointer.createView();
@@ -191,10 +195,7 @@ export function render(manager: NodeManager) {
 
       const lim = command.receivers["DrawCall"].length;
       for (let i = 0; i < lim; i++) {
-        const drawCall = command.receivers["DrawCall"][i].from as NodeData<
-          GPUDrawCall,
-          "DrawCall"
-        >;
+        const drawCall = command.receivers["DrawCall"][i].from as DrawCallData;
 
         if (drawCall) {
           if (drawCall.body.renderPipeline) {
@@ -219,17 +220,17 @@ export function getAllNodes(manager: NodeManager) {
     (a, b) => a.xyz[2] - b.xyz[2]
   );
 
-  arr.forEach((n: NodeData<GPUBase, NodeType>, i: number) => {
-    n.xyz[2] = i;
+  arr.forEach((node: NodeDefault, i: number) => {
+    node.xyz[2] = i;
   });
   return arr;
 }
 
 function getNodeConnection(
-  senderNode: NodeData<GPUBase, NodeType>,
-  receiverNode: NodeData<GPUBase, NodeType>,
+  senderNode: NodeDefault,
+  receiverNode: NodeDefault,
   receiverIndex: number
-): NodeConnection {
+): Node.Connection {
   const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
   receiverXYZ[0] += 8;
   receiverXYZ[1] += 30 + 30 * receiverIndex;
@@ -252,7 +253,7 @@ function getNodeConnection(
   };
 }
 
-export function getAllConnections2(manager: NodeManager): NodeConnection[] {
+export function getAllConnections2(manager: NodeManager): Node.Connection[] {
   const connections = [];
 
   for (const [senderNode, innerMap] of manager.connections.entries()) {
@@ -297,7 +298,7 @@ export function removeConnection(
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
-  sender: NodeSender,
+  sender: Node.Sender,
   receiverId: string,
   receiverIndex: number
 ) {
@@ -333,7 +334,7 @@ export function createConnection(
   if (innerMap) {
     innerMap.set(receiverNode, receiverIndex);
   } else {
-    const newInnerMap: Map<NodeData<GPUBase, NodeType>, number> = new Map();
+    const newInnerMap: Map<NodeDefault, number> = new Map();
     newInnerMap.set(receiverNode, receiverIndex);
     manager.connections.set(senderNode, newInnerMap);
   }
@@ -345,8 +346,8 @@ export function createConnection(
 
 export function finalizeConnection(
   manager: NodeManager,
-  senderNode: NodeData<any, NodeType>, // eslint-disable-line
-  receiverNode: NodeData<any, NodeType>, // eslint-disable-line
+  senderNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
+  receiverNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
   isDelete = false
 ) {
   switch (senderNode.type) {
@@ -386,14 +387,14 @@ export function finalizeConnection(
       break;
     }
     case "VertexAttribute": {
-      let index = receiverNode.receivers["VertexAttribute"].findIndex(
+      const index = receiverNode.receivers["VertexAttribute"].findIndex(
         (receiver) => receiver.from === senderNode
       );
       receiverNode.body.attributes[index] = senderNode.body;
       break;
     }
     case "VertexBufferLayout": {
-      let index = receiverNode.receivers["VertexBufferLayout"].findIndex(
+      const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
         (receiver) => receiver.from === senderNode
       );
       receiverNode.body.buffers[index] = senderNode.body;
@@ -419,7 +420,7 @@ export function finalizeConnection(
 
 export function updateConnections(
   manager: NodeManager,
-  node: NodeData<GPUBase, NodeType>
+  node: NodeDefault
 ) {
   for (const sendTo of node.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];

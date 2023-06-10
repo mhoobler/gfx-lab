@@ -1,16 +1,14 @@
-import { NodeContext, Receiver2 } from "components";
-import { Color } from "data";
+import { NodeContext, Receiver } from "components";
+import { Color, Node } from "data";
 import { FC, useContext, useState } from "react";
 
+export type VertexBufferLayoutData = Node.Data<GPUVertexBufferLayoutEXT, Node.Receivers<"VertexAttribute">>;
 const type = "VertexBufferLayout";
-const VertexBufferLayoutInit: NodeInitFn<
-  GPUVertexBufferLayoutEXT,
-  "VertexAttribute"
-> = (uuid, xyz) => ({
+const VertexBufferLayoutInit: Node.InitFn<VertexBufferLayoutData> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
-  size: [400, 200],
+  size: [200, 200],
   xyz,
   body: {
     label: type,
@@ -40,10 +38,7 @@ const VertexBufferLayoutJson = (body: GPUVertexBufferLayoutEXT) => {
   return { label, arrayStride };
 }
 
-type VertexBufferLayoutProps = PanelProps2<
-  GPUVertexBufferLayoutEXT,
-  "VertexAttribute"
->;
+type VertexBufferLayoutProps = PanelProps2<VertexBufferLayoutData>;
 const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
@@ -63,8 +58,8 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   };
 
   const handleAddAttribute = () => {
-    let receiver = { uuid, type: "VertexAttribute", from: null };
-    let index = vertexAttributeReceivers.length;
+    const receiver = { uuid, type: "VertexAttribute", from: null };
+    const index = vertexAttributeReceivers.length;
 
     dispatch({ type: "ADD_RECEIVER", payload: { receiver, index } });
   };
@@ -78,9 +73,9 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
         onChange={handleEditArrayStride}
       />
       {vertexAttributeReceivers.map((receiver, index) => (
-        <Receiver2 key={uuid + index} receiver={receiver} index={index}>
+        <Receiver key={uuid + index} receiver={receiver} index={index}>
           {receiver.type}
-        </Receiver2>
+        </Receiver>
       ))}
       <button onClick={handleAddAttribute}>Add Attribute</button>
     </div>

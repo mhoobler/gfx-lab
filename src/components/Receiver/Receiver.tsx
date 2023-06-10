@@ -1,5 +1,7 @@
 import { FC } from "react";
 
+import "./Receiver.less";
+
 type Props = {
   receiver: NodeReceiver;
   children: React.ReactNode;
@@ -8,11 +10,6 @@ type Props = {
 
 const Receiver: FC<Props> = ({ receiver, children, index }) => {
   const iconStyle = {
-    height: ".375rem",
-    width: ".375rem",
-    borderRadius: ".375rem",
-    border: ".125rem solid yellow",
-    marginRight: ".5rem",
     background: receiver.from ? "yellow" : "none"
   };
 
