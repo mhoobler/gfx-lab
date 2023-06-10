@@ -58,6 +58,20 @@ export const VertexFormats: ReadonlyArray<GPUVertexFormat> = [
   "sint32x4",
 ];
 
+export const BufferUsageKeys = ["VERTEX", "COPY_DST", "COPY_SRC", "COPY_UNIFORM", "STORAGE"];
+export const BufferUsageTable: ReadonlyArray<[string, number]> = [
+  ["MAP_READ", GPUBufferUsage.MAP_READ], // 1
+  ["MAP_WRITE", GPUBufferUsage.MAP_WRITE], // 2
+  ["COPY_SRC", GPUBufferUsage.COPY_SRC], // 4
+  ["COPY_DST", GPUBufferUsage.COPY_DST], // 8
+  ["INDEX", GPUBufferUsage.INDEX], // 16
+  ["VERTEX", GPUBufferUsage.VERTEX], // 32
+  ["UNIFORM", GPUBufferUsage.UNIFORM], // 64
+  ["STORAGE", GPUBufferUsage.STORAGE], // 128
+  ["INDIRECT", GPUBufferUsage.INDIRECT], // 256
+  ["QUERY_RESOLVE", GPUBufferUsage.QUERY_RESOLVE], // 512
+];
+
 export const HELLO_TRIANGLE = `@vertex fn vs(
   @builtin(vertex_index) vertexIndex : u32
 ) -> @builtin(position) vec4f {
