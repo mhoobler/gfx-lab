@@ -3,7 +3,7 @@ import { FC, RefObject, useContext, useRef, useState } from "react";
 import { Sender, NodeContext, Panel } from "components";
 import { viewBoxCoords, Node } from "data";
 
-import "./Node.less";
+import "./NodeSVG.less";
 
 type Props = {
   data: Node.Data<GPUBase>;

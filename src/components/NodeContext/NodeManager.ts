@@ -185,7 +185,7 @@ export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
     const command = manager.nodes[cID] as CommandEncoderData;
 
-    if (command.body.renderPassDesc) {
+    if (command.body.renderPassDesc && command.body.renderPassDesc.canvasPointer.createView) {
       command.body.renderPassDesc.colorAttachments[0].view =
         command.body.renderPassDesc.canvasPointer.createView();
 
