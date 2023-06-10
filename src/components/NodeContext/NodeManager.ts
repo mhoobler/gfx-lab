@@ -140,7 +140,7 @@ export function saveJson(manager: NodeManager) {
       return receiverNode.receivers[type].findIndex(
         (receiver: Node.Receiver) => receiver.from === senderNode
       );
-    }
+    };
 
     const connections = [...sender.to].map((receiverNode) => {
       const receiverIndex = getReceiverIndex(receiverNode);
@@ -185,7 +185,10 @@ export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
     const command = manager.nodes[cID] as CommandEncoderData;
 
-    if (command.body.renderPassDesc && command.body.renderPassDesc.canvasPointer.createView) {
+    if (
+      command.body.renderPassDesc &&
+      command.body.renderPassDesc.canvasPointer.createView
+    ) {
       command.body.renderPassDesc.colorAttachments[0].view =
         command.body.renderPassDesc.canvasPointer.createView();
 
@@ -382,7 +385,13 @@ export function finalizeConnection(
       break;
     }
     case "Buffer": {
-      receiverNode.body.buffer = isDelete ? null : senderNode.body.buffer;
+      const { data } = senderNode.body;
+      const buffer = isDelete
+        ? null
+        : manager.device.createBuffer(senderNode.body);
+      receiverNode.body.buffer = buffer;
+
+      manager.device.queue.writeBuffer(buffer, 0, data);
       break;
     }
     case "VertexAttribute": {
@@ -400,13 +409,8 @@ export function finalizeConnection(
       break;
     }
     case "Data": {
+      receiverNode.body.data = senderNode.body.data;
       receiverNode.body.size = senderNode.body.data.byteLength;
-      receiverNode.body.buffer = manager.device.createBuffer(receiverNode.body);
-      manager.device.queue.writeBuffer(
-        receiverNode.body.buffer,
-        0,
-        senderNode.body.data
-      );
       break;
     }
     default: {
@@ -417,10 +421,7 @@ export function finalizeConnection(
   }
 }
 
-export function updateConnections(
-  manager: NodeManager,
-  node: Node.Default
-) {
+export function updateConnections(manager: NodeManager, node: Node.Default) {
   for (const sendTo of node.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];
     finalizeConnection(manager, node, receiverNode);
