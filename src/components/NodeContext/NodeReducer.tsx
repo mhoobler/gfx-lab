@@ -8,13 +8,15 @@ import {
   NodeManager,
   loadJson,
   saveJson,
+  createNode,
 } from "./NodeManager";
-import { Node } from "data"
+import { Node } from "data";
 
 const NodeReducer =
+  (nm: NodeManager) =>
   // TODO: iron out reducer action-types
   // eslint-disable-next-line
-  (nm: NodeManager) => (state: Node.ContextState, action: any): Node.ContextState => {
+  (state: Node.ContextState, action: any): Node.ContextState => {
     // TODO: Svg State Management
     const { type, payload } = action;
 
@@ -27,6 +29,17 @@ const NodeReducer =
 
         return {
           ...state,
+          connections: getAllConnections2(nm),
+        };
+      }
+
+      case "CREATE_NODE": {
+        const { type, xyz } = payload;
+        createNode(nm, type, xyz);
+
+        return {
+          ...state,
+          nodes: getAllNodes(nm),
           connections: getAllConnections2(nm),
         };
       }

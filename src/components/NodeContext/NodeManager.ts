@@ -168,17 +168,25 @@ export function saveJson(manager: NodeManager) {
   root.removeChild(dlAnchorElem);
 }
 
+export function createNode(
+  manager: NodeManager,
+  type: Node.Type,
+  xyz: [n, n, n]
+) {
+  const newNode = NodeInitFn[type](uuid(), xyz);
+  addNode(manager, newNode);
+}
+
 export function addNode<T extends Node.Default>(
   manager: NodeManager,
   node: T
-): string {
+) {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = new Set();
   }
   manager.byCategory[node.type].add(node.uuid);
 
   manager.nodes[node.uuid] = node;
-  return node.uuid;
 }
 
 export function render(manager: NodeManager) {
@@ -391,7 +399,9 @@ export function finalizeConnection(
         : manager.device.createBuffer(senderNode.body);
       receiverNode.body.buffer = buffer;
 
-      manager.device.queue.writeBuffer(buffer, 0, data);
+      if (!isDelete) {
+        manager.device.queue.writeBuffer(buffer, 0, data);
+      }
       break;
     }
     case "VertexAttribute": {

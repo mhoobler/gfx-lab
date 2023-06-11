@@ -4,18 +4,24 @@ import {
   NodeSVG,
   NodeContext,
   NodeToolbar,
+  NodeInitFn,
 } from "components";
 
 import "./NodeBoard.less";
 import { viewBoxCoords, Node } from "data";
 
 const NodeBoard: FC = () => {
-  const { state } = useContext(NodeContext);
+  const { state, dispatch } = useContext(NodeContext);
   const [view, setView] = useState({
     zoom: 1.5,
     viewBox: [0, 0, window.innerWidth * 1.5, window.innerHeight * 1.5],
   });
+  const [dialog, setDialog] = useState({
+    open: false,
+    position: [0, 0],
+  });
   const svgRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const handleResize = (evt: Event) => {
@@ -60,6 +66,13 @@ const NodeBoard: FC = () => {
   };
 
   const handleMouseDown = (evt: React.MouseEvent) => {
+    if (evt.button === 0 && evt.target === svgRef.current) {
+      let y = dialogRef.current.getBoundingClientRect();
+      return setDialog({
+        open: true,
+        position: [evt.clientX, evt.clientY],
+      });
+    }
     if (evt.button === 1 && svgRef.current) {
       document.body.style.cursor = "grabbing";
 
@@ -99,6 +112,23 @@ const NodeBoard: FC = () => {
       window.addEventListener("mousemove", mousemove);
       window.addEventListener("mouseup", mouseup);
     }
+    setDialog({
+      open: false,
+      position: [evt.clientX, evt.clientY],
+    });
+  };
+
+  const handleCreateNode = (type: Node.Type) => {
+    let [x, y] = viewBoxCoords(dialog.position[0], dialog.position[1], view);
+    
+    dispatch({
+      type: "CREATE_NODE",
+      payload: { type, xyz: [x, y, state.nodes.length] },
+    });
+    setDialog(state => ({
+      ...state,
+      open: false,
+    }));
   };
 
   return (
@@ -131,6 +161,21 @@ const NodeBoard: FC = () => {
         })}
       </svg>
       <NodeToolbar />
+      <dialog
+        ref={dialogRef}
+        open={dialog.open}
+        style={{ left: dialog.position[0], top: dialog.position[1] }}
+      >
+        <div className="col">
+          {Object.keys(NodeInitFn).map((str) => {
+            return (
+              <button onClick={() => handleCreateNode(str)}>
+                {str}
+              </button>
+            );
+          })}
+        </div>
+      </dialog>
     </div>
   );
 };
