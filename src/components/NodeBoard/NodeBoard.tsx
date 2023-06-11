@@ -12,10 +12,7 @@ import { viewBoxCoords, Node } from "data";
 
 const NodeBoard: FC = () => {
   const { state, dispatch } = useContext(NodeContext);
-  const [view, setView] = useState({
-    zoom: 1.5,
-    viewBox: [0, 0, window.innerWidth * 1.5, window.innerHeight * 1.5],
-  });
+  const { viewBox, zoom, nodes, connections } = state;
   const [dialog, setDialog] = useState({
     open: false,
     position: [0, 0],
@@ -25,14 +22,12 @@ const NodeBoard: FC = () => {
 
   useEffect(() => {
     const handleResize = (evt: Event) => {
-      setView(({ zoom, viewBox }) => {
-        const { innerWidth, innerHeight } = evt.currentTarget as Window;
-        const vb = [...viewBox];
-        return {
-          zoom,
-          viewBox: [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom],
-        };
-      });
+      const { innerWidth, innerHeight } = evt.currentTarget as Window;
+      const vb = [...viewBox];
+      {
+        const viewBox = [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom];
+        dispatch({ type: "PAN_ZOOM", payload: { zoom, viewBox } });
+      }
     };
     window.addEventListener("resize", handleResize);
 
@@ -43,31 +38,28 @@ const NodeBoard: FC = () => {
 
   const handleWheel = (evt: React.WheelEvent) => {
     if (evt.buttons === 0 && evt.target === svgRef.current) {
-      setView(({ viewBox, zoom }) => {
-        const [x, y, width, height] = [...viewBox];
-        const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
-        const zm = zoom * zoomFactor;
-        const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
+      const [x, y, width, height] = [...viewBox];
+      const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
+      const zm = zoom * zoomFactor;
+      const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
-        const [newWidth, newHeight] = [
-          window.innerWidth * zm,
-          window.innerHeight * zm,
-        ];
-        const [dx, dy] = [uvx - x, uvy - y];
-        const newX = x - (dx / width) * (newWidth - width);
-        const newY = y - (dy / height) * (newHeight - height);
+      const [newWidth, newHeight] = [
+        window.innerWidth * zm,
+        window.innerHeight * zm,
+      ];
+      const [dx, dy] = [uvx - x, uvy - y];
+      const newX = x - (dx / width) * (newWidth - width);
+      const newY = y - (dy / height) * (newHeight - height);
 
-        return {
-          zoom: zm,
-          viewBox: [newX, newY, newWidth, newHeight],
-        };
+      dispatch({
+        type: "PAN_ZOOM",
+        payload: { zoom: zm, viewBox: [newX, newY, newWidth, newHeight] },
       });
     }
   };
 
   const handleMouseDown = (evt: React.MouseEvent) => {
     if (evt.button === 0 && evt.target === svgRef.current) {
-      let y = dialogRef.current.getBoundingClientRect();
       return setDialog({
         open: true,
         position: [evt.clientX, evt.clientY],
@@ -76,10 +68,12 @@ const NodeBoard: FC = () => {
     if (evt.button === 1 && svgRef.current) {
       document.body.style.cursor = "grabbing";
 
-      let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, view);
+      let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
       const mousemove = (evt2: MouseEvent) => {
-        const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+        const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, {
+          viewBox,
+        });
         const vb = svgRef.current
           .getAttribute("viewBox")
           .split(" ")
@@ -95,14 +89,15 @@ const NodeBoard: FC = () => {
       const mouseup = (evt2: MouseEvent) => {
         document.body.style.cursor = "";
         if (evt2.button === 1) {
-          setView((state) => {
-            return {
-              ...state,
+          dispatch({
+            type: "PAN_ZOOM",
+            payload: {
+              zoom,
               viewBox: svgRef.current
                 .getAttribute("viewBox")
                 .split(" ")
                 .map(parseFloat),
-            };
+            },
           });
           window.removeEventListener("mousemove", mousemove);
           window.removeEventListener("mouseup", mouseup);
@@ -119,13 +114,15 @@ const NodeBoard: FC = () => {
   };
 
   const handleCreateNode = (type: Node.Type) => {
-    let [x, y] = viewBoxCoords(dialog.position[0], dialog.position[1], view);
-    
+    let [x, y] = viewBoxCoords(dialog.position[0], dialog.position[1], {
+      viewBox,
+    });
+
     dispatch({
       type: "CREATE_NODE",
       payload: { type, xyz: [x, y, state.nodes.length] },
     });
-    setDialog(state => ({
+    setDialog((state) => ({
       ...state,
       open: false,
     }));
@@ -137,25 +134,25 @@ const NodeBoard: FC = () => {
         ref={svgRef}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
-        viewBox={`${view.viewBox.join(" ")}`}
+        viewBox={`${viewBox.join(" ")}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {state.connections.map((conn: Node.Connection) => {
+        {connections.map((conn: Node.Connection) => {
           return (
             <Connection
               key={conn.sender.uuid + conn.receiver.uuid}
               conn={conn}
-              view={view}
+              view={{ viewBox }}
             />
           );
         })}
-        {state.nodes.map((data: Node.Data<GPUBase>) => {
+        {nodes.map((data: Node.Data<GPUBase>) => {
           return (
             <NodeSVG
               key={data.sender.uuid}
               data={data}
               svgRef={svgRef}
-              view={view}
+              view={{ viewBox }}
             />
           );
         })}
@@ -168,11 +165,7 @@ const NodeBoard: FC = () => {
       >
         <div className="col">
           {Object.keys(NodeInitFn).map((str) => {
-            return (
-              <button onClick={() => handleCreateNode(str)}>
-                {str}
-              </button>
-            );
+            return <button onClick={() => handleCreateNode(str)}>{str}</button>;
           })}
         </div>
       </dialog>

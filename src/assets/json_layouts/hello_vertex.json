@@ -1,5 +1,7 @@
 {
   "name": "Hello Vertex",
+  "zoom": 1.5,
+  "position": [-200, -600],
   "nodes": {
     "10a": {
       "uuid": "10a",

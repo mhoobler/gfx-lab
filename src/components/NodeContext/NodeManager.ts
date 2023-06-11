@@ -117,7 +117,11 @@ export function loadJson(
   }
 }
 
-export function saveJson(manager: NodeManager) {
+export function saveJson(
+  manager: NodeManager,
+  zoom: number,
+  position: number[]
+) {
   const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
     ...manager.byCategory[nodeType],
   ]).map((uuid) => manager.nodes[uuid]);
@@ -131,6 +135,8 @@ export function saveJson(manager: NodeManager) {
 
   const json = {
     name: "Test Save",
+    zoom,
+    position: position.map(num => Math.round(num)),
     nodes: {},
   };
   for (const senderNode of orderedNodes) {
@@ -158,7 +164,7 @@ export function saveJson(manager: NodeManager) {
   }
 
   const dataStr =
-    "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json));
+    "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 2));
   const dlAnchorElem = document.createElement("a");
   const root = document.querySelector("#app");
   root.appendChild(dlAnchorElem);
@@ -177,10 +183,7 @@ export function createNode(
   addNode(manager, newNode);
 }
 
-export function addNode<T extends Node.Default>(
-  manager: NodeManager,
-  node: T
-) {
+export function addNode<T extends Node.Default>(manager: NodeManager, node: T) {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = new Set();
   }

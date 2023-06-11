@@ -11,6 +11,8 @@ import NodeReducer from "./NodeReducer";
 import { Node } from "data";
 
 const INIT_STATE: Node.ContextState = {
+  zoom: 1.5,
+  viewBox: [0, 0, window.innerWidth * 1.5, window.innerHeight * 1.5],
   renderState: false,
   nodes: [],
   connections: [],
