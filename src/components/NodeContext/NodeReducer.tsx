@@ -21,6 +21,19 @@ const NodeReducer =
     const { type, payload } = action;
 
     switch (type) {
+      case "ADD_RENDERPASS_STEP": {
+        const { index, receiver, body } = payload;
+
+        const node = nm.nodes[receiver.uuid];
+        node.receivers[receiver.type][index] = receiver;
+        node.body = body;
+
+        return {
+          ...state,
+          nodes: getAllNodes(nm),
+        };
+      }
+
       case "ADD_RECEIVER": {
         const { index, receiver } = payload;
 
@@ -88,6 +101,24 @@ const NodeReducer =
         };
       }
 
+      case "DELETE_RECEIVER": {
+        const { uuid, type, index } = payload;
+        const node = nm.nodes[uuid];
+        const receiver = node.receivers[type][index];
+        
+        removeConnection(nm, {
+          receiverId: uuid,
+          senderId: receiver.from.uuid
+        });
+        node.receivers[type] = node.receivers[type].filter((_, i) => i !== index);
+
+        return {
+          ...state,
+          nodes: getAllNodes(nm),
+          connections: getAllConnections2(nm),
+        };
+      }
+
       case "REFRESH_CONNECTIONS": {
         return state;
       }
@@ -127,7 +158,7 @@ const NodeReducer =
       }
 
       case "SAVE_LAYOUT": {
-        const position = [state.viewBox[0], state.viewBox[1]]
+        const position = [state.viewBox[0], state.viewBox[1]];
         const zoom = state.zoom;
         saveJson(nm, zoom, position);
         return state;

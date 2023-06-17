@@ -81,7 +81,7 @@
     },
     "6a": {
       "uuid": "6a",
-      "xyz": [800,400, 0],
+      "xyz": [800, 400, 0],
       "type": "CommandEncoder",
       "body": {
         "label": "CommandEncoder"

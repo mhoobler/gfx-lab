@@ -4,7 +4,10 @@ import { Color, Node } from "data";
 
 import "./VertexStatePanel.less";
 
-export type VertexStateData = Node.Data<GPUVertexStateEXT, Node.Receivers<"ShaderModule" | "VertexBufferLayout">>;
+export type VertexStateData = Node.Data<
+  GPUVertexStateEXT,
+  Node.Receivers<"ShaderModule" | "VertexBufferLayout">
+>;
 const type = "VertexState";
 const VertexStateInit: Node.InitFn<VertexStateData> = (uuid, xyz) => ({
   type,
@@ -44,8 +47,8 @@ const VertexStateInit: Node.InitFn<VertexStateData> = (uuid, xyz) => ({
 
 const VertexStateJson = (body: GPUVertexState & GPUBase) => {
   const { label, entryPoint } = body;
-  return { label, entryPoint }
-}
+  return { label, entryPoint };
+};
 
 type Props = PanelProps<VertexStateData>;
 const VertexStatePanel: FC<Props> = ({ data }) => {

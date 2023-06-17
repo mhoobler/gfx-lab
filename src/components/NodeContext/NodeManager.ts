@@ -1,7 +1,10 @@
 import { NodeInitFn } from "components";
 import { NodeBodyForJson } from "components/panels";
+import { BufferData } from "components/panels/BufferPanel/BufferPanel";
 import { CommandEncoderData } from "components/panels/CommandEncoderPanel/CommandEncoderPanel";
 import { DrawCallData } from "components/panels/DrawCallPanel/DrawCallPanel";
+import { RenderPassData } from "components/panels/RenderPassPanel/RenderPassPanel";
+import { RenderPipelineData } from "components/panels/RenderPipelinePanel/RenderPipelinePanel";
 import { NODE_TYPE_PRIORITY, Node } from "data";
 
 const lut = [];
@@ -70,6 +73,7 @@ export function loadJson(
 
   for (const nodeJson of Object.values(json)) {
     const { uuid, type, xyz, size, body } = nodeJson;
+
     if (!manager.nodes[uuid] && NodeInitFn[type]) {
       const newNode = NodeInitFn[type](uuid, xyz);
       addNode(manager, newNode);
@@ -92,26 +96,25 @@ export function loadJson(
     }
   }
 
-  // TODO: Need to implement a method to sort with "connection priority"
-  // Check broken_connection.json vs. hello_vertex.json
   const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
     ...manager.byCategory[nodeType],
   ]).map((uuid) => manager.nodes[uuid]);
 
-  for (const node of orderedNodes) {
-    const { connections } = json[node.uuid];
+  for (const senderNode of orderedNodes) {
+    const { connections } = json[senderNode.uuid];
     if (connections) {
       for (const { uuid, receiverIndex } of connections) {
+        const receiverNode = manager.nodes[uuid];
         while (
-          manager.nodes[uuid].receivers[node.type].length <= receiverIndex
+          receiverNode.receivers[senderNode.type].length <= receiverIndex
         ) {
-          manager.nodes[uuid].receivers[node.type].push({
+          receiverNode.receivers[senderNode.type].push({
             uuid,
-            type: node.type,
+            type: senderNode.type,
             from: null,
           });
         }
-        createConnection(manager, node.sender, uuid, receiverIndex);
+        createConnection(manager, senderNode.sender, uuid, receiverIndex);
       }
     }
   }
@@ -135,8 +138,8 @@ export function saveJson(
 
   const json = {
     name: "Test Save",
-    zoom,
-    position: position.map(num => Math.round(num)),
+    zoom: Math.round(zoom),
+    position: position.map((num) => Math.round(num)),
     nodes: {},
   };
   for (const senderNode of orderedNodes) {
@@ -155,7 +158,7 @@ export function saveJson(
 
     const nodeJson = {
       uuid,
-      xyz,
+      xyz: xyz.map((num) => Math.round(num)),
       type,
       body: NodeBodyForJson[type](body as any),
       connections,
@@ -164,7 +167,8 @@ export function saveJson(
   }
 
   const dataStr =
-    "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 2));
+    "data:text/json;charset=utf-8," +
+    encodeURIComponent(JSON.stringify(json, null, 2));
   const dlAnchorElem = document.createElement("a");
   const root = document.querySelector("#app");
   root.appendChild(dlAnchorElem);
@@ -204,23 +208,67 @@ export function render(manager: NodeManager) {
         command.body.renderPassDesc.canvasPointer.createView();
 
       const encoder = manager.device.createCommandEncoder(command.body);
-      const pass = encoder.beginRenderPass(command.body.renderPassDesc);
 
-      const lim = command.receivers["DrawCall"].length;
+      const lim = command.receivers["RenderPass"].length;
       for (let i = 0; i < lim; i++) {
-        const drawCall = command.receivers["DrawCall"][i].from as DrawCallData;
+        const renderPass = command.receivers["RenderPass"][i]
+          .from as RenderPassData;
+        const pass = encoder.beginRenderPass(renderPass.body);
+        const receiversOrder = Object.values(renderPass.body.receiversOrder);
 
-        if (drawCall) {
-          if (drawCall.body.renderPipeline) {
-            pass.setPipeline(drawCall.body.renderPipeline);
+        for (const { type, index, value } of receiversOrder) {
+          switch (type) {
+            case "CanvasPanel": {
+              break;
+            }
+            case "Buffer": {
+              const node = renderPass.receivers[type][index].from as BufferData;
+              if (node && node.sender.value) {
+                const buffer = node.sender.value as GPUBuffer;
+                pass.setVertexBuffer(value, buffer);
+              }
+              break;
+            }
+            case "RenderPipeline": {
+              const node = renderPass.receivers[type][index]
+                .from as RenderPipelineData;
+              if (node && node.sender.value) {
+                const pipeline = node.sender.value as GPURenderPipeline;
+                pass.setPipeline(pipeline);
+              }
+              break;
+            }
+            case "DrawCall": {
+              const node = renderPass.receivers[type][index]
+                .from as DrawCallData;
+              if (node && node.body.vertexCount) {
+                pass.draw(node.body.vertexCount);
+              }
+              break;
+            }
+            default: {
+              console.error("RenderPass Fallthrough Case");
+            }
           }
-          if (drawCall.body.buffer) {
-            pass.setVertexBuffer(0, drawCall.body.buffer);
-          }
-          pass.draw(drawCall.body.vertexCount);
         }
+        pass.end();
       }
-      pass.end();
+
+      //const lim = command.receivers["DrawCall"].length;
+      //for (let i = 0; i < lim; i++) {
+      //  const drawCall = command.receivers["DrawCall"][i].from as DrawCallData;
+
+      //  if (drawCall) {
+      //    if (drawCall.body.renderPipeline) {
+      //      pass.setPipeline(drawCall.body.renderPipeline);
+      //    }
+      //    if (drawCall.body.buffer) {
+      //      pass.setVertexBuffer(0, drawCall.body.buffer);
+      //    }
+      //    pass.draw(drawCall.body.vertexCount);
+      //  }
+      //}
+      //pass.end();
 
       const commandBuffer = encoder.finish();
       manager.device.queue.submit([commandBuffer]);
@@ -280,6 +328,8 @@ export function getAllConnections2(manager: NodeManager): Node.Connection[] {
   return connections;
 }
 
+export function deleteReceiver(manager: NodeManager, {}){};
+
 export function removeConnection(
   manager: NodeManager,
   ids: {
@@ -305,6 +355,7 @@ export function removeConnection(
     senderNode.sender.to.delete(receiverNode);
     innerMap.delete(receiverNode);
     finalizeConnection(manager, senderNode, receiverNode, true);
+    updateConnections(manager, receiverNode);
   }
 }
 
@@ -355,6 +406,7 @@ export function createConnection(
   receiver.from = senderNode;
   sender.to.add(receiverNode);
   finalizeConnection(manager, senderNode, receiverNode);
+  updateConnections(manager, receiverNode)
 }
 
 export function finalizeConnection(
@@ -363,11 +415,13 @@ export function finalizeConnection(
   receiverNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
   isDelete = false
 ) {
+
   switch (senderNode.type) {
     case "ShaderModule": {
-      receiverNode.body.module = isDelete
-        ? null
-        : manager.device.createShaderModule(senderNode.body);
+      senderNode.sender.value = isDelete ? null : manager.device.createShaderModule(
+        senderNode.body
+      );
+      receiverNode.body.module = senderNode.sender.value;
       break;
     }
     case "VertexState": {
@@ -379,9 +433,14 @@ export function finalizeConnection(
       break;
     }
     case "RenderPipeline": {
-      receiverNode.body.renderPipeline = isDelete
-        ? null
-        : manager.device.createRenderPipeline(senderNode.body);
+      try {
+        senderNode.sender.value = manager.device.createRenderPipeline(
+          senderNode.body
+        );
+      } catch (err) {
+        senderNode.sender.value = null;
+        console.error(err);
+      }
       break;
     }
     case "CanvasPanel": {
@@ -396,34 +455,54 @@ export function finalizeConnection(
       break;
     }
     case "Buffer": {
-      const { data } = senderNode.body;
-      const buffer = isDelete
-        ? null
-        : manager.device.createBuffer(senderNode.body);
-      receiverNode.body.buffer = buffer;
-
-      if (!isDelete) {
+      if (isDelete) {
+        senderNode.sender.value = null;
+      } else {
+        senderNode.sender.value = manager.device.createBuffer(senderNode.body);
+        const { data } = senderNode.body;
+        const buffer = senderNode.sender.value as GPUBuffer;
         manager.device.queue.writeBuffer(buffer, 0, data);
       }
+
       break;
     }
     case "VertexAttribute": {
-      const index = receiverNode.receivers["VertexAttribute"].findIndex(
-        (receiver) => receiver.from === senderNode
-      );
-      receiverNode.body.attributes[index] = senderNode.body;
+      if (isDelete) {
+        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
+          (receiver) => receiver.from === null
+        );
+        receiverNode.body.buffers[index] = null;
+      } else {
+        const index = receiverNode.receivers["VertexAttribute"].findIndex(
+          (receiver) => receiver.from === senderNode
+        );
+        receiverNode.body.attributes[index] = senderNode.body;
+      }
       break;
     }
     case "VertexBufferLayout": {
-      const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
-        (receiver) => receiver.from === senderNode
-      );
-      receiverNode.body.buffers[index] = senderNode.body;
+      if(isDelete) {
+        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
+          (receiver) => receiver.from === null
+        );
+        receiverNode.body.buffers[index] = null;
+      } else {
+        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
+          (receiver) => receiver.from === senderNode
+        );
+        receiverNode.body.buffers[index] = senderNode.body;
+      }
       break;
     }
     case "Data": {
-      receiverNode.body.data = senderNode.body.data;
-      receiverNode.body.size = senderNode.body.data.byteLength;
+      if (isDelete) {
+        const data = new Float32Array();
+        receiverNode.body.data = data;
+        receiverNode.body.size = data.byteLength;
+      } else {
+        receiverNode.body.data = senderNode.body.data;
+        receiverNode.body.size = senderNode.body.data.byteLength;
+      }
       break;
     }
     default: {
@@ -434,10 +513,13 @@ export function finalizeConnection(
   }
 }
 
-export function updateConnections(manager: NodeManager, node: Node.Default) {
-  for (const sendTo of node.sender.to) {
+export function updateConnections(
+  manager: NodeManager,
+  senderNode: Node.Default
+) {
+  for (const sendTo of senderNode.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];
-    finalizeConnection(manager, node, receiverNode);
+    finalizeConnection(manager, senderNode, receiverNode);
     updateConnections(manager, receiverNode);
   }
 }

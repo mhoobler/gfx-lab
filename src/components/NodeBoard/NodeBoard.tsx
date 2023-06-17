@@ -18,7 +18,6 @@ const NodeBoard: FC = () => {
     position: [0, 0],
   });
   const svgRef = useRef(null);
-  const dialogRef = useRef(null);
 
   useEffect(() => {
     const handleResize = (evt: Event) => {
@@ -34,10 +33,10 @@ const NodeBoard: FC = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [viewBox]);
 
   const handleWheel = (evt: React.WheelEvent) => {
-    if (evt.buttons === 0 && evt.target === svgRef.current) {
+    if (evt.button === 0 && evt.target === svgRef.current) {
       const [x, y, width, height] = [...viewBox];
       const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
       const zm = zoom * zoomFactor;
@@ -59,7 +58,7 @@ const NodeBoard: FC = () => {
   };
 
   const handleMouseDown = (evt: React.MouseEvent) => {
-    if (evt.button === 0 && evt.target === svgRef.current) {
+    if (evt.button === 2 && evt.target === svgRef.current) {
       return setDialog({
         open: true,
         position: [evt.clientX, evt.clientY],
@@ -159,8 +158,8 @@ const NodeBoard: FC = () => {
       </svg>
       <NodeToolbar />
       <dialog
-        ref={dialogRef}
         open={dialog.open}
+        onContextMenu={(evt) => evt.preventDefault()}
         style={{ left: dialog.position[0], top: dialog.position[1] }}
       >
         <div className="col">

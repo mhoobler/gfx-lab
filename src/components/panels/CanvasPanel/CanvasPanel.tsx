@@ -29,8 +29,8 @@ const CanvasPanelInit: Node.InitFn<CanvasPanelData> = (uuid, xyz) => ({
 
 const CanvasPanelJson = (body: GPUCanvasPanel) => {
   const { label } = body;
-  return { label }
-}
+  return { label };
+};
 
 type Props = PanelProps<CanvasPanelData>;
 const CanvasPanel: FC<Props> = ({ data }) => {

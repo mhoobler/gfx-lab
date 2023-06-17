@@ -129,10 +129,8 @@ const NodeSVG: FC<Props> = ({ data, svgRef, view }) => {
             />
           </div>
           <div className="node-body">
-            <Panel data={data} />
-          </div>
-          <div className="node-footer">
             <div className="resizer" onMouseDown={handleResize}></div>
+            <Panel data={data} />
           </div>
         </div>
       </foreignObject>

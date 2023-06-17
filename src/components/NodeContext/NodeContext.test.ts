@@ -1,5 +1,10 @@
 import { NodeInitFn } from "../../components";
-import { NodeManager, addNode, createConnection, removeConnection } from "./NodeManager";
+import {
+  NodeManager,
+  addNode,
+  createConnection,
+  removeConnection,
+} from "./NodeManager";
 
 const device = {
   // eslint-disable-next-line
@@ -85,7 +90,5 @@ it("throws with Invalid Sender Type", () => {
 
   expect(() => {
     createConnection(manager, sender, receiverId, receiverIndex);
-  }).toThrow(
-    `${pipeline.type} does not receive type ${senderNode.type}`
-  );
+  }).toThrow(`${pipeline.type} does not receive type ${senderNode.type}`);
 });

@@ -58,7 +58,27 @@ export const VertexFormats: ReadonlyArray<GPUVertexFormat> = [
   "sint32x4",
 ];
 
-export const BufferUsageKeys = ["VERTEX", "COPY_DST", "COPY_SRC", "COPY_UNIFORM", "STORAGE"];
+export const BufferUsageKeys = [
+  "VERTEX",
+  "COPY_DST",
+  "COPY_SRC",
+  "COPY_UNIFORM",
+  "STORAGE",
+];
+
+// Helps testing
+const GPUBufferUsage = {
+  MAP_READ: 1,
+  MAP_WRITE: 2,
+  COPY_SRC: 4,
+  COPY_DST: 8,
+  INDEX: 16,
+  VERTEX: 32,
+  UNIFORM: 64,
+  STORAGE: 128,
+  INDIRECT: 256,
+  QUERY_RESOLVE: 512,
+};
 export const BufferUsageTable: ReadonlyArray<[string, number]> = [
   ["MAP_READ", GPUBufferUsage.MAP_READ], // 1
   ["MAP_WRITE", GPUBufferUsage.MAP_WRITE], // 2
@@ -122,16 +142,17 @@ export const NODE_TYPE_PRIORITY: ReadonlyArray<string> = [
   "Data",
   "VertexAttribute",
   "CanvasPanel",
+  "DrawCall",
   // Step
   "FragmentState",
-  "VertexState",
   "VertexBufferLayout",
   "Buffer",
-  "RenderPass",
+  // Step
+  "VertexState",
   // Step
   "RenderPipeline",
   // Step
-  "DrawCall",
+  "RenderPass",
   // Step
   "CommandEncoder",
 ];

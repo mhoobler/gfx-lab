@@ -6,10 +6,7 @@ import "./VertexAttributePanel.less";
 
 export type VertexAttributeData = Node.Data<GPUVertexAttributeEXT>;
 const type = "VertexAttribute";
-const VertexAttributeInit: Node.InitFn<VertexAttributeData> = (
-  uuid,
-  xyz
-) => ({
+const VertexAttributeInit: Node.InitFn<VertexAttributeData> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
@@ -44,8 +41,8 @@ const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
     body.shaderLocation.toString()
   );
 
-  const handleEditLocation = (evt: React.ChangeEvent) => {
-    const value = (evt.target as HTMLInputElement).value;
+  const handleEditLocation = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const value = evt.target.value;
     const shaderLocation = parseInt(value);
 
     if (!isNaN(shaderLocation)) {
@@ -55,15 +52,15 @@ const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
     setShaderLocation(value);
   };
 
-  const handleEditFormat = (evt: React.ChangeEvent) => {
-    const value = (evt.target as HTMLInputElement).value;
+  const handleEditFormat = (evt: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = evt.target.value;
     body.format = value as GPUVertexFormat;
 
     dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
   };
 
-  const handleEditOffset = (evt: React.ChangeEvent) => {
-    const value = (evt.target as HTMLInputElement).value;
+  const handleEditOffset = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const value = evt.target.value;
     const offset = parseInt(value);
 
     if (!isNaN(offset)) {

@@ -3,8 +3,8 @@ import { NODE_TYPE_PRIORITY } from "data";
 export type Type = (typeof NODE_TYPE_PRIORITY)[number] | null;
 
 export type ContextState = {
-  zoom: n,
-  viewBox: n[],
+  zoom: n;
+  viewBox: n[];
   renderState: boolean;
   nodes: Default[];
   connections: Connection[];

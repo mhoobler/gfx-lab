@@ -2,7 +2,10 @@ import { Receiver } from "components";
 import { Color, Node } from "data";
 import { FC } from "react";
 
-export type RenderPipelineData = Node.Data<GPURenderPipelineDescriptor, Node.Receivers<"VertexState" | "FragmentState">>;
+export type RenderPipelineData = Node.Data<
+  GPURenderPipelineDescriptor,
+  Node.Receivers<"VertexState" | "FragmentState">
+>;
 const type = "RenderPipeline";
 const RenderPipelineInit: Node.InitFn<RenderPipelineData> = (uuid, xyz) => ({
   type,
@@ -46,7 +49,7 @@ const RenderPipelineInit: Node.InitFn<RenderPipelineData> = (uuid, xyz) => ({
 const RenderPipelineJson = (body: GPURenderPipelineDescriptor) => {
   const { label, primitive } = body;
   return { label, primitive };
-}
+};
 
 type Props = PanelProps<RenderPipelineData>;
 const RenderPipelinePanel: FC<Props> = ({ data }) => {

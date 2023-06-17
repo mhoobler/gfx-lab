@@ -1,7 +1,9 @@
 type DefaultProps = { children: React.ReactNode };
 type n = number;
 
-type GPUBase = { label?: string };
+interface GPUBase {
+  label?: string;
+}
 
 type WgpuContextState = {
   device?: GPUDevice;
@@ -31,6 +33,14 @@ interface GPUVertexStateEXT extends GPUVertexState {
 
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
   canvasPointer: GPUCanvasPanel;
+  receiversOrder?: {
+    // Node.Type
+    type: string;
+    // Node.Dta.uuid
+    uuid: string;
+    index: n;
+    value: any;
+  }[];
 }
 
 interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
@@ -39,8 +49,6 @@ interface GPUCommandEncoderDescriptorEXT extends GPUObjectDescriptorBase {
 }
 
 interface GPUDrawCall extends GPUObjectBase {
-  commandEncoderDesc: GPUCommandEncoderDescriptorEXT;
-  buffer: GPUBuffer;
   renderPipeline?: GPURenderPipeline;
   vertexCount: number;
   instanceCount?: number;
@@ -63,4 +71,3 @@ type PanelProps<T> = {
   data: T;
   children: React.ReactNode;
 };
-

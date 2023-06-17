@@ -2,12 +2,12 @@ import { Color, Node } from "data";
 import { FC } from "react";
 import { Receiver } from "components";
 
-export type FragmentStateData = Node.Data<GPUFragmentState, Node.Receivers<"ShaderModule">>;
+export type FragmentStateData = Node.Data<
+  GPUFragmentState,
+  Node.Receivers<"ShaderModule">
+>;
 const type = "FragmentState";
-const FragmentStateInit: Node.InitFn<FragmentStateData> = (
-  uuid,
-  xyz
-) => ({
+const FragmentStateInit: Node.InitFn<FragmentStateData> = (uuid, xyz) => ({
   type,
   headerColor: new Color(0, 255, 0),
   uuid,
@@ -38,8 +38,8 @@ const FragmentStateInit: Node.InitFn<FragmentStateData> = (
 
 const FragmentStateJson = (body: GPUFragmentState & GPUBase) => {
   const { label, entryPoint, targets } = body;
-  return { label, entryPoint, targets }
-}
+  return { label, entryPoint, targets };
+};
 
 type Props = PanelProps<FragmentStateData>;
 const FragmentStatePanel: FC<Props> = ({ data }) => {

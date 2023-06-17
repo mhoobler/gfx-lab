@@ -20,11 +20,7 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
     const bb = (
       evt.currentTarget as unknown as HTMLElement
     ).getBoundingClientRect();
-    const [cx, cy] = viewBoxCoords(
-      bb.x + bb.width,
-      bb.y + bb.height / 2,
-      view
-    );
+    const [cx, cy] = viewBoxCoords(bb.x + bb.width, bb.y + bb.height / 2, view);
 
     // Create temporary line element
     const line = getLine(cx, cy);
