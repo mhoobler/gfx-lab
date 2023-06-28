@@ -1,17 +1,46 @@
 export { default as Panel } from "./Panel/Panel";
 
 import { CanvasPanelInit, CanvasPanelJson } from "./CanvasPanel/CanvasPanel";
-import { CommandEncoderInit, CommandEncoderJson } from "./CommandEncoderPanel/CommandEncoderPanel";
+import {
+  CommandEncoderInit,
+  CommandEncoderJson,
+} from "./CommandEncoderPanel/CommandEncoderPanel";
 import { DrawCallInit, DrawCallJson } from "./DrawCallPanel/DrawCallPanel";
-import { FragmentStateInit, FragmentStateJson } from "./FragmentStatePanel/FragmentStatePanel";
-import { RenderPassInit, RenderPassJson } from "./RenderPassPanel/RenderPassPanel";
-import { RenderPipelineInit, RenderPipelineJson } from "./RenderPipelinePanel/RenderPipelinePanel";
-import { ShaderModuleInit, ShaderModuleJson } from "./ShaderModulePanel/ShaderModulePanel";
-import { VertexStateInit, VertexStateJson } from "./VertexStatePanel/VertexStatePanel";
+import {
+  FragmentStateInit,
+  FragmentStateJson,
+} from "./FragmentStatePanel/FragmentStatePanel";
+import {
+  RenderPassInit,
+  RenderPassJson,
+} from "./RenderPassPanel/RenderPassPanel";
+import {
+  RenderPipelineInit,
+  RenderPipelineJson,
+} from "./RenderPipelinePanel/RenderPipelinePanel";
+import {
+  ShaderModuleInit,
+  ShaderModuleJson,
+} from "./ShaderModulePanel/ShaderModulePanel";
+import {
+  VertexStateInit,
+  VertexStateJson,
+} from "./VertexStatePanel/VertexStatePanel";
 import { BufferInit, BufferJson } from "./BufferPanel/BufferPanel";
 import { DataInit, DataJson } from "./DataPanel/DataPanel";
-import { VertexBufferLayoutInit, VertexBufferLayoutJson } from "./VertexBufferLayoutPanel/VertexBufferLayoutPanel";
-import { VertexAttributeInit, VertexAttributeJson } from "./VertexAttributePanel/VertexAttributePanel";
+import {
+  VertexBufferLayoutInit,
+  VertexBufferLayoutJson,
+} from "./VertexBufferLayoutPanel/VertexBufferLayoutPanel";
+import {
+  VertexAttributeInit,
+  VertexAttributeJson,
+} from "./VertexAttributePanel/VertexAttributePanel";
+import { BindGroupInit, BindGroupJson } from "./BindGroupPanel/BindGroupPanel";
+import {
+  BindGroupEntryInit,
+  BindGroupEntryJson,
+} from "./BindGroupEntryPanel/BindGroupEntryPanel";
 
 export class NodeInitFn {
   static Buffer = BufferInit;
@@ -26,6 +55,8 @@ export class NodeInitFn {
   static VertexAttribute = VertexAttributeInit;
   static VertexBufferLayout = VertexBufferLayoutInit;
   static VertexState = VertexStateInit;
+  static BindGroup = BindGroupInit;
+  static BindGroupEntry = BindGroupEntryInit;
 }
 
 export class NodeBodyForJson {
@@ -41,4 +72,6 @@ export class NodeBodyForJson {
   static VertexAttribute = VertexAttributeJson;
   static VertexBufferLayout = VertexBufferLayoutJson;
   static VertexState = VertexStateJson;
+  static BindGroup = BindGroupJson;
+  static BindGroupEntry = BindGroupEntryJson;
 }

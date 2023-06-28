@@ -2,9 +2,15 @@ import { NodeContext, Receiver } from "components";
 import { Color, Node } from "data";
 import { FC, useContext, useState } from "react";
 
-export type VertexBufferLayoutData = Node.Data<GPUVertexBufferLayoutEXT, Node.Receivers<"VertexAttribute">>;
+export type VertexBufferLayoutData = Node.Data<
+  GPUVertexBufferLayoutEXT,
+  Node.Receivers<"VertexAttribute">
+>;
 const type = "VertexBufferLayout";
-const VertexBufferLayoutInit: Node.InitFn<VertexBufferLayoutData> = (uuid, xyz) => ({
+const VertexBufferLayoutInit: Node.InitFn<VertexBufferLayoutData> = (
+  uuid,
+  xyz
+) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
@@ -36,7 +42,7 @@ const VertexBufferLayoutInit: Node.InitFn<VertexBufferLayoutData> = (uuid, xyz) 
 const VertexBufferLayoutJson = (body: GPUVertexBufferLayoutEXT) => {
   const { label, arrayStride } = body;
   return { label, arrayStride };
-}
+};
 
 type VertexBufferLayoutProps = PanelProps<VertexBufferLayoutData>;
 const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
@@ -51,17 +57,33 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
     const arrayStride = parseInt(value);
 
     if (!isNaN(arrayStride)) {
-      body.arrayStride = arrayStride;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+      dispatch({
+        type: "EDIT_NODE",
+        payload: {
+          ...data,
+          body: {
+            ...data.body,
+            arrayStride,
+          },
+        },
+      });
     }
     setArrayStride(value);
   };
 
   const handleAddAttribute = () => {
     const receiver = { uuid, type: "VertexAttribute", from: null };
-    const index = vertexAttributeReceivers.length;
 
-    dispatch({ type: "ADD_RECEIVER", payload: { receiver, index } });
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        receivers: {
+          ...data.receivers,
+          VertexAttribute: [...data.receivers.VertexAttribute, receiver],
+        },
+      },
+    });
   };
 
   return (
@@ -82,4 +104,8 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   );
 };
 
-export { VertexBufferLayoutPanel, VertexBufferLayoutInit, VertexBufferLayoutJson };
+export {
+  VertexBufferLayoutPanel,
+  VertexBufferLayoutInit,
+  VertexBufferLayoutJson,
+};

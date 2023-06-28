@@ -1,5 +1,5 @@
 {
-  "name": "Hello Vertex",
+  "name": "Test",
   "zoom": 1.65,
   "position": [-198, -506],
   "nodes": {
@@ -204,6 +204,12 @@
             "type": "Buffer",
             "uuid": "9a",
             "index": 0,
+            "value": 0
+          },
+          {
+            "type": "Buffer",
+            "uuid": "9a",
+            "index": 1,
             "value": 0
           },
           {

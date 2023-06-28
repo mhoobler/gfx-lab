@@ -1,16 +1,18 @@
 import { FC } from "react";
+import { Node } from "data";
 
 import "./Receiver.less";
 
 type Props = {
-  receiver: NodeReceiver;
-  children: React.ReactNode;
   index: number;
+  receiver: Node.Receiver;
+  handleDelete?: () => void;
+  children: React.ReactNode;
 };
 
-const Receiver: FC<Props> = ({ receiver, children, index }) => {
+const Receiver: FC<Props> = ({ index, receiver, handleDelete, children }) => {
   const iconStyle = {
-    background: receiver.from ? "yellow" : "none"
+    background: receiver.from ? "yellow" : "none",
   };
 
   return (
@@ -23,7 +25,10 @@ const Receiver: FC<Props> = ({ receiver, children, index }) => {
         data-index={index}
         style={iconStyle}
       ></div>
-      <div className="receiver-label">{children}</div>
+      <div className="receiver-label">
+        {handleDelete ? <button onClick={handleDelete}>X</button> : <></>}
+        {children}
+      </div>
     </div>
   );
 };
