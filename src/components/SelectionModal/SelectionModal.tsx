@@ -13,7 +13,6 @@ const SelectionModal: FC<Props> = ({ items, handleSelect, children }) => {
     // If showSelection is open, and user clicks anywhere else on the app, close the showSelection
     const hideSelection = () => {
       setShowSelection((state) => {
-        console.log(state);
         if (state === 0) {
           return 0;
         }

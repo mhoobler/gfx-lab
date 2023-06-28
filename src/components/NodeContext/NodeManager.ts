@@ -114,7 +114,9 @@ export function loadJson(
       return [...manager.byCategory[nodeType]];
     }
     return [];
-  }).map((uuid) => manager.nodes[uuid]);
+  })
+    .map((uuid) => manager.nodes[uuid])
+    .filter((node) => node !== undefined);
 
   for (const senderNode of orderedNodes) {
     const { connections } = json[senderNode.uuid];

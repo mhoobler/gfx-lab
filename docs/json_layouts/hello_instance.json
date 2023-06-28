@@ -1,15 +1,22 @@
 {
-  "name": "Test",
-  "zoom": 1.65,
-  "position": [-198, -506],
+  "name": "Hello Instance",
+  "zoom": 2,
+  "position": [
+    -231,
+    -607
+  ],
   "nodes": {
     "1a": {
       "uuid": "1a",
-      "xyz": [66, 270, 7],
+      "xyz": [
+        66,
+        270,
+        3
+      ],
       "type": "ShaderModule",
       "body": {
         "label": "HelloTriangleShader",
-        "code": "struct Vertex {\n  @location(0) position: vec2f,\n  @location(1) color: vec3f,\n};\n\nstruct VSOutput {\n  @builtin(position) position: vec4f,\n  @location(0) color: vec4f,\n};\n\n@vertex fn vs(\n  vert: Vertex,\n  @builtin(instance_index) instanceIndex: u32\n) -> VSOutput {\n  var vsOut: VSOutput;\n  vsOut.position = vec4f(vert.position, 1.0, 1.0);\n  vsOut.color = vec4f(vert.color, 1.0);\n  return vsOut;\n}\n\n@fragment fn fs(vsOut: VSOutput) -> @location(0) vec4f {\n  return vsOut.color;\n}"
+        "code": "struct Instance {\n  position: vec2f,\n};\n\nstruct Vertex {\n  @location(0) position: vec2f,\n  @location(1) color: vec3f,\n};\n\nstruct VSOutput {\n  @builtin(position) position: vec4f,\n  @location(0) color: vec4f,\n};\n\n@group(0) @binding(0) var<storage, read> instances: array<Instance>;\n\n@vertex fn vs(\n  vert: Vertex,\n  @builtin(instance_index) instanceIndex: u32\n) -> VSOutput {\n  var vsOut: VSOutput;\n  let instance = instances[instanceIndex];\n  let pos = vert.position + instance.position;\n\n  vsOut.position = vec4f(pos, 1.0, 1.0);\n  vsOut.color = vec4f(vert.color, 1.0);\n  return vsOut;\n}\n\n@fragment fn fs(vsOut: VSOutput) -> @location(0) vec4f {\n  return vsOut.color;\n}\n"
       },
       "connections": [
         {
@@ -24,11 +31,15 @@
     },
     "10a": {
       "uuid": "10a",
-      "xyz": [590, 485, 0],
+      "xyz": [
+        590,
+        485,
+        0
+      ],
       "type": "Data",
       "body": {
         "label": "Data",
-        "text": "0.0, 0.5, 1, 0.0, 0.0,\n0.5, -0.5, 0.0, 1.0, 0.0,\n-0.5, -0.5, 0.0, 0.0, 1.0,"
+        "text": "0.0, 0.1, 1, 0.0, 0.0,\n0.1, -0.1, 0.0, 1.0, 0.0,\n-0.1, -0.1, 0.0, 0.0, 1.0,"
       },
       "connections": [
         {
@@ -37,9 +48,32 @@
         }
       ]
     },
+    "6fc5c02a-6a4b-4349-9533-0ae891a19a68": {
+      "uuid": "6fc5c02a-6a4b-4349-9533-0ae891a19a68",
+      "xyz": [
+        -95,
+        -370,
+        15
+      ],
+      "type": "Data",
+      "body": {
+        "label": "Data",
+        "text": "0.5, 0.5,\n-0.5, -0.5,\n0.5, -0.5,"
+      },
+      "connections": [
+        {
+          "uuid": "e9f6f3f5-4376-4bbf-9ab9-7ea71982db14",
+          "receiverIndex": 0
+        }
+      ]
+    },
     "21a": {
       "uuid": "21a",
-      "xyz": [-164, 39, 8],
+      "xyz": [
+        -164,
+        39,
+        4
+      ],
       "type": "VertexAttribute",
       "body": {
         "label": "VertexAttribute1",
@@ -56,7 +90,11 @@
     },
     "22a": {
       "uuid": "22a",
-      "xyz": [-162.65, 120.7, 10],
+      "xyz": [
+        -163,
+        121,
+        7
+      ],
       "type": "VertexAttribute",
       "body": {
         "label": "VertexAttribute2",
@@ -73,7 +111,11 @@
     },
     "8a": {
       "uuid": "8a",
-      "xyz": [1124.15, -48.5, 13],
+      "xyz": [
+        1124,
+        -48,
+        11
+      ],
       "type": "CanvasPanel",
       "body": {
         "label": "CanvasPanel"
@@ -87,10 +129,16 @@
     },
     "7a": {
       "uuid": "7a",
-      "xyz": [1070.5, 644.5, 13],
+      "xyz": [
+        1071,
+        645,
+        12
+      ],
       "type": "DrawCall",
       "body": {
-        "label": "DrawCall"
+        "label": "DrawCall",
+        "vertexCount": 3,
+        "instanceCount": 3
       },
       "connections": [
         {
@@ -101,7 +149,11 @@
     },
     "3a": {
       "uuid": "3a",
-      "xyz": [575.4, 247.75, 8],
+      "xyz": [
+        575,
+        248,
+        5
+      ],
       "type": "FragmentState",
       "body": {
         "label": "FragmentState",
@@ -121,7 +173,11 @@
     },
     "20a": {
       "uuid": "20a",
-      "xyz": [276.9, -2.5, 10],
+      "xyz": [
+        277,
+        -2,
+        8
+      ],
       "type": "VertexBufferLayout",
       "body": {
         "label": "VertexBufferlayout",
@@ -136,7 +192,11 @@
     },
     "9a": {
       "uuid": "9a",
-      "xyz": [870, 420, 1],
+      "xyz": [
+        870,
+        420,
+        1
+      ],
       "type": "Buffer",
       "body": {
         "label": "Buffer",
@@ -149,9 +209,53 @@
         }
       ]
     },
+    "e9f6f3f5-4376-4bbf-9ab9-7ea71982db14": {
+      "uuid": "e9f6f3f5-4376-4bbf-9ab9-7ea71982db14",
+      "xyz": [
+        174,
+        -370,
+        16
+      ],
+      "type": "Buffer",
+      "body": {
+        "label": "Buffer",
+        "usage": 136
+      },
+      "connections": [
+        {
+          "uuid": "593675e4-3049-4748-8b16-a0ea6ab29397",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "593675e4-3049-4748-8b16-a0ea6ab29397": {
+      "uuid": "593675e4-3049-4748-8b16-a0ea6ab29397",
+      "xyz": [
+        653,
+        -374,
+        13
+      ],
+      "type": "BindGroupEntry",
+      "body": {
+        "label": "BindGroupEntry",
+        "resource": {
+          "buffer": null
+        }
+      },
+      "connections": [
+        {
+          "uuid": "9bb97bb3-6e1a-4e13-9771-034b1c1111d6",
+          "receiverIndex": 0
+        }
+      ]
+    },
     "2a": {
       "uuid": "2a",
-      "xyz": [593, 39, 4],
+      "xyz": [
+        593,
+        39,
+        2
+      ],
       "type": "VertexState",
       "body": {
         "label": "VertexState",
@@ -166,7 +270,11 @@
     },
     "4a": {
       "uuid": "4a",
-      "xyz": [871, 160, 8],
+      "xyz": [
+        871,
+        160,
+        6
+      ],
       "type": "RenderPipeline",
       "body": {
         "label": "RenderPipeline",
@@ -178,17 +286,43 @@
         {
           "uuid": "5a",
           "receiverIndex": 0
+        },
+        {
+          "uuid": "9bb97bb3-6e1a-4e13-9771-034b1c1111d6",
+          "receiverIndex": 0
+        }
+      ]
+    },
+    "9bb97bb3-6e1a-4e13-9771-034b1c1111d6": {
+      "uuid": "9bb97bb3-6e1a-4e13-9771-034b1c1111d6",
+      "xyz": [
+        924,
+        -378,
+        14
+      ],
+      "type": "BindGroup",
+      "body": {
+        "label": "BindGroup"
+      },
+      "connections": [
+        {
+          "uuid": "5a",
+          "receiverIndex": 0
         }
       ]
     },
     "5a": {
       "uuid": "5a",
-      "xyz": [1413.5, 309, 11],
+      "xyz": [
+        1414,
+        309,
+        9
+      ],
       "type": "RenderPass",
       "body": {
         "label": "RenderPass",
         "receiversOrder": [
-           {
+          {
             "type": "CanvasPanel",
             "uuid": "8a",
             "index": 0,
@@ -207,10 +341,10 @@
             "value": 0
           },
           {
-            "type": "Buffer",
-            "uuid": "9a",
-            "index": 1,
-            "value": 0
+            "type": "BindGroup",
+            "uuid": null,
+            "value": 0,
+            "index": 0
           },
           {
             "type": "DrawCall",
@@ -229,7 +363,11 @@
     },
     "6a": {
       "uuid": "6a",
-      "xyz": [1638.5, 307, 12],
+      "xyz": [
+        1639,
+        307,
+        10
+      ],
       "type": "CommandEncoder",
       "body": {
         "label": "CommandEncoder"

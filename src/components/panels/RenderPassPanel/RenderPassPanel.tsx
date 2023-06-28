@@ -59,23 +59,6 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
   const { receiversOrder } = body;
-  const [showSelection, setShowSelection] = useState(0);
-
-  useEffect(() => {
-    // If showSelection is open, and user clicks anywhere else on the app, close the showSelection
-    const hideSelection = () => {
-      setShowSelection((state) => {
-        console.log(state);
-        if (state === 0) {
-          return 0;
-        }
-        return (state + 1) % 3;
-      });
-    };
-    window.addEventListener("click", hideSelection);
-
-    return () => window.removeEventListener("click", hideSelection);
-  }, [showSelection]);
 
   const handleBufferChange = (
     evt: React.ChangeEvent<HTMLInputElement>,
@@ -83,7 +66,6 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
   ) => {
     const value = evt.target.value;
     let int = parseInt(value);
-
     if (isNaN(int)) {
       int = 0;
     }

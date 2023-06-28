@@ -79,12 +79,8 @@ const NodeToolbar: FC = () => {
       <input type="file" onChange={handleLoadFile} />
       <select onChange={handleLayoutChange} value={selectedLayout.url}>
         <option value="CLEAR">Clear</option>
-        <option value={`json_layouts/test.json`}>Test</option>
+        <option value={`json_layouts/hello_instance.json`}>Hello Instance</option>
         <option value={`json_layouts/hello_vertex.json`}>Hello Vertex</option>
-        <option value={`json_layouts/hello_triangle.json`}>
-          Hello Triangle
-        </option>
-        <option value={selectedLayout.url}>{selectedLayout.name}</option>
       </select>
       <button onClick={handleSave}>Save</button>
       <button onClick={handleRenderClick}>
