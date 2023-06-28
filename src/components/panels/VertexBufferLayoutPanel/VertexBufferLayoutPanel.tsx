@@ -1,16 +1,20 @@
-import { NodeContext, Receiver2 } from "components";
-import { Color } from "data";
+import { NodeContext, Receiver } from "components";
+import { Color, Node } from "data";
 import { FC, useContext, useState } from "react";
 
-const type = "VertexBufferLayout";
-const VertexBufferLayoutInit: NodeInitFn<
+export type VertexBufferLayoutData = Node.Data<
   GPUVertexBufferLayoutEXT,
-  "VertexAttribute"
-> = (uuid, xyz) => ({
+  Node.Receivers<"VertexAttribute">
+>;
+const type = "VertexBufferLayout";
+const VertexBufferLayoutInit: Node.InitFn<VertexBufferLayoutData> = (
+  uuid,
+  xyz
+) => ({
   type,
   uuid,
   headerColor: new Color(255, 0, 125),
-  size: [400, 200],
+  size: [200, 200],
   xyz,
   body: {
     label: type,
@@ -38,12 +42,9 @@ const VertexBufferLayoutInit: NodeInitFn<
 const VertexBufferLayoutJson = (body: GPUVertexBufferLayoutEXT) => {
   const { label, arrayStride } = body;
   return { label, arrayStride };
-}
+};
 
-type VertexBufferLayoutProps = PanelProps2<
-  GPUVertexBufferLayoutEXT,
-  "VertexAttribute"
->;
+type VertexBufferLayoutProps = PanelProps<VertexBufferLayoutData>;
 const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
@@ -56,17 +57,33 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
     const arrayStride = parseInt(value);
 
     if (!isNaN(arrayStride)) {
-      body.arrayStride = arrayStride;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+      dispatch({
+        type: "EDIT_NODE",
+        payload: {
+          ...data,
+          body: {
+            ...data.body,
+            arrayStride,
+          },
+        },
+      });
     }
     setArrayStride(value);
   };
 
   const handleAddAttribute = () => {
-    let receiver = { uuid, type: "VertexAttribute", from: null };
-    let index = vertexAttributeReceivers.length;
+    const receiver = { uuid, type: "VertexAttribute", from: null };
 
-    dispatch({ type: "ADD_RECEIVER", payload: { receiver, index } });
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        receivers: {
+          ...data.receivers,
+          VertexAttribute: [...data.receivers.VertexAttribute, receiver],
+        },
+      },
+    });
   };
 
   return (
@@ -78,13 +95,17 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
         onChange={handleEditArrayStride}
       />
       {vertexAttributeReceivers.map((receiver, index) => (
-        <Receiver2 key={uuid + index} receiver={receiver} index={index}>
+        <Receiver key={uuid + index} receiver={receiver} index={index}>
           {receiver.type}
-        </Receiver2>
+        </Receiver>
       ))}
       <button onClick={handleAddAttribute}>Add Attribute</button>
     </div>
   );
 };
 
-export { VertexBufferLayoutPanel, VertexBufferLayoutInit, VertexBufferLayoutJson };
+export {
+  VertexBufferLayoutPanel,
+  VertexBufferLayoutInit,
+  VertexBufferLayoutJson,
+};

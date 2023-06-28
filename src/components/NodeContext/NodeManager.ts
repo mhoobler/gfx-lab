@@ -1,6 +1,12 @@
 import { NodeInitFn } from "components";
 import { NodeBodyForJson } from "components/panels";
-import { NODE_TYPE_PRIORITY } from "data";
+import { BindGroupData } from "components/panels/BindGroupPanel/BindGroupPanel";
+import { BufferData } from "components/panels/BufferPanel/BufferPanel";
+import { CommandEncoderData } from "components/panels/CommandEncoderPanel/CommandEncoderPanel";
+import { DrawCallData } from "components/panels/DrawCallPanel/DrawCallPanel";
+import { RenderPassData } from "components/panels/RenderPassPanel/RenderPassPanel";
+import { RenderPipelineData } from "components/panels/RenderPipelinePanel/RenderPipelinePanel";
+import { NODE_TYPE_PRIORITY, Node } from "data";
 
 const lut = [];
 for (let i = 0; i < 256; i++) {
@@ -37,11 +43,14 @@ function uuid() {
   );
 }
 
-type ByCategory = { [Property in keyof NodeType]: Set<string> };
+type ByCategory = { [Property in keyof Node.Type]: Set<string> };
+type ConnectionMap = Map<Node.Default, Map<Node.Default, number>>;
 export class NodeManager {
   device: GPUDevice;
   format: GPUTextureFormat;
-  nodes: { [key: string]: NodeData<GPUBase, NodeType> };
+  nodes: {
+    [key: string]: Node.Default;
+  };
   connections: ConnectionMap;
   byCategory: ByCategory;
 
@@ -52,26 +61,25 @@ export class NodeManager {
 
     this.nodes = {};
     this.byCategory = {} as ByCategory;
+    for (const category of NODE_TYPE_PRIORITY) {
+      this.byCategory[category] = new Set();
+    }
   }
 }
 
 export function loadJson(
   manager: NodeManager,
-  json: { [key: string]: NodeJson }
+  json: { [key: string]: Node.Json }
 ) {
-  delete manager.nodes;
-  delete manager.byCategory;
-  delete manager.connections;
-
   manager.nodes = {};
-  manager.byCategory = {} as ByCategory;
   manager.connections = new Map();
 
   for (const nodeJson of Object.values(json)) {
     const { uuid, type, xyz, size, body } = nodeJson;
+
     if (!manager.nodes[uuid] && NodeInitFn[type]) {
       const newNode = NodeInitFn[type](uuid, xyz);
-      addNode(manager, newNode as NodeData<GPUBase, NodeType>);
+      addNode(manager, newNode);
 
       if (body) {
         newNode.body = { ...newNode.body, ...body };
@@ -84,6 +92,16 @@ export function loadJson(
               .filter((e) => !isNaN(e))
           );
         }
+        if (type === "RenderPass") {
+          const b = newNode.body as GPURenderPassDescriptorEXT;
+          for (const receiverOrder of b.receiversOrder) {
+            newNode.receivers[receiverOrder.type].push({
+              uuid,
+              type: receiverOrder.type,
+              from: null,
+            });
+          }
+        }
       }
       if (size) {
         newNode.size = size;
@@ -91,35 +109,46 @@ export function loadJson(
     }
   }
 
-  // TODO: Need to implement a method to sort with "connection priority"
-  // Check broken_connection.json vs. hello_vertex.json
-  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
-    ...manager.byCategory[nodeType],
-  ]).map((uuid) => manager.nodes[uuid]);
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => {
+    if (manager.byCategory[nodeType]) {
+      return [...manager.byCategory[nodeType]];
+    }
+    return [];
+  })
+    .map((uuid) => manager.nodes[uuid])
+    .filter((node) => node !== undefined);
 
-  for (const node of orderedNodes) {
-    const { connections } = json[node.uuid];
+  for (const senderNode of orderedNodes) {
+    const { connections } = json[senderNode.uuid];
     if (connections) {
       for (const { uuid, receiverIndex } of connections) {
+        const receiverNode = manager.nodes[uuid];
         while (
-          manager.nodes[uuid].receivers[node.type].length <= receiverIndex
+          receiverNode.receivers[senderNode.type].length <= receiverIndex
         ) {
-          manager.nodes[uuid].receivers[node.type].push({
+          receiverNode.receivers[senderNode.type].push({
             uuid,
-            type: node.type,
+            type: senderNode.type,
             from: null,
           });
         }
-        createConnection(manager, node.sender, uuid, receiverIndex);
+        createConnection(manager, senderNode.sender, uuid, receiverIndex);
       }
     }
   }
 }
 
-export function saveJson(manager: NodeManager) {
-  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
-    ...manager.byCategory[nodeType],
-  ]).map((uuid) => manager.nodes[uuid]);
+export function saveJson(
+  manager: NodeManager,
+  zoom: number,
+  position: number[]
+) {
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => {
+    if (manager.byCategory[nodeType]) {
+      return [...manager.byCategory[nodeType]];
+    }
+    return [];
+  }).map((uuid) => manager.nodes[uuid]);
 
   for (const nodeType of NODE_TYPE_PRIORITY) {
     const uuids = manager.byCategory[nodeType];
@@ -130,21 +159,22 @@ export function saveJson(manager: NodeManager) {
 
   const json = {
     name: "Test Save",
+    zoom: Math.round(zoom),
+    position: position.map((num) => Math.round(num)),
     nodes: {},
   };
   for (const senderNode of orderedNodes) {
     const { uuid, xyz, type, body, sender } = senderNode;
 
     const connections = [...sender.to].map((receiverNode) => {
-      let receiverIndex = receiverNode.receivers[type].findIndex(
-        (receiver) => receiver.from === senderNode
-      );
+      //const receiverIndex = getReceiverIndex(receiverNode);
+      const receiverIndex = findReceiverIndex(senderNode, receiverNode);
       return { uuid: receiverNode.uuid, receiverIndex };
     });
 
     const nodeJson = {
       uuid,
-      xyz,
+      xyz: xyz.map((num) => Math.round(num)),
       type,
       body: NodeBodyForJson[type](body as any),
       connections,
@@ -153,7 +183,8 @@ export function saveJson(manager: NodeManager) {
   }
 
   const dataStr =
-    "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json));
+    "data:text/json;charset=utf-8," +
+    encodeURIComponent(JSON.stringify(json, null, 2));
   const dlAnchorElem = document.createElement("a");
   const root = document.querySelector("#app");
   root.appendChild(dlAnchorElem);
@@ -163,50 +194,91 @@ export function saveJson(manager: NodeManager) {
   root.removeChild(dlAnchorElem);
 }
 
-export function addNode<T>(
+export function createNode(
   manager: NodeManager,
-  node: NodeData<T, NodeType>
-): string {
+  type: Node.Type,
+  xyz: [n, n, n]
+) {
+  const newNode = NodeInitFn[type](uuid(), xyz);
+  addNode(manager, newNode);
+}
+
+export function addNode<T extends Node.Default>(manager: NodeManager, node: T) {
   if (!manager.byCategory[node.type]) {
     manager.byCategory[node.type] = new Set();
   }
   manager.byCategory[node.type].add(node.uuid);
 
   manager.nodes[node.uuid] = node;
-  return node.uuid;
 }
 
 export function render(manager: NodeManager) {
   for (const cID of manager.byCategory["CommandEncoder"]) {
-    const command = manager.nodes[cID] as NodeData<
-      GPUCommandEncoderDescriptorEXT,
-      "CommandEncoder"
-    >;
-    if (command.body.renderPassDesc) {
+    const command = manager.nodes[cID] as CommandEncoderData;
+
+    if (
+      command.body.renderPassDesc &&
+      command.body.renderPassDesc.canvasPointer.createView
+    ) {
       command.body.renderPassDesc.colorAttachments[0].view =
         command.body.renderPassDesc.canvasPointer.createView();
 
       const encoder = manager.device.createCommandEncoder(command.body);
-      const pass = encoder.beginRenderPass(command.body.renderPassDesc);
 
-      const lim = command.receivers["DrawCall"].length;
+      const lim = command.receivers["RenderPass"].length;
       for (let i = 0; i < lim; i++) {
-        const drawCall = command.receivers["DrawCall"][i].from as NodeData<
-          GPUDrawCall,
-          "DrawCall"
-        >;
+        const renderPass = command.receivers["RenderPass"][i]
+          .from as RenderPassData;
+        const pass = encoder.beginRenderPass(renderPass.body);
+        const receiversOrder = Object.values(renderPass.body.receiversOrder);
 
-        if (drawCall) {
-          if (drawCall.body.renderPipeline) {
-            pass.setPipeline(drawCall.body.renderPipeline);
+        for (const { type, index, value } of receiversOrder) {
+          switch (type) {
+            case "CanvasPanel": {
+              break;
+            }
+            case "BindGroup": {
+              const node = renderPass.receivers[type][index]
+                .from as BindGroupData;
+              if (node && node.sender.value) {
+                const bindGroup = node.sender.value as GPUBindGroup;
+                pass.setBindGroup(value, bindGroup);
+              }
+              break;
+            }
+            case "Buffer": {
+              const node = renderPass.receivers[type][index].from as BufferData;
+              if (node && node.sender.value) {
+                const buffer = node.sender.value as GPUBuffer;
+                pass.setVertexBuffer(value, buffer);
+              }
+              break;
+            }
+            case "RenderPipeline": {
+              const node = renderPass.receivers[type][index]
+                .from as RenderPipelineData;
+              if (node && node.sender.value) {
+                const pipeline = node.sender.value as GPURenderPipeline;
+                pass.setPipeline(pipeline);
+              }
+              break;
+            }
+            case "DrawCall": {
+              const uuid = renderPass.receivers[type][index].from.uuid;
+              const node = manager.nodes[uuid] as DrawCallData;
+              if (node && node.body.vertexCount) {
+                const { vertexCount, instanceCount } = node.body;
+                pass.draw(vertexCount, instanceCount);
+              }
+              break;
+            }
+            default: {
+              console.error("RenderPass Fallthrough Case");
+            }
           }
-          if (drawCall.body.buffer) {
-            pass.setVertexBuffer(0, drawCall.body.buffer);
-          }
-          pass.draw(drawCall.body.vertexCount);
         }
+        pass.end();
       }
-      pass.end();
 
       const commandBuffer = encoder.finish();
       manager.device.queue.submit([commandBuffer]);
@@ -219,17 +291,17 @@ export function getAllNodes(manager: NodeManager) {
     (a, b) => a.xyz[2] - b.xyz[2]
   );
 
-  arr.forEach((n: NodeData<GPUBase, NodeType>, i: number) => {
-    n.xyz[2] = i;
+  arr.forEach((node: Node.Default, i: number) => {
+    node.xyz[2] = i;
   });
   return arr;
 }
 
 function getNodeConnection(
-  senderNode: NodeData<GPUBase, NodeType>,
-  receiverNode: NodeData<GPUBase, NodeType>,
+  senderNode: Node.Default,
+  receiverNode: Node.Default,
   receiverIndex: number
-): NodeConnection {
+): Node.Connection {
   const receiverXYZ: [n, n, n] = [...receiverNode.xyz];
   receiverXYZ[0] += 8;
   receiverXYZ[1] += 30 + 30 * receiverIndex;
@@ -252,7 +324,7 @@ function getNodeConnection(
   };
 }
 
-export function getAllConnections2(manager: NodeManager): NodeConnection[] {
+export function getAllConnections2(manager: NodeManager): Node.Connection[] {
   const connections = [];
 
   for (const [senderNode, innerMap] of manager.connections.entries()) {
@@ -287,17 +359,19 @@ export function removeConnection(
   const innerMap = manager.connections.get(senderNode);
   const receiverIndex = innerMap.get(receiverNode);
   if (receiverIndex >= 0) {
+    finalizeConnection(manager, senderNode, receiverNode, true);
+    updateConnections(manager, receiverNode);
+
     receiverNode.receivers[senderNode.type][receiverIndex].from = null;
     senderNode.sender.to.delete(receiverNode);
     innerMap.delete(receiverNode);
-    finalizeConnection(manager, senderNode, receiverNode, true);
   }
 }
 
 // Must check that sender is valid for receiver before this calling this function
 export function createConnection(
   manager: NodeManager,
-  sender: NodeSender,
+  sender: Node.Sender,
   receiverId: string,
   receiverIndex: number
 ) {
@@ -333,7 +407,7 @@ export function createConnection(
   if (innerMap) {
     innerMap.set(receiverNode, receiverIndex);
   } else {
-    const newInnerMap: Map<NodeData<GPUBase, NodeType>, number> = new Map();
+    const newInnerMap: Map<Node.Default, number> = new Map();
     newInnerMap.set(receiverNode, receiverIndex);
     manager.connections.set(senderNode, newInnerMap);
   }
@@ -341,19 +415,34 @@ export function createConnection(
   receiver.from = senderNode;
   sender.to.add(receiverNode);
   finalizeConnection(manager, senderNode, receiverNode);
+  updateConnections(manager, receiverNode);
+}
+
+function findReceiverIndex(
+  senderNode: Node.Data<GPUBase, Node.Receivers>,
+  receiverNode: Node.Data<GPUBase, Node.Receivers>
+) {
+  const index = receiverNode.receivers[senderNode.type].findIndex(
+    (receiver: Node.Receiver) => receiver.from.uuid === senderNode.uuid
+  );
+  if (index < 0) {
+    throw new Error("Cound not find ReceiverIndex");
+  }
+  return index;
 }
 
 export function finalizeConnection(
   manager: NodeManager,
-  senderNode: NodeData<any, NodeType>, // eslint-disable-line
-  receiverNode: NodeData<any, NodeType>, // eslint-disable-line
+  senderNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
+  receiverNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
   isDelete = false
 ) {
   switch (senderNode.type) {
     case "ShaderModule": {
-      receiverNode.body.module = isDelete
+      senderNode.sender.value = isDelete
         ? null
         : manager.device.createShaderModule(senderNode.body);
+      receiverNode.body.module = senderNode.sender.value;
       break;
     }
     case "VertexState": {
@@ -365,9 +454,23 @@ export function finalizeConnection(
       break;
     }
     case "RenderPipeline": {
-      receiverNode.body.renderPipeline = isDelete
-        ? null
-        : manager.device.createRenderPipeline(senderNode.body);
+      senderNode = senderNode as Node.Data<GPURenderPipelineDescriptor>;
+      try {
+        senderNode.sender.value = isDelete
+          ? null
+          : manager.device.createRenderPipeline(senderNode.body);
+        if (receiverNode.type === "BindGroup") {
+          const value = senderNode.sender.value as GPURenderPipeline;
+          receiverNode = receiverNode as Node.Data<GPUBindGroupDescriptor>;
+
+          receiverNode.body.layout = value.getBindGroupLayout(
+            senderNode.body.layoutIndex
+          );
+          senderNode.body.layoutIndex++;
+        }
+      } catch (err) {
+        senderNode.sender.value = null;
+      }
       break;
     }
     case "CanvasPanel": {
@@ -382,31 +485,69 @@ export function finalizeConnection(
       break;
     }
     case "Buffer": {
-      receiverNode.body.buffer = isDelete ? null : senderNode.body.buffer;
+      if (isDelete) {
+        senderNode.sender.value = null;
+      } else {
+        senderNode.sender.value = manager.device.createBuffer(senderNode.body);
+        const { data } = senderNode.body;
+        if (data) {
+          const buffer = senderNode.sender.value as GPUBuffer;
+          manager.device.queue.writeBuffer(buffer, 0, data);
+          if (receiverNode.type === "BindGroupEntry") {
+            receiverNode.body.resource.buffer = buffer;
+          }
+        }
+      }
+
       break;
     }
     case "VertexAttribute": {
-      let index = receiverNode.receivers["VertexAttribute"].findIndex(
-        (receiver) => receiver.from === senderNode
-      );
-      receiverNode.body.attributes[index] = senderNode.body;
+      const index = findReceiverIndex(senderNode, receiverNode);
+      if (isDelete) {
+        receiverNode.body.attributes[index] = null;
+      } else {
+        receiverNode.body.attributes[index] = senderNode.body;
+      }
       break;
     }
     case "VertexBufferLayout": {
-      let index = receiverNode.receivers["VertexBufferLayout"].findIndex(
-        (receiver) => receiver.from === senderNode
-      );
-      receiverNode.body.buffers[index] = senderNode.body;
+      const index = findReceiverIndex(senderNode, receiverNode);
+      if (isDelete) {
+        receiverNode.body.buffers[index] = null;
+      } else {
+        receiverNode.body.buffers[index] = senderNode.body;
+      }
       break;
     }
     case "Data": {
-      receiverNode.body.size = senderNode.body.data.byteLength;
-      receiverNode.body.buffer = manager.device.createBuffer(receiverNode.body);
-      manager.device.queue.writeBuffer(
-        receiverNode.body.buffer,
-        0,
-        senderNode.body.data
-      );
+      if (isDelete) {
+        const data = new Float32Array();
+        receiverNode.body.data = data;
+        receiverNode.body.size = data.byteLength;
+      } else {
+        receiverNode.body.data = senderNode.body.data;
+        receiverNode.body.size = senderNode.body.data.byteLength;
+      }
+      break;
+    }
+    case "BindGroupEntry": {
+      const index = findReceiverIndex(senderNode, receiverNode);
+      if (isDelete) {
+        receiverNode.body.entries = receiverNode.body.entries[index] = null;
+      } else {
+        receiverNode.body.entries[index] = senderNode.body;
+      }
+      break;
+    }
+    case "BindGroup": {
+      if (isDelete) {
+        senderNode.sender.value = null;
+      } else {
+        senderNode.sender.value = manager.device.createBindGroup(
+          senderNode.body
+        );
+      }
+
       break;
     }
     default: {
@@ -419,11 +560,11 @@ export function finalizeConnection(
 
 export function updateConnections(
   manager: NodeManager,
-  node: NodeData<GPUBase, NodeType>
+  senderNode: Node.Default
 ) {
-  for (const sendTo of node.sender.to) {
+  for (const sendTo of senderNode.sender.to) {
     const receiverNode = manager.nodes[sendTo.uuid];
-    finalizeConnection(manager, node, receiverNode);
+    finalizeConnection(manager, senderNode, receiverNode);
     updateConnections(manager, receiverNode);
   }
 }

@@ -1,4 +1,4 @@
-import { FC, useContext, useEffect, useRef } from "react";
+import { FC, useContext, useEffect } from "react";
 import { NodeContext } from "components";
 
 const NodeToolbar: FC = () => {
@@ -46,7 +46,10 @@ const NodeToolbar: FC = () => {
               return response.json();
             })
             .then((data) => {
-              dispatch({ type: "LOAD_LAYOUT", payload: { data, url: value } });
+              dispatch({ type: "CLEAR" });
+              setTimeout(() => {
+                dispatch({ type: "LOAD_LAYOUT", payload: { data, url: value } });
+              }, 1);
             })
             .catch((err) => console.error(err));
         }
@@ -63,7 +66,10 @@ const NodeToolbar: FC = () => {
     const value = evt.target.value;
     fr.onload = () => {
       const data = JSON.parse(fr.result as string);
-      dispatch({ type: "LOAD_LAYOUT", payload: { data, url: value } });
+      dispatch({ type: "CLEAR" });
+      setTimeout(() => {
+        dispatch({ type: "LOAD_LAYOUT", payload: { data, url: value } });
+      }, 1)
     };
     fr.readAsText(evt.target.files[0]);
   };
@@ -73,10 +79,8 @@ const NodeToolbar: FC = () => {
       <input type="file" onChange={handleLoadFile} />
       <select onChange={handleLayoutChange} value={selectedLayout.url}>
         <option value="CLEAR">Clear</option>
+        <option value={`json_layouts/hello_instance.json`}>Hello Instance</option>
         <option value={`json_layouts/hello_vertex.json`}>Hello Vertex</option>
-        <option value={`json_layouts/hello_triangle.json`}>
-          Hello Triangle
-        </option>
       </select>
       <button onClick={handleSave}>Save</button>
       <button onClick={handleRenderClick}>

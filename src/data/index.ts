@@ -1,3 +1,5 @@
+export * as Node from "./node";
+
 export class Color implements IColor {
   static Red = new Color(255, 0, 0);
   static Green = new Color(0, 255, 0);
@@ -56,6 +58,40 @@ export const VertexFormats: ReadonlyArray<GPUVertexFormat> = [
   "sint32x4",
 ];
 
+export const BufferUsageKeys = [
+  "VERTEX",
+  "COPY_DST",
+  "COPY_SRC",
+  "COPY_UNIFORM",
+  "STORAGE",
+];
+
+// Helps testing
+const GPUBufferUsage = {
+  MAP_READ: 1,
+  MAP_WRITE: 2,
+  COPY_SRC: 4,
+  COPY_DST: 8,
+  INDEX: 16,
+  VERTEX: 32,
+  UNIFORM: 64,
+  STORAGE: 128,
+  INDIRECT: 256,
+  QUERY_RESOLVE: 512,
+};
+export const BufferUsageTable: ReadonlyArray<[string, number]> = [
+  ["MAP_READ", GPUBufferUsage.MAP_READ], // 1
+  ["MAP_WRITE", GPUBufferUsage.MAP_WRITE], // 2
+  ["COPY_SRC", GPUBufferUsage.COPY_SRC], // 4
+  ["COPY_DST", GPUBufferUsage.COPY_DST], // 8
+  ["INDEX", GPUBufferUsage.INDEX], // 16
+  ["VERTEX", GPUBufferUsage.VERTEX], // 32
+  ["UNIFORM", GPUBufferUsage.UNIFORM], // 64
+  ["STORAGE", GPUBufferUsage.STORAGE], // 128
+  ["INDIRECT", GPUBufferUsage.INDIRECT], // 256
+  ["QUERY_RESOLVE", GPUBufferUsage.QUERY_RESOLVE], // 512
+];
+
 export const HELLO_TRIANGLE = `@vertex fn vs(
   @builtin(vertex_index) vertexIndex : u32
 ) -> @builtin(position) vec4f {
@@ -100,29 +136,36 @@ struct VSOutput {
 }
 `;
 
-export const NODE_TYPE_PRIORITY: NodeType[] = [
+export const NODE_TYPE_PRIORITY: ReadonlyArray<string> = [
   // No receivers
   "ShaderModule",
   "Data",
   "VertexAttribute",
   "CanvasPanel",
+  "DrawCall",
   // Step
   "FragmentState",
-  "VertexState",
   "VertexBufferLayout",
   "Buffer",
-  "RenderPass",
+  // Step
+  "BindGroupEntry",
+  "VertexState",
   // Step
   "RenderPipeline",
   // Step
-  "DrawCall",
+  "BindGroup",
+  "RenderPass",
   // Step
   "CommandEncoder",
 ];
 
 export const viewBoxCoords = (x: n, y: n, view: { viewBox: n[] }): [n, n] => {
   return [
-    (x / window.innerWidth) * view.viewBox[2] + view.viewBox[0],
-    (y / window.innerHeight) * view.viewBox[3] + view.viewBox[1],
+    Math.round(
+      ((x / window.innerWidth) * view.viewBox[2] + view.viewBox[0]) * 1000
+    ) / 1000,
+    Math.round(
+      ((y / window.innerHeight) * view.viewBox[3] + view.viewBox[1]) * 1000
+    ) / 1000,
   ];
 };

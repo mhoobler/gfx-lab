@@ -8,12 +8,15 @@ import {
   NodeManager,
   loadJson,
   saveJson,
+  createNode,
 } from "./NodeManager";
+import { Node } from "data";
 
 const NodeReducer =
+  (nm: NodeManager) =>
   // TODO: iron out reducer action-types
   // eslint-disable-next-line
-  (nm: NodeManager) => (state: NodeContextState, action: any) => {
+  (state: Node.ContextState, action: any): Node.ContextState => {
     // TODO: Svg State Management
     const { type, payload } = action;
 
@@ -21,7 +24,7 @@ const NodeReducer =
       case "ADD_RECEIVER": {
         const { index, receiver } = payload;
 
-        let node = nm.nodes[receiver.uuid];
+        const node = nm.nodes[receiver.uuid];
         node.receivers[receiver.type][index] = receiver;
 
         return {
@@ -30,15 +33,25 @@ const NodeReducer =
         };
       }
 
-      case "EDIT_NODE_BODY": {
-        const { uuid, body } = payload;
-        nm.nodes[uuid].body = body;
-        updateConnections(nm, nm.nodes[uuid]);
+      case "CREATE_NODE": {
+        const { type, xyz } = payload;
+        createNode(nm, type, xyz);
 
         return {
           ...state,
           nodes: getAllNodes(nm),
           connections: getAllConnections2(nm),
+        };
+      }
+
+      case "EDIT_NODE": {
+        const newNode = payload;
+        nm.nodes[newNode.uuid] = newNode;
+        updateConnections(nm, newNode);
+
+        return {
+          ...state,
+          nodes: getAllNodes(nm),
         };
       }
 
@@ -74,6 +87,28 @@ const NodeReducer =
         };
       }
 
+      case "DELETE_RECEIVER": {
+        const { uuid, type, index } = payload;
+        const node = nm.nodes[uuid];
+        const receiver = node.receivers[type][index];
+
+        if (receiver.from) {
+          removeConnection(nm, {
+            receiverId: uuid,
+            senderId: receiver.from.uuid,
+          });
+        }
+        node.receivers[type] = node.receivers[type].filter(
+          (_, i) => i !== index
+        );
+
+        return {
+          ...state,
+          nodes: getAllNodes(nm),
+          connections: getAllConnections2(nm),
+        };
+      }
+
       case "REFRESH_CONNECTIONS": {
         return state;
       }
@@ -91,11 +126,21 @@ const NodeReducer =
         };
       }
       case "LOAD_LAYOUT": {
-        loadJson(nm, payload.data.nodes);
+        const { name, zoom, nodes, position } = payload.data;
+        loadJson(nm, nodes);
 
-        const selectedLayout = { url: payload.url, name: payload.data.name };
+        const selectedLayout = { url: payload.url, name: name };
+
+        const viewBox = [
+          ...position,
+          window.innerWidth * zoom,
+          window.innerHeight * zoom,
+        ];
 
         return {
+          zoom,
+          viewBox,
+          renderState: false,
           nodes: getAllNodes(nm),
           connections: getAllConnections2(nm),
           selectedLayout,
@@ -103,7 +148,9 @@ const NodeReducer =
       }
 
       case "SAVE_LAYOUT": {
-        saveJson(nm);
+        const position = [state.viewBox[0], state.viewBox[1]];
+        const zoom = state.zoom;
+        saveJson(nm, zoom, position);
         return state;
       }
 
@@ -111,6 +158,15 @@ const NodeReducer =
         return {
           ...state,
           renderState: !state.renderState,
+        };
+      }
+
+      case "PAN_ZOOM": {
+        const { zoom, viewBox } = payload;
+        return {
+          ...state,
+          zoom,
+          viewBox,
         };
       }
 

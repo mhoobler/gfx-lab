@@ -1,83 +1,84 @@
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import {
   Connection,
-  Connection2,
-  Node,
+  NodeSVG,
   NodeContext,
   NodeToolbar,
+  NodeInitFn,
 } from "components";
 
 import "./NodeBoard.less";
-import { viewBoxCoords } from "data";
+import { viewBoxCoords, Node } from "data";
 
 const NodeBoard: FC = () => {
   const { state, dispatch } = useContext(NodeContext);
-  const [view, setView] = useState({
-    zoom: 1.3,
-    viewBox: [-200, -200, window.innerWidth * 1.3, window.innerHeight * 1.3],
+  const { viewBox, zoom, nodes, connections } = state;
+  const [dialog, setDialog] = useState({
+    open: false,
+    position: [0, 0],
   });
   const svgRef = useRef(null);
 
   useEffect(() => {
     const handleResize = (evt: Event) => {
-      setView(({ zoom, viewBox }) => {
-        const { innerWidth, innerHeight } = evt.currentTarget as Window;
-        const vb = [...viewBox];
-        return {
-          zoom,
-          viewBox: [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom],
-        };
-      });
+      const { innerWidth, innerHeight } = evt.currentTarget as Window;
+      const vb = [...viewBox];
+      {
+        const viewBox = [vb[0], vb[1], innerWidth * zoom, innerHeight * zoom];
+        dispatch({ type: "PAN_ZOOM", payload: { zoom, viewBox } });
+      }
     };
     window.addEventListener("resize", handleResize);
-
-    import(`json_layouts/hello_vertex.json`)
-      .then((result) => {
-        const data = result.default;
-        dispatch({
-          type: "LOAD_LAYOUT",
-          payload: { data, url: `json_layouts/hello_vertex.json` },
-        });
-      })
-      .catch((err) => console.error(err));
 
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [viewBox]);
 
   const handleWheel = (evt: React.WheelEvent) => {
-    if (evt.buttons === 0 && evt.target === svgRef.current) {
-      setView(({ viewBox, zoom }) => {
-        const [x, y, width, height] = [...viewBox];
-        const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
-        const zm = Math.round(zoom * zoomFactor * 100) / 100;
-        const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
+    if (evt.button === 0 && evt.target === svgRef.current) {
+      const [x, y, width, height] = [...viewBox];
+      const zoomFactor = evt.deltaY > 0 ? 1.1 : 0.9;
+      const zm = zoom * zoomFactor;
+      const [uvx, uvy] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
-        const [newWidth, newHeight] = [
-          window.innerWidth * zm,
-          window.innerHeight * zm,
-        ];
-        const [dx, dy] = [uvx - x, uvy - y];
-        const newX = x - (dx / width) * (newWidth - width);
-        const newY = y - (dy / height) * (newHeight - height);
+      const [newWidth, newHeight] = [
+        window.innerWidth * zm,
+        window.innerHeight * zm,
+      ];
+      const [dx, dy] = [uvx - x, uvy - y];
+      const newX = x - (dx / width) * (newWidth - width);
+      const newY = y - (dy / height) * (newHeight - height);
 
-        return {
-          zoom: zm,
-          viewBox: [newX, newY, newWidth, newHeight],
-        };
+      dispatch({
+        type: "PAN_ZOOM",
+        payload: { zoom: zm, viewBox: [newX, newY, newWidth, newHeight] },
       });
     }
   };
 
-  const handleSvgDown = (evt: React.MouseEvent) => {
+  const handleMouseDown = (evt: React.MouseEvent) => {
+    // Handle Left Click Selection
+    if (evt.button === 1 && evt.target === svgRef.current) {
+    }
+
+    // Handle Right Click Modal
+    if (evt.button === 2 && evt.target === svgRef.current) {
+      return setDialog({
+        open: true,
+        position: [evt.clientX, evt.clientY],
+      });
+    }
+    // Handle Middle Click Panning
     if (evt.button === 1 && svgRef.current) {
       document.body.style.cursor = "grabbing";
 
-      let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, view);
+      let [mx, my] = viewBoxCoords(evt.clientX, evt.clientY, { viewBox });
 
       const mousemove = (evt2: MouseEvent) => {
-        const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
+        const [moveX, moveY] = viewBoxCoords(evt2.clientX, evt2.clientY, {
+          viewBox,
+        });
         const vb = svgRef.current
           .getAttribute("viewBox")
           .split(" ")
@@ -93,14 +94,15 @@ const NodeBoard: FC = () => {
       const mouseup = (evt2: MouseEvent) => {
         document.body.style.cursor = "";
         if (evt2.button === 1) {
-          setView((state) => {
-            return {
-              ...state,
+          dispatch({
+            type: "PAN_ZOOM",
+            payload: {
+              zoom,
               viewBox: svgRef.current
                 .getAttribute("viewBox")
                 .split(" ")
                 .map(parseFloat),
-            };
+            },
           });
           window.removeEventListener("mousemove", mousemove);
           window.removeEventListener("mouseup", mouseup);
@@ -110,6 +112,25 @@ const NodeBoard: FC = () => {
       window.addEventListener("mousemove", mousemove);
       window.addEventListener("mouseup", mouseup);
     }
+    setDialog({
+      open: false,
+      position: [evt.clientX, evt.clientY],
+    });
+  };
+
+  const handleCreateNode = (type: Node.Type) => {
+    let [x, y] = viewBoxCoords(dialog.position[0], dialog.position[1], {
+      viewBox,
+    });
+
+    dispatch({
+      type: "CREATE_NODE",
+      payload: { type, xyz: [x, y, state.nodes.length] },
+    });
+    setDialog((state) => ({
+      ...state,
+      open: false,
+    }));
   };
 
   return (
@@ -117,31 +138,42 @@ const NodeBoard: FC = () => {
       <svg
         ref={svgRef}
         onWheel={handleWheel}
-        onMouseDown={handleSvgDown}
-        viewBox={`${view.viewBox.join(" ")}`}
+        onMouseDown={handleMouseDown}
+        viewBox={`${viewBox.join(" ")}`}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {state.connections.map((conn: NodeConnection) => {
+        {connections.map((conn: Node.Connection) => {
           return (
-            <Connection2
+            <Connection
               key={conn.sender.uuid + conn.receiver.uuid}
               conn={conn}
-              view={view}
+              view={{ viewBox }}
             />
           );
         })}
-        {state.nodes.map((data: NodeData<GPUBase, NodeType>) => {
+        {nodes.map((data: Node.Data<GPUBase>) => {
           return (
-            <Node
-              key={data.sender.uuid + data.xyz}
+            <NodeSVG
+              key={data.uuid}
               data={data}
               svgRef={svgRef}
-              view={view}
+              view={{ viewBox }}
             />
           );
         })}
       </svg>
       <NodeToolbar />
+      <dialog
+        open={dialog.open}
+        onContextMenu={(evt) => evt.preventDefault()}
+        style={{ left: dialog.position[0], top: dialog.position[1] }}
+      >
+        <div className="col">
+          {Object.keys(NodeInitFn).map((str) => {
+            return <button onClick={() => handleCreateNode(str)}>{str}</button>;
+          })}
+        </div>
+      </dialog>
     </div>
   );
 };

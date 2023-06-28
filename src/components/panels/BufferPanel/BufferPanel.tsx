@@ -1,19 +1,24 @@
-import Receiver2 from "components/Receiver2/Receiver2";
-import { Color } from "data";
-import { FC } from "react";
+import { NodeContext } from "components";
+import Receiver from "components/Receiver/Receiver";
+import { Color, Node, BufferUsageTable } from "data";
+import { FC, useContext, useState } from "react";
 
+import "./BufferPanel.less";
+
+export type BufferData = Node.Data<GPUBufferDescriptor, Node.Receivers<"Data">>;
 const type = "Buffer";
-const BufferInit: NodeInitFn<GPUBufferDescriptor, "Data"> = (uuid, xyz) => ({
+const BufferInit: Node.InitFn<BufferData> = (uuid, xyz) => ({
   type,
   uuid,
   headerColor: new Color(220, 0, 220),
-  size: [200, 200],
+  size: [400, 200],
   xyz,
   body: {
     label: type,
     size: 8,
     usage: 0,
     buffer: null,
+    data: null,
   },
   sender: {
     uuid,
@@ -35,16 +40,56 @@ const BufferInit: NodeInitFn<GPUBufferDescriptor, "Data"> = (uuid, xyz) => ({
 const BufferJson = (body: GPUBufferDescriptor & GPUBase) => {
   const { label, usage } = body;
   return { label, usage };
-}
+};
 
-type Props = PanelProps2<GPUBufferDescriptor, "Data">;
+type Props = PanelProps<BufferData>;
 const BufferPanel: FC<Props> = ({ data }) => {
+  const { dispatch } = useContext(NodeContext);
+  const { body } = data;
+  const [usage, setUsage] = useState(body.usage);
   const dataReceiver = data.receivers["Data"][0];
+
+  const handleUsage = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = evt.target.checked ? 1 : -1;
+    const usage = data.body.usage + parseInt(evt.target.value) * isChecked;
+
+    if (!isNaN(usage)) {
+      dispatch({
+        type: "EDIT_NODE",
+        payload: {
+          ...data,
+          body: {
+            ...data.body,
+            usage,
+          },
+        },
+      });
+    }
+    setUsage(usage);
+  };
+
   return (
-    <div className="input-container">
-      <Receiver2 receiver={dataReceiver} index={0}>
+    <div className="input-container buffer col">
+      <ul className="usage-list row">
+        {BufferUsageTable.map(([key, value]) => {
+          let isChecked = (usage & value) === value;
+
+          return (
+            <li className="usage-item row" key={data.uuid + key}>
+              <input
+                type="checkbox"
+                value={value}
+                checked={isChecked}
+                onChange={handleUsage}
+              />
+              <label>{key}</label>
+            </li>
+          );
+        })}
+      </ul>
+      <Receiver receiver={dataReceiver} index={0}>
         {dataReceiver.type}
-      </Receiver2>
+      </Receiver>
     </div>
   );
 };

@@ -1,29 +1,33 @@
-import { FC, RefObject, useContext, useRef } from "react";
+import { FC, RefObject, useContext, useRef, useState } from "react";
 
-import { NodeContext, Panel } from "components";
-import Sender from "./Sender";
-import { viewBoxCoords } from "data";
+import { Sender, NodeContext, Panel } from "components";
+import { viewBoxCoords, Node } from "data";
 
-import "./Node.less";
+import "./NodeSVG.less";
 
 type Props = {
-  data: NodeData<GPUBase, NodeType>;
+  data: Node.Data<GPUBase>;
   svgRef: RefObject<SVGElement>;
   view: { viewBox: n[] };
 };
 
-const Node: FC<Props> = ({ data, svgRef, view }) => {
+const NodeSVG: FC<Props> = ({ data, svgRef, view }) => {
   const { dispatch } = useContext(NodeContext);
   const gRef = useRef<SVGGElement>(null);
   const senderRef = useRef<SVGCircleElement>(null);
+  const [label, setLabel] = useState(data.body.label);
 
-  const handleMove = (evt: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (evt: React.MouseEvent<HTMLDivElement>) => {
+    if (evt.button !== 0) {
+      return;
+    }
     if (!svgRef.current || !gRef.current || !senderRef.current) {
-      throw new Error("Ref error");
+      console.warn("missing Ref");
+      return;
     }
 
     const target = evt.currentTarget as HTMLElement;
-    target.style.cursor = "grabbing";
+    //document.body.style.cursor = "grabbing";
 
     const bb = target.getBoundingClientRect();
     const [bzx, bzy] = viewBoxCoords(bb.x, bb.y, view);
@@ -44,12 +48,12 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     const handleMouseMove = (evt2: MouseEvent) => {
       window.requestAnimationFrame(() => {
         const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
-        const moveX = Math.round((dx + vx) * 100) / 100;
-        const moveY = Math.round((dy + vy) * 100) / 100;
+        const moveX = dx + vx;
+        const moveY = dy + vy;
 
         gRef.current.setAttribute("transform", `translate(${moveX}, ${moveY})`);
         for (const sender of senderLines) {
-          let bb = senderRef.current.getBoundingClientRect();
+          const bb = senderRef.current.getBoundingClientRect();
           const [cx, cy] = viewBoxCoords(
             bb.x + bb.width / 2,
             bb.y + bb.height / 2,
@@ -65,7 +69,7 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
           const receiverElm = document.querySelector(
             `.receiver[data-uuid="${data.uuid}"][data-type="${attrType}"][data-index="${attrIndex}"]`
           );
-          let bb = receiverElm.getBoundingClientRect();
+          const bb = receiverElm.getBoundingClientRect();
           const [cx, cy] = viewBoxCoords(
             bb.x + bb.width / 2,
             bb.y + bb.height / 2,
@@ -79,8 +83,6 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     };
 
     const handleMouseUp = (evt2: MouseEvent) => {
-      target.style.cursor = "grab";
-
       const [vx, vy] = viewBoxCoords(evt2.clientX, evt2.clientY, view);
       const x = dx + vx;
       const y = dy + vy;
@@ -98,6 +100,11 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
     console.warn("TODO!");
   };
 
+  const handleEditLabel = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    data.body.label = evt.target.value;
+    setLabel(evt.target.value);
+  };
+
   const backgroundColor = data.headerColor.rgbaString();
 
   return (
@@ -109,17 +116,21 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
       <foreignObject width={data.size[0]} height={data.size[1]}>
         <div className="node-card col center-v">
           <div
-            className="node-header center-v"
-            onMouseDown={handleMove}
+            className="node-header col center-h center-v"
+            onMouseDown={handleMouseDown}
             style={{ backgroundColor }}
           >
-            {data.body.label}
+            <div className="handle"></div>
+            <input
+              type="text"
+              value={label}
+              onChange={handleEditLabel}
+              spellCheck="false"
+            />
           </div>
           <div className="node-body">
-            <Panel data={data} />
-          </div>
-          <div className="node-footer">
             <div className="resizer" onMouseDown={handleResize}></div>
+            <Panel data={data} />
           </div>
         </div>
       </foreignObject>
@@ -134,4 +145,4 @@ const Node: FC<Props> = ({ data, svgRef, view }) => {
   );
 };
 
-export default Node;
+export default NodeSVG;

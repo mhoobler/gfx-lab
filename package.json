@@ -9,6 +9,7 @@
     "test": "jest --watchAll",
     "build": "NODE_ENV=production webpack --config webpack.prod.js && node test-serve.mjs"
   },
+  "dependencies": {},
   "devDependencies": {
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@testing-library/jest-dom": "^5.16.5",

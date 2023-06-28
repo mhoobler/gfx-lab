@@ -18,9 +18,7 @@ module.exports = {
       template: "./src/index.html",
     }),
     new Copy({
-      patterns: [
-        { from: "src/json_layouts", to: "json_layouts" }
-      ]
+      patterns: [{ from: "**/*", to: "[file]", context: "src/assets" }],
     }),
     isDevelopment && new RefreshWebpack(),
   ].filter(Boolean),

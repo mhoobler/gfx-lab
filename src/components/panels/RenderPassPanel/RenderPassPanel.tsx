@@ -1,12 +1,15 @@
-import { Receiver2 } from "components";
-import { Color } from "data";
-import { FC } from "react";
+import { NodeContext, Receiver, SelectionModal } from "components";
+import { Color, Node } from "data";
+import { FC, useContext, useEffect, useState } from "react";
 
+export type RenderPassData = Node.Data<
+  GPURenderPassDescriptorEXT,
+  Node.Receivers<
+    "CanvasPanel" | "Buffer" | "RenderPipeline" | "DrawCall" | "BindGroup"
+  >
+>;
 const type = "RenderPass";
-const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
-  uuid,
-  xyz
-) => ({
+const RenderPassInit: Node.InitFn<RenderPassData> = (uuid, xyz) => ({
   type,
   headerColor: new Color(255, 200, 200),
   uuid,
@@ -23,6 +26,7 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
       },
     ],
     canvasPointer: null,
+    receiversOrder: [],
   },
   sender: {
     uuid,
@@ -38,23 +42,140 @@ const RenderPassInit: NodeInitFn<GPURenderPassDescriptorEXT, "CanvasPanel"> = (
         from: null,
       },
     ],
+    Buffer: [],
+    RenderPipeline: [],
+    DrawCall: [],
+    BindGroup: [],
   },
 });
 
 const RenderPassJson = (body: GPURenderPassDescriptorEXT) => {
-  const { label } = body;
-  return { label }
-}
+  const { label, receiversOrder } = body;
+  return { label, receiversOrder };
+};
 
-type Props = PanelProps2<GPURenderPassDescriptorEXT, "CanvasPanel">;
+type Props = PanelProps<RenderPassData>;
 const RenderPassPanel: FC<Props> = ({ data }) => {
-  const canvasPanelReceiver = data.receivers["CanvasPanel"][0];
+  const { dispatch } = useContext(NodeContext);
+  const { uuid, body } = data;
+  const { receiversOrder } = body;
+
+  const handleBufferChange = (
+    evt: React.ChangeEvent<HTMLInputElement>,
+    receiverIndex: number
+  ) => {
+    const value = evt.target.value;
+    let int = parseInt(value);
+    if (isNaN(int)) {
+      int = 0;
+    }
+
+    const newOrder = [...receiversOrder];
+    newOrder[receiverIndex].value = int;
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder: newOrder,
+        },
+      },
+    });
+  };
+
+  const handleDeleteReceiver = (receiverIndex: number) => {
+    const { type, index } = body.receiversOrder[receiverIndex];
+    const receiversOrder = body.receiversOrder.filter(
+      (_, i) => i !== receiverIndex
+    );
+    const newReceivers = data.receivers[type].filter(
+      (_: unknown, i: number) => i !== index
+    );
+
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder,
+        },
+        receivers: {
+          ...data.receivers,
+          [type]: newReceivers,
+        },
+      },
+    });
+  };
+
+  const handleAddReceiver = (type: Node.Type) => {
+    const receiver = { uuid, type, from: null };
+    const index = data.receivers[type].length;
+
+    const value = type === "Buffer" || type === "BindGroup" ? 0 : null;
+    const newStep = { type, uuid: null, value, index };
+
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder: [...body.receiversOrder, newStep],
+        },
+        receivers: {
+          ...data.receivers,
+          [type]: [...data.receivers[type], receiver],
+        },
+      },
+    });
+  };
 
   return (
     <div className="input-container">
-      <Receiver2 receiver={canvasPanelReceiver} index={0}>
-        {canvasPanelReceiver.type}
-      </Receiver2>
+      {receiversOrder.map(({ type, index, value }, receiverIndex) => {
+        let receiver = data.receivers[type][index];
+        if (!receiver) {
+          receiver = {
+            uuid,
+            type,
+            from: null,
+          };
+        }
+
+        return (
+          <Receiver
+            key={data.uuid + receiver.type + index}
+            receiver={receiver}
+            index={index}
+            handleDelete={() => handleDeleteReceiver(receiverIndex)}
+          >
+            {receiver.type}
+            {type === "Buffer" || type === "BindGroup" ? (
+              <input
+                style={{ width: "2rem" }}
+                value={value}
+                onChange={(evt) => handleBufferChange(evt, receiverIndex)}
+              />
+            ) : (
+              <></>
+            )}
+          </Receiver>
+        );
+      })}
+      <SelectionModal
+        items={[
+          "DrawCall",
+          "RenderPipeline",
+          "CanvasPanel",
+          "Buffer",
+          "BindGroup",
+        ]}
+        handleSelect={handleAddReceiver}
+      >
+        Add Step
+      </SelectionModal>
     </div>
   );
 };

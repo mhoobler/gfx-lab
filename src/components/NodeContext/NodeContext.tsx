@@ -6,17 +6,22 @@ import React, {
   useRef,
 } from "react";
 import { createContext, FC } from "react";
-import { NodeManager, render, getAllConnections2, getAllNodes } from "./NodeManager";
+import { NodeManager, render } from "./NodeManager";
 import NodeReducer from "./NodeReducer";
+import { Node } from "data";
+
+const INIT_STATE: Node.ContextState = {
+  zoom: 1.5,
+  viewBox: [0, 0, window.innerWidth * 1.5, window.innerHeight * 1.5],
+  renderState: false,
+  nodes: [],
+  connections: [],
+  selectedLayout: { url: "", name: "hello_vertex.json" },
+};
 
 const NodeContext = createContext({
-  state: {
-    renderState: false,
-    nodes: [],
-    connections: [],
-    selectedLayout: { url: "", name: "hello_vertex.json" },
-  },
-  dispatch: (async () => {}) as React.Dispatch<any>,
+  state: null,
+  dispatch: null,
 });
 const { Provider } = NodeContext;
 
@@ -33,12 +38,7 @@ const NodeProvider: FC<Props> = ({ device, children, format }) => {
 
   const nodeReducer = useCallback(NodeReducer(nm), [nm]);
 
-  const [state, dispatch] = useReducer(nodeReducer, {
-    renderState: false,
-    nodes: getAllNodes(nm),
-    connections: getAllConnections2(nm),
-    selectedLayout: { url: "", name: "hello_vertex.json" },
-  });
+  const [state, dispatch] = useReducer(nodeReducer, INIT_STATE);
 
   const renderLoop = () => {
     render(nm);

@@ -1,10 +1,10 @@
 import { FC, RefObject, useContext } from "react";
 import { NodeContext } from "components";
-import { viewBoxCoords } from "data";
+import { viewBoxCoords, Node } from "data";
 
 type Props = {
   svgRef: RefObject<SVGElement>;
-  sender: NodeSender;
+  sender: Node.Sender;
   senderRef: RefObject<SVGCircleElement>;
   width: number;
   view: { viewBox: n[] };
@@ -20,15 +20,11 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
     const bb = (
       evt.currentTarget as unknown as HTMLElement
     ).getBoundingClientRect();
-    const [cx, cy] = viewBoxCoords(
-      bb.x + bb.width / 2,
-      bb.y + bb.height / 2,
-      view
-    );
+    const [cx, cy] = viewBoxCoords(bb.x + bb.width, bb.y + bb.height / 2, view);
 
     // Create temporary line element
     const line = getLine(cx, cy);
-    svgRef.current.appendChild(line);
+    svgRef.current.prepend(line);
 
     let elm: HTMLElement | null;
     let backgroundColor: string | null;
@@ -86,8 +82,8 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
   };
   return (
     <path
-      transform={`translate(${width - 20}, 5) scale(.75)`}
-      cx={width - 10}
+      transform={`translate(${width}, 5) scale(.75)`}
+      cx={width + 40}
       cy={5}
       r="10"
       d="M 0 14 L 0 25 C 0 28 0 28 2 26 L 10 17 C 12 14 12 14 10 11 L 2 2 C 0 0 0 0 0 3 Z"
@@ -95,9 +91,7 @@ const Sender: FC<Props> = ({ svgRef, sender, senderRef, width, view }) => {
       data-uuid={sender.uuid}
       onMouseDown={handleMouseDown}
       ref={senderRef}
-      fill="white"
-      stroke="black"
-      strokeWidth="3px"
+      fill="yellow"
     />
   );
 };
@@ -109,7 +103,7 @@ function getLine(x: number, y: number): SVGLineElement {
   line.setAttribute("x2", x.toString());
   line.setAttribute("y2", y.toString());
   line.setAttribute("stroke", "black");
-  line.setAttribute("stroke-width", "3px");
+  line.setAttribute("stroke-width", "4px");
   line.setAttribute("pointer-events", "none");
   return line;
 }

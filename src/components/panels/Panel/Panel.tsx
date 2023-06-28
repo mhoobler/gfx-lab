@@ -1,136 +1,153 @@
 import { FC } from "react";
 
-import { BufferPanel } from "../BufferPanel/BufferPanel";
-import { CanvasPanel } from "../CanvasPanel/CanvasPanel";
-import { CommandEncoderPanel } from "../CommandEncoderPanel/CommandEncoderPanel";
-import { DataPanel } from "../DataPanel/DataPanel";
-import { DrawCallPanel } from "../DrawCallPanel/DrawCallPanel";
-import { FragmentStatePanel } from "../FragmentStatePanel/FragmentStatePanel";
-import { RenderPassPanel } from "../RenderPassPanel/RenderPassPanel";
-import { RenderPipelinePanel } from "../RenderPipelinePanel/RenderPipelinePanel";
-import { ShaderModulePanel } from "../ShaderModulePanel/ShaderModulePanel";
-import { VertexStatePanel } from "../VertexStatePanel/VertexStatePanel";
-import { VertexBufferLayoutPanel } from "../VertexBufferLayoutPanel/VertexBufferLayoutPanel";
-import {VertexAttributePanel} from "../VertexAttributePanel/VertexAttributePanel";
+import { Node } from "data";
 
-type Props = { data: NodeData<GPUBase, NodeType> };
+import { BufferData, BufferPanel } from "../BufferPanel/BufferPanel";
+import { CanvasPanel, CanvasPanelData } from "../CanvasPanel/CanvasPanel";
+import {
+  CommandEncoderData,
+  CommandEncoderPanel,
+} from "../CommandEncoderPanel/CommandEncoderPanel";
+import { DataData, DataPanel } from "../DataPanel/DataPanel";
+import { DrawCallData, DrawCallPanel } from "../DrawCallPanel/DrawCallPanel";
+import {
+  FragmentStateData,
+  FragmentStatePanel,
+} from "../FragmentStatePanel/FragmentStatePanel";
+import {
+  RenderPassData,
+  RenderPassPanel,
+} from "../RenderPassPanel/RenderPassPanel";
+import {
+  RenderPipelineData,
+  RenderPipelinePanel,
+} from "../RenderPipelinePanel/RenderPipelinePanel";
+import {
+  ShaderModuleData,
+  ShaderModulePanel,
+} from "../ShaderModulePanel/ShaderModulePanel";
+import {
+  VertexStateData,
+  VertexStatePanel,
+} from "../VertexStatePanel/VertexStatePanel";
+import {
+  VertexBufferLayoutData,
+  VertexBufferLayoutPanel,
+} from "../VertexBufferLayoutPanel/VertexBufferLayoutPanel";
+import {
+  VertexAttributeData,
+  VertexAttributePanel,
+} from "../VertexAttributePanel/VertexAttributePanel";
+import {
+  BindGroupData,
+  BindGroupPanel,
+} from "../BindGroupPanel/BindGroupPanel";
+
+import "./Panel.less";
+import {
+  BindGroupEntryData,
+  BindGroupEntryPanel,
+} from "../BindGroupEntryPanel/BindGroupEntryPanel";
+
+type Props = { data: Node.Data<GPUBase> };
 const Panel: FC<Props> = ({ data }) => {
   switch (data.type) {
     case "Buffer": {
       return (
-        <BufferPanel data={data as NodeData<GPUBufferDescriptor, "Data">}>
+        <BufferPanel data={data as BufferData}>
           <></>
         </BufferPanel>
       );
     }
     case "CanvasPanel": {
       return (
-        <CanvasPanel data={data as NodeData<GPUCanvasPanel, null>}>
+        <CanvasPanel data={data as CanvasPanelData}>
           <></>
         </CanvasPanel>
       );
     }
     case "CommandEncoder": {
       return (
-        <CommandEncoderPanel
-          data={
-            data as NodeData<
-              GPUCommandEncoderDescriptorEXT,
-              "RenderPass" | "DrawCall"
-            >
-          }
-        >
+        <CommandEncoderPanel data={data as CommandEncoderData}>
           <></>
         </CommandEncoderPanel>
       );
     }
     case "Data": {
       return (
-        <DataPanel data={data as NodeData<GPUData, null>}>
+        <DataPanel data={data as DataData}>
           <></>
         </DataPanel>
       );
     }
     case "DrawCall": {
       return (
-        <DrawCallPanel
-          data={data as NodeData<GPUDrawCall, "RenderPipeline" | "Buffer">}
-        >
+        <DrawCallPanel data={data as DrawCallData}>
           <></>
         </DrawCallPanel>
       );
     }
     case "FragmentState": {
       return (
-        <FragmentStatePanel
-          data={data as NodeData<GPUFragmentState, "ShaderModule">}
-        >
+        <FragmentStatePanel data={data as FragmentStateData}>
           <></>
         </FragmentStatePanel>
       );
     }
     case "RenderPass": {
       return (
-        <RenderPassPanel
-          data={data as NodeData<GPURenderPassDescriptorEXT, "CanvasPanel">}
-        >
+        <RenderPassPanel data={data as RenderPassData}>
           <></>
         </RenderPassPanel>
       );
     }
     case "RenderPipeline": {
       return (
-        <RenderPipelinePanel
-          data={
-            data as NodeData<
-              GPURenderPipelineDescriptor,
-              "VertexState" | "FragmentState"
-            >
-          }
-        >
+        <RenderPipelinePanel data={data as RenderPipelineData}>
           <></>
         </RenderPipelinePanel>
       );
     }
     case "ShaderModule": {
       return (
-        <ShaderModulePanel
-          data={data as NodeData<GPUShaderModuleDescriptor, null>}
-        >
+        <ShaderModulePanel data={data as ShaderModuleData}>
           <></>
         </ShaderModulePanel>
       );
     }
     case "VertexState": {
       return (
-        <VertexStatePanel
-          data={
-            data as NodeData<
-              GPUVertexState,
-              "ShaderModule" | "VertexBufferLayout"
-            >
-          }
-        >
+        <VertexStatePanel data={data as VertexStateData}>
           <></>
         </VertexStatePanel>
       );
     }
     case "VertexBufferLayout": {
       return (
-        <VertexBufferLayoutPanel
-          data={data as NodeData<GPUVertexBufferLayoutEXT, "VertexAttribute">}
-        >
+        <VertexBufferLayoutPanel data={data as VertexBufferLayoutData}>
           <></>
         </VertexBufferLayoutPanel>
       );
     }
     case "VertexAttribute": {
       return (
-        <VertexAttributePanel
-          data={data as NodeData<GPUVertexAttributeEXT, null>}
-        >
+        <VertexAttributePanel data={data as VertexAttributeData}>
           <></>
         </VertexAttributePanel>
+      );
+    }
+    case "BindGroup": {
+      return (
+        <BindGroupPanel data={data as BindGroupData}>
+          <></>
+        </BindGroupPanel>
+      );
+    }
+    case "BindGroupEntry": {
+      return (
+        <BindGroupEntryPanel data={data as BindGroupEntryData}>
+          <></>
+        </BindGroupEntryPanel>
       );
     }
     default: {
