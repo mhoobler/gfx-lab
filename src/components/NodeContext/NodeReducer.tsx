@@ -21,19 +21,6 @@ const NodeReducer =
     const { type, payload } = action;
 
     switch (type) {
-      case "ADD_RENDERPASS_STEP": {
-        const { index, receiver, body } = payload;
-
-        const node = nm.nodes[receiver.uuid];
-        node.receivers[receiver.type][index] = receiver;
-        node.body = body;
-
-        return {
-          ...state,
-          nodes: getAllNodes(nm),
-        };
-      }
-
       case "ADD_RECEIVER": {
         const { index, receiver } = payload;
 
@@ -57,15 +44,14 @@ const NodeReducer =
         };
       }
 
-      case "EDIT_NODE_BODY": {
-        const { uuid, body } = payload;
-        nm.nodes[uuid].body = body;
-        updateConnections(nm, nm.nodes[uuid]);
+      case "EDIT_NODE": {
+        const newNode = payload;
+        nm.nodes[newNode.uuid] = newNode;
+        updateConnections(nm, newNode);
 
         return {
           ...state,
           nodes: getAllNodes(nm),
-          connections: getAllConnections2(nm),
         };
       }
 
@@ -105,12 +91,16 @@ const NodeReducer =
         const { uuid, type, index } = payload;
         const node = nm.nodes[uuid];
         const receiver = node.receivers[type][index];
-        
-        removeConnection(nm, {
-          receiverId: uuid,
-          senderId: receiver.from.uuid
-        });
-        node.receivers[type] = node.receivers[type].filter((_, i) => i !== index);
+
+        if (receiver.from) {
+          removeConnection(nm, {
+            receiverId: uuid,
+            senderId: receiver.from.uuid,
+          });
+        }
+        node.receivers[type] = node.receivers[type].filter(
+          (_, i) => i !== index
+        );
 
         return {
           ...state,

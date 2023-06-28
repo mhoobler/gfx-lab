@@ -38,8 +38,16 @@ import {
   VertexAttributeData,
   VertexAttributePanel,
 } from "../VertexAttributePanel/VertexAttributePanel";
+import {
+  BindGroupData,
+  BindGroupPanel,
+} from "../BindGroupPanel/BindGroupPanel";
 
 import "./Panel.less";
+import {
+  BindGroupEntryData,
+  BindGroupEntryPanel,
+} from "../BindGroupEntryPanel/BindGroupEntryPanel";
 
 type Props = { data: Node.Data<GPUBase> };
 const Panel: FC<Props> = ({ data }) => {
@@ -126,6 +134,20 @@ const Panel: FC<Props> = ({ data }) => {
         <VertexAttributePanel data={data as VertexAttributeData}>
           <></>
         </VertexAttributePanel>
+      );
+    }
+    case "BindGroup": {
+      return (
+        <BindGroupPanel data={data as BindGroupData}>
+          <></>
+        </BindGroupPanel>
+      );
+    }
+    case "BindGroupEntry": {
+      return (
+        <BindGroupEntryPanel data={data as BindGroupEntryData}>
+          <></>
+        </BindGroupEntryPanel>
       );
     }
     default: {

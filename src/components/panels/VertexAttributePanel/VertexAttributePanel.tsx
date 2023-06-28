@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext } from "react";
 import { Color, Node } from "data";
 import { NodeContext } from "components";
 
@@ -35,39 +35,49 @@ const VertexAttributeJson = (body: GPUVertexAttributeEXT) => {
 type VertexAttributeProps = PanelProps<VertexAttributeData>;
 const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
-  const { uuid, body } = data;
-  const [offset, setOffset] = useState(body.offset.toString());
-  const [shaderLocation, setShaderLocation] = useState(
-    body.shaderLocation.toString()
-  );
+  const { body } = data;
 
   const handleEditLocation = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const value = evt.target.value;
-    const shaderLocation = parseInt(value);
-
-    if (!isNaN(shaderLocation)) {
-      body.shaderLocation = shaderLocation;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+    let shaderLocation = parseInt(value);
+    if (isNaN(shaderLocation)) {
+      shaderLocation = 0;
     }
-    setShaderLocation(value);
+
+    evt.target.value = shaderLocation.toString();
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          shaderLocation,
+        },
+      },
+    });
   };
 
   const handleEditFormat = (evt: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = evt.target.value;
-    body.format = value as GPUVertexFormat;
+    const format = evt.target.value as GPUVertexFormat;
 
-    dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+    dispatch({
+      type: "EDIT_NODE",
+      payload: { ...data, body: { ...data.body, format } },
+    });
   };
 
   const handleEditOffset = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const value = evt.target.value;
-    const offset = parseInt(value);
-
-    if (!isNaN(offset)) {
-      body.offset = offset;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+    let offset = parseInt(value);
+    if (isNaN(offset)) {
+      offset = 0;
     }
-    setOffset(value);
+
+    evt.target.value = offset.toString();
+    dispatch({
+      type: "EDIT_NODE",
+      payload: { ...data, body: { ...data.body, offset } },
+    });
   };
 
   return (
@@ -81,19 +91,16 @@ const VertexAttributePanel: FC<VertexAttributeProps> = ({ data }) => {
         <input
           onChange={handleEditLocation}
           type="number"
-          value={shaderLocation}
-          data-key={"shaderLocation"}
+          value={body.shaderLocation}
         />
         <input
           onChange={handleEditOffset}
           type="number"
-          value={offset}
-          data-key={"offset"}
+          value={body.offset}
         />
         <select
           onChange={handleEditFormat}
           value={body.format}
-          data-key={"format"}
         >
           <option value="float32x4">float32x4</option>
           <option value="float32x3">float32x3</option>

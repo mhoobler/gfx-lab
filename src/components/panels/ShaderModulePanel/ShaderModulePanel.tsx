@@ -31,14 +31,22 @@ const ShaderModuleJson = (body: GPUShaderModuleDescriptor) => {
 type Props = PanelProps<ShaderModuleData>;
 const ShaderModulePanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
-  const { uuid, body } = data;
+  const { body } = data;
   const [code, setCode] = useState<string>(body.code);
 
   const handleChange = (evt: ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = evt.currentTarget;
-    body.code = value;
-    setCode(body.code);
-    dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+    setCode(value);
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          code: value,
+        },
+      },
+    });
   };
 
   return (

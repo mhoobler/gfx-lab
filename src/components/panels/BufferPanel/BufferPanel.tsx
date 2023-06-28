@@ -45,19 +45,27 @@ const BufferJson = (body: GPUBufferDescriptor & GPUBase) => {
 type Props = PanelProps<BufferData>;
 const BufferPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
-  const { uuid, body } = data;
+  const { body } = data;
   const [usage, setUsage] = useState(body.usage);
   const dataReceiver = data.receivers["Data"][0];
 
   const handleUsage = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const isChecked = evt.target.checked ? 1 : -1;
-    const usage = parseInt(evt.target.value);
+    const usage = data.body.usage + parseInt(evt.target.value) * isChecked;
 
     if (!isNaN(usage)) {
-      body.usage += usage * isChecked;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+      dispatch({
+        type: "EDIT_NODE",
+        payload: {
+          ...data,
+          body: {
+            ...data.body,
+            usage,
+          },
+        },
+      });
     }
-    setUsage(body.usage);
+    setUsage(usage);
   };
 
   return (

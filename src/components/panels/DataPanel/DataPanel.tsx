@@ -32,25 +32,31 @@ const DataJson = (body: GPUData) => {
 type Props = PanelProps<DataData>;
 const DataPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
-  const { body, uuid } = data;
+  const { body } = data;
   const [text, setText] = useState(body.text);
 
   const handleChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = evt.target.value;
 
-    const newBody = {
-      ...body,
-      text,
-      data: new Float32Array(
-        text
-          .split(",")
-          .map((n) => parseFloat(n))
-          .filter((e) => !isNaN(e))
-      ),
-    };
+    const dataArray = new Float32Array(
+      text
+        .split(",")
+        .map((n) => parseFloat(n))
+        .filter((e) => !isNaN(e))
+    );
 
     setText(text);
-    dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body: newBody } });
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          text,
+          data: dataArray,
+        },
+      },
+    });
   };
 
   return (

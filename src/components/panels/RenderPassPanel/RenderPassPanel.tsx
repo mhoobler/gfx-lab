@@ -1,10 +1,12 @@
-import { NodeContext, Receiver } from "components";
+import { NodeContext, Receiver, SelectionModal } from "components";
 import { Color, Node } from "data";
 import { FC, useContext, useEffect, useState } from "react";
 
 export type RenderPassData = Node.Data<
   GPURenderPassDescriptorEXT,
-  Node.Receivers<"CanvasPanel" | "Buffer" | "RenderPipeline" | "DrawCall">
+  Node.Receivers<
+    "CanvasPanel" | "Buffer" | "RenderPipeline" | "DrawCall" | "BindGroup"
+  >
 >;
 const type = "RenderPass";
 const RenderPassInit: Node.InitFn<RenderPassData> = (uuid, xyz) => ({
@@ -43,6 +45,7 @@ const RenderPassInit: Node.InitFn<RenderPassData> = (uuid, xyz) => ({
     Buffer: [],
     RenderPipeline: [],
     DrawCall: [],
+    BindGroup: [],
   },
 });
 
@@ -55,12 +58,14 @@ type Props = PanelProps<RenderPassData>;
 const RenderPassPanel: FC<Props> = ({ data }) => {
   const { dispatch } = useContext(NodeContext);
   const { uuid, body } = data;
-  const [receiversOrder, setReceiversOrder] = useState(body.receiversOrder);
+  const { receiversOrder } = body;
   const [showSelection, setShowSelection] = useState(0);
 
   useEffect(() => {
+    // If showSelection is open, and user clicks anywhere else on the app, close the showSelection
     const hideSelection = () => {
       setShowSelection((state) => {
+        console.log(state);
         if (state === 0) {
           return 0;
         }
@@ -83,46 +88,80 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
       int = 0;
     }
 
-    body.receiversOrder[receiverIndex].value = int;
-    dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
-
-    setReceiversOrder((state) => {
-      const newOrder = [...state];
-      newOrder[receiverIndex].value = int;
-      return newOrder;
+    const newOrder = [...receiversOrder];
+    newOrder[receiverIndex].value = int;
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder: newOrder,
+        },
+      },
     });
   };
 
   const handleDeleteReceiver = (receiverIndex: number) => {
     const { type, index } = body.receiversOrder[receiverIndex];
+    const receiversOrder = body.receiversOrder.filter(
+      (_, i) => i !== receiverIndex
+    );
+    const newReceivers = data.receivers[type].filter(
+      (_: unknown, i: number) => i !== index
+    );
 
     dispatch({
-      type: "DELETE_RECEIVER",
-      payload: { uuid, type, index },
-    });
-
-    setReceiversOrder((state) => {
-      return state.filter((_, index) => index !== receiverIndex);
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder,
+        },
+        receivers: {
+          ...data.receivers,
+          [type]: newReceivers,
+        },
+      },
     });
   };
 
   const handleAddReceiver = (type: Node.Type) => {
     const receiver = { uuid, type, from: null };
-    console.log(data.receivers[type]);
     const index = data.receivers[type].length;
-    body.receiversOrder.push({ type, uuid: null, value: null, index });
+
+    const value = type === "Buffer" || type === "BindGroup" ? 0 : null;
+    const newStep = { type, uuid: null, value, index };
 
     dispatch({
-      type: "ADD_RENDERPASS_STEP",
-      payload: { receiver, index, body },
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        body: {
+          ...data.body,
+          receiversOrder: [...body.receiversOrder, newStep],
+        },
+        receivers: {
+          ...data.receivers,
+          [type]: [...data.receivers[type], receiver],
+        },
+      },
     });
   };
 
-  console.log(receiversOrder);
   return (
     <div className="input-container">
-      {receiversOrder.map(({ type, index, value, uuid }, receiverIndex) => {
-        const receiver = data.receivers[type][index];
+      {receiversOrder.map(({ type, index, value }, receiverIndex) => {
+        let receiver = data.receivers[type][index];
+        if (!receiver) {
+          receiver = {
+            uuid,
+            type,
+            from: null,
+          };
+        }
+
         return (
           <Receiver
             key={data.uuid + receiver.type + index}
@@ -131,7 +170,7 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
             handleDelete={() => handleDeleteReceiver(receiverIndex)}
           >
             {receiver.type}
-            {type === "Buffer" ? (
+            {type === "Buffer" || type === "BindGroup" ? (
               <input
                 style={{ width: "2rem" }}
                 value={value}
@@ -143,22 +182,18 @@ const RenderPassPanel: FC<Props> = ({ data }) => {
           </Receiver>
         );
       })}
-      {showSelection > 0 ? (
-        <div className="col">
-          <button onClick={() => handleAddReceiver("DrawCall")}>
-            DrawCall
-          </button>
-          <button onClick={() => handleAddReceiver("RenderPipeline")}>
-            RenderPipeline
-          </button>
-          <button onClick={() => handleAddReceiver("CanvasPanel")}>
-            CanvasPanel
-          </button>
-          <button onClick={() => handleAddReceiver("Buffer")}>Buffer</button>
-        </div>
-      ) : (
-        <button onClick={() => setShowSelection(1)}>Add Step</button>
-      )}
+      <SelectionModal
+        items={[
+          "DrawCall",
+          "RenderPipeline",
+          "CanvasPanel",
+          "Buffer",
+          "BindGroup",
+        ]}
+        handleSelect={handleAddReceiver}
+      >
+        Add Step
+      </SelectionModal>
     </div>
   );
 };

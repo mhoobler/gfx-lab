@@ -148,10 +148,12 @@ export const NODE_TYPE_PRIORITY: ReadonlyArray<string> = [
   "VertexBufferLayout",
   "Buffer",
   // Step
+  "BindGroupEntry",
   "VertexState",
   // Step
   "RenderPipeline",
   // Step
+  "BindGroup",
   "RenderPass",
   // Step
   "CommandEncoder",

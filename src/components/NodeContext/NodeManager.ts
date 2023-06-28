@@ -1,5 +1,6 @@
 import { NodeInitFn } from "components";
 import { NodeBodyForJson } from "components/panels";
+import { BindGroupData } from "components/panels/BindGroupPanel/BindGroupPanel";
 import { BufferData } from "components/panels/BufferPanel/BufferPanel";
 import { CommandEncoderData } from "components/panels/CommandEncoderPanel/CommandEncoderPanel";
 import { DrawCallData } from "components/panels/DrawCallPanel/DrawCallPanel";
@@ -60,6 +61,9 @@ export class NodeManager {
 
     this.nodes = {};
     this.byCategory = {} as ByCategory;
+    for (const category of NODE_TYPE_PRIORITY) {
+      this.byCategory[category] = new Set();
+    }
   }
 }
 
@@ -68,7 +72,6 @@ export function loadJson(
   json: { [key: string]: Node.Json }
 ) {
   manager.nodes = {};
-  manager.byCategory = {} as ByCategory;
   manager.connections = new Map();
 
   for (const nodeJson of Object.values(json)) {
@@ -89,6 +92,16 @@ export function loadJson(
               .filter((e) => !isNaN(e))
           );
         }
+        if (type === "RenderPass") {
+          const b = newNode.body as GPURenderPassDescriptorEXT;
+          for (const receiverOrder of b.receiversOrder) {
+            newNode.receivers[receiverOrder.type].push({
+              uuid,
+              type: receiverOrder.type,
+              from: null,
+            });
+          }
+        }
       }
       if (size) {
         newNode.size = size;
@@ -96,9 +109,12 @@ export function loadJson(
     }
   }
 
-  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
-    ...manager.byCategory[nodeType],
-  ]).map((uuid) => manager.nodes[uuid]);
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => {
+    if (manager.byCategory[nodeType]) {
+      return [...manager.byCategory[nodeType]];
+    }
+    return [];
+  }).map((uuid) => manager.nodes[uuid]);
 
   for (const senderNode of orderedNodes) {
     const { connections } = json[senderNode.uuid];
@@ -125,9 +141,12 @@ export function saveJson(
   zoom: number,
   position: number[]
 ) {
-  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => [
-    ...manager.byCategory[nodeType],
-  ]).map((uuid) => manager.nodes[uuid]);
+  const orderedNodes = NODE_TYPE_PRIORITY.flatMap((nodeType) => {
+    if (manager.byCategory[nodeType]) {
+      return [...manager.byCategory[nodeType]];
+    }
+    return [];
+  }).map((uuid) => manager.nodes[uuid]);
 
   for (const nodeType of NODE_TYPE_PRIORITY) {
     const uuids = manager.byCategory[nodeType];
@@ -145,14 +164,9 @@ export function saveJson(
   for (const senderNode of orderedNodes) {
     const { uuid, xyz, type, body, sender } = senderNode;
 
-    const getReceiverIndex = (receiverNode: Node.Default): number => {
-      return receiverNode.receivers[type].findIndex(
-        (receiver: Node.Receiver) => receiver.from === senderNode
-      );
-    };
-
     const connections = [...sender.to].map((receiverNode) => {
-      const receiverIndex = getReceiverIndex(receiverNode);
+      //const receiverIndex = getReceiverIndex(receiverNode);
+      const receiverIndex = findReceiverIndex(senderNode, receiverNode);
       return { uuid: receiverNode.uuid, receiverIndex };
     });
 
@@ -221,6 +235,15 @@ export function render(manager: NodeManager) {
             case "CanvasPanel": {
               break;
             }
+            case "BindGroup": {
+              const node = renderPass.receivers[type][index]
+                .from as BindGroupData;
+              if (node && node.sender.value) {
+                const bindGroup = node.sender.value as GPUBindGroup;
+                pass.setBindGroup(value, bindGroup);
+              }
+              break;
+            }
             case "Buffer": {
               const node = renderPass.receivers[type][index].from as BufferData;
               if (node && node.sender.value) {
@@ -239,10 +262,11 @@ export function render(manager: NodeManager) {
               break;
             }
             case "DrawCall": {
-              const node = renderPass.receivers[type][index]
-                .from as DrawCallData;
+              const uuid = renderPass.receivers[type][index].from.uuid;
+              const node = manager.nodes[uuid] as DrawCallData;
               if (node && node.body.vertexCount) {
-                pass.draw(node.body.vertexCount);
+                const { vertexCount, instanceCount } = node.body;
+                pass.draw(vertexCount, instanceCount);
               }
               break;
             }
@@ -253,22 +277,6 @@ export function render(manager: NodeManager) {
         }
         pass.end();
       }
-
-      //const lim = command.receivers["DrawCall"].length;
-      //for (let i = 0; i < lim; i++) {
-      //  const drawCall = command.receivers["DrawCall"][i].from as DrawCallData;
-
-      //  if (drawCall) {
-      //    if (drawCall.body.renderPipeline) {
-      //      pass.setPipeline(drawCall.body.renderPipeline);
-      //    }
-      //    if (drawCall.body.buffer) {
-      //      pass.setVertexBuffer(0, drawCall.body.buffer);
-      //    }
-      //    pass.draw(drawCall.body.vertexCount);
-      //  }
-      //}
-      //pass.end();
 
       const commandBuffer = encoder.finish();
       manager.device.queue.submit([commandBuffer]);
@@ -328,8 +336,6 @@ export function getAllConnections2(manager: NodeManager): Node.Connection[] {
   return connections;
 }
 
-export function deleteReceiver(manager: NodeManager, {}){};
-
 export function removeConnection(
   manager: NodeManager,
   ids: {
@@ -351,11 +357,12 @@ export function removeConnection(
   const innerMap = manager.connections.get(senderNode);
   const receiverIndex = innerMap.get(receiverNode);
   if (receiverIndex >= 0) {
+    finalizeConnection(manager, senderNode, receiverNode, true);
+    updateConnections(manager, receiverNode);
+
     receiverNode.receivers[senderNode.type][receiverIndex].from = null;
     senderNode.sender.to.delete(receiverNode);
     innerMap.delete(receiverNode);
-    finalizeConnection(manager, senderNode, receiverNode, true);
-    updateConnections(manager, receiverNode);
   }
 }
 
@@ -406,7 +413,20 @@ export function createConnection(
   receiver.from = senderNode;
   sender.to.add(receiverNode);
   finalizeConnection(manager, senderNode, receiverNode);
-  updateConnections(manager, receiverNode)
+  updateConnections(manager, receiverNode);
+}
+
+function findReceiverIndex(
+  senderNode: Node.Data<GPUBase, Node.Receivers>,
+  receiverNode: Node.Data<GPUBase, Node.Receivers>
+) {
+  const index = receiverNode.receivers[senderNode.type].findIndex(
+    (receiver: Node.Receiver) => receiver.from.uuid === senderNode.uuid
+  );
+  if (index < 0) {
+    throw new Error("Cound not find ReceiverIndex");
+  }
+  return index;
 }
 
 export function finalizeConnection(
@@ -415,12 +435,11 @@ export function finalizeConnection(
   receiverNode: Node.Data<any, Node.Receivers>, // eslint-disable-line
   isDelete = false
 ) {
-
   switch (senderNode.type) {
     case "ShaderModule": {
-      senderNode.sender.value = isDelete ? null : manager.device.createShaderModule(
-        senderNode.body
-      );
+      senderNode.sender.value = isDelete
+        ? null
+        : manager.device.createShaderModule(senderNode.body);
       receiverNode.body.module = senderNode.sender.value;
       break;
     }
@@ -433,13 +452,22 @@ export function finalizeConnection(
       break;
     }
     case "RenderPipeline": {
+      senderNode = senderNode as Node.Data<GPURenderPipelineDescriptor>;
       try {
-        senderNode.sender.value = manager.device.createRenderPipeline(
-          senderNode.body
-        );
+        senderNode.sender.value = isDelete
+          ? null
+          : manager.device.createRenderPipeline(senderNode.body);
+        if (receiverNode.type === "BindGroup") {
+          const value = senderNode.sender.value as GPURenderPipeline;
+          receiverNode = receiverNode as Node.Data<GPUBindGroupDescriptor>;
+
+          receiverNode.body.layout = value.getBindGroupLayout(
+            senderNode.body.layoutIndex
+          );
+          senderNode.body.layoutIndex++;
+        }
       } catch (err) {
         senderNode.sender.value = null;
-        console.error(err);
       }
       break;
     }
@@ -460,36 +488,31 @@ export function finalizeConnection(
       } else {
         senderNode.sender.value = manager.device.createBuffer(senderNode.body);
         const { data } = senderNode.body;
-        const buffer = senderNode.sender.value as GPUBuffer;
-        manager.device.queue.writeBuffer(buffer, 0, data);
+        if (data) {
+          const buffer = senderNode.sender.value as GPUBuffer;
+          manager.device.queue.writeBuffer(buffer, 0, data);
+          if (receiverNode.type === "BindGroupEntry") {
+            receiverNode.body.resource.buffer = buffer;
+          }
+        }
       }
 
       break;
     }
     case "VertexAttribute": {
+      const index = findReceiverIndex(senderNode, receiverNode);
       if (isDelete) {
-        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
-          (receiver) => receiver.from === null
-        );
-        receiverNode.body.buffers[index] = null;
+        receiverNode.body.attributes[index] = null;
       } else {
-        const index = receiverNode.receivers["VertexAttribute"].findIndex(
-          (receiver) => receiver.from === senderNode
-        );
         receiverNode.body.attributes[index] = senderNode.body;
       }
       break;
     }
     case "VertexBufferLayout": {
-      if(isDelete) {
-        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
-          (receiver) => receiver.from === null
-        );
+      const index = findReceiverIndex(senderNode, receiverNode);
+      if (isDelete) {
         receiverNode.body.buffers[index] = null;
       } else {
-        const index = receiverNode.receivers["VertexBufferLayout"].findIndex(
-          (receiver) => receiver.from === senderNode
-        );
         receiverNode.body.buffers[index] = senderNode.body;
       }
       break;
@@ -503,6 +526,26 @@ export function finalizeConnection(
         receiverNode.body.data = senderNode.body.data;
         receiverNode.body.size = senderNode.body.data.byteLength;
       }
+      break;
+    }
+    case "BindGroupEntry": {
+      const index = findReceiverIndex(senderNode, receiverNode);
+      if (isDelete) {
+        receiverNode.body.entries = receiverNode.body.entries[index] = null;
+      } else {
+        receiverNode.body.entries[index] = senderNode.body;
+      }
+      break;
+    }
+    case "BindGroup": {
+      if (isDelete) {
+        senderNode.sender.value = null;
+      } else {
+        senderNode.sender.value = manager.device.createBindGroup(
+          senderNode.body
+        );
+      }
+
       break;
     }
     default: {

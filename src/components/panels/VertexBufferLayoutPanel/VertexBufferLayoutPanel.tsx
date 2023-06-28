@@ -57,17 +57,33 @@ const VertexBufferLayoutPanel: FC<VertexBufferLayoutProps> = ({ data }) => {
     const arrayStride = parseInt(value);
 
     if (!isNaN(arrayStride)) {
-      body.arrayStride = arrayStride;
-      dispatch({ type: "EDIT_NODE_BODY", payload: { uuid, body } });
+      dispatch({
+        type: "EDIT_NODE",
+        payload: {
+          ...data,
+          body: {
+            ...data.body,
+            arrayStride,
+          },
+        },
+      });
     }
     setArrayStride(value);
   };
 
   const handleAddAttribute = () => {
     const receiver = { uuid, type: "VertexAttribute", from: null };
-    const index = vertexAttributeReceivers.length;
 
-    dispatch({ type: "ADD_RECEIVER", payload: { receiver, index } });
+    dispatch({
+      type: "EDIT_NODE",
+      payload: {
+        ...data,
+        receivers: {
+          ...data.receivers,
+          VertexAttribute: [...data.receivers.VertexAttribute, receiver],
+        },
+      },
+    });
   };
 
   return (

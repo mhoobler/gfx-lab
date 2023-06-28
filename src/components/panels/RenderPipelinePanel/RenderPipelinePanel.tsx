@@ -21,6 +21,7 @@ const RenderPipelineInit: Node.InitFn<RenderPipelineData> = (uuid, xyz) => ({
     primitive: {
       topology: "triangle-strip",
     },
+    layoutIndex: 0,
   },
   sender: {
     uuid,

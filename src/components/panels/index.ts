@@ -36,6 +36,11 @@ import {
   VertexAttributeInit,
   VertexAttributeJson,
 } from "./VertexAttributePanel/VertexAttributePanel";
+import { BindGroupInit, BindGroupJson } from "./BindGroupPanel/BindGroupPanel";
+import {
+  BindGroupEntryInit,
+  BindGroupEntryJson,
+} from "./BindGroupEntryPanel/BindGroupEntryPanel";
 
 export class NodeInitFn {
   static Buffer = BufferInit;
@@ -50,6 +55,8 @@ export class NodeInitFn {
   static VertexAttribute = VertexAttributeInit;
   static VertexBufferLayout = VertexBufferLayoutInit;
   static VertexState = VertexStateInit;
+  static BindGroup = BindGroupInit;
+  static BindGroupEntry = BindGroupEntryInit;
 }
 
 export class NodeBodyForJson {
@@ -65,4 +72,6 @@ export class NodeBodyForJson {
   static VertexAttribute = VertexAttributeJson;
   static VertexBufferLayout = VertexBufferLayoutJson;
   static VertexState = VertexStateJson;
+  static BindGroup = BindGroupJson;
+  static BindGroupEntry = BindGroupEntryJson;
 }

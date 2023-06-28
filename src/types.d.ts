@@ -31,6 +31,15 @@ interface GPUVertexStateEXT extends GPUVertexState {
   label?: string;
 }
 
+interface GPUBindGroupEntry extends GPUVertexState {
+  label?: string;
+}
+
+interface GPUBindGroupDescriptorEXT extends GPUBindGroupDescriptor {
+  label?: string;
+  layoutIndex: n | null;
+}
+
 interface GPURenderPassDescriptorEXT extends GPURenderPassDescriptor {
   canvasPointer: GPUCanvasPanel;
   receiversOrder?: {

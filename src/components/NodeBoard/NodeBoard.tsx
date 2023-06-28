@@ -58,12 +58,18 @@ const NodeBoard: FC = () => {
   };
 
   const handleMouseDown = (evt: React.MouseEvent) => {
+    // Handle Left Click Selection
+    if (evt.button === 1 && evt.target === svgRef.current) {
+    }
+
+    // Handle Right Click Modal
     if (evt.button === 2 && evt.target === svgRef.current) {
       return setDialog({
         open: true,
         position: [evt.clientX, evt.clientY],
       });
     }
+    // Handle Middle Click Panning
     if (evt.button === 1 && svgRef.current) {
       document.body.style.cursor = "grabbing";
 
@@ -148,7 +154,7 @@ const NodeBoard: FC = () => {
         {nodes.map((data: Node.Data<GPUBase>) => {
           return (
             <NodeSVG
-              key={data.sender.uuid}
+              key={data.uuid}
               data={data}
               svgRef={svgRef}
               view={{ viewBox }}
