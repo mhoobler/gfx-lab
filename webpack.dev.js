@@ -7,7 +7,7 @@ module.exports = merge(common, {
   devServer: {
     static: "./dist",
     port: "3000",
-    hot: true,
+    hot: false,
     compress: false,
     //proxy: {
     //  context: () => true,
